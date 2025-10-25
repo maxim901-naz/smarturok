@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Отправка домашнего задания — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black">
+
+<header class="bg-[#f5821e] text-white p-4 shadow">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">MaxSchool — Отправка домашнего задания</h1>
+        <a href="{% url 'student_dashboard' %}" class="text-white underline">← Назад в кабинет</a>
+    </div>
+</header>
+
+<main class="max-w-2xl mx-auto py-10 px-4">
+    <h2 class="text-2xl font-bold text-center mb-6 text-orange-500">Урок по предмету: {{ lesson.subject.name }}</h2>
+
+    <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block mb-1 font-semibold">Комментарий или решение</label>
+            {{ form.text }}
+        </div>
+
+        <div>
+            <label class="block mb-1 font-semibold">Прикрепить файл</label>
+            {{ form.file }}
+        </div>
+
+        <button type="submit"
+                class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">
+            📤 Отправить
+        </button>
+    </form>
+</main>
+
+<footer class="text-center text-sm text-gray-500 py-6">
+    MaxSchool © 2025. Все права защищены.
+</footer>
+
+</body>
+</html>

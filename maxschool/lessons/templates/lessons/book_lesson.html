@@ -1,0 +1,134 @@
+{% comment %} {% load static %}
+{% load widget_tweaks %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Запись к преподавателю</title>
+    <!-- Подключаем Tailwind CSS через CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 py-10">
+
+  <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">
+      Запись к преподавателю {{ teacher.get_full_name|default:teacher.username }}
+  </h2>
+
+  <form method="post" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+      {% csrf_token %}
+      {{ form.teacher.as_hidden }}
+
+      <div class="mb-4">
+          <label for="{{ form.date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Дата</label>
+          {% render_field form.date class="w-full px-4 py-2 border border-gray-300 rounded-md" %}
+          {% for error in form.date.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+          {% endfor %}
+      </div>
+
+      <div class="mb-6">
+          <label for="{{ form.time.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">Время</label>
+          {% render_field form.time class="w-full px-4 py-2 border border-gray-300 rounded-md" %}
+          {% for error in form.time.errors %}
+            <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+          {% endfor %}
+      </div>
+
+      <button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600 transition">
+          Записаться
+      </button>
+
+      {% if form.non_field_errors %}
+        <div class="text-red-600 mt-4">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+  </form>
+  {% if error %}
+  <p class="text-red-600 text-center mt-4">{{ error }}</p>
+{% endif %}
+
+{% if form.errors %}
+  <div class="text-red-600 text-sm mt-4">
+    {% for field in form %}
+      {% for error in field.errors %}
+        <p>{{ field.label }}: {{ error }}</p>
+      {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+      <p>{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+</body>
+</html>
+ {% endcomment %}
+ {% load static %}
+ {% load widget_tweaks %}
+ 
+ <!DOCTYPE html>
+ <html lang="ru">
+ <head>
+     <meta charset="UTF-8" />
+     <title>Запись к преподавателю</title>
+     <!-- Подключаем Tailwind CSS через CDN -->
+     <script src="https://cdn.tailwindcss.com"></script>
+ </head>
+ <body class="bg-gray-100 py-10">
+ 
+   <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">
+       Запись к преподавателю {{ teacher.get_full_name|default:teacher.username }}
+   </h2>
+ 
+   <form method="post" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+       {% csrf_token %}
+       {{ form.teacher.as_hidden }}
+ 
+       <!-- Новый блок выбора слота -->
+       <div class="mb-4">
+           <label for="{{ form.slot.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+               Выберите свободное время
+           </label>
+           {% render_field form.slot class="w-full px-4 py-2 border border-gray-300 rounded-md" %}
+           {% for error in form.slot.errors %}
+             <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+           {% endfor %}
+       </div>
+ 
+       <button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600 transition">
+           Записаться
+       </button>
+ 
+       {% if form.non_field_errors %}
+         <div class="text-red-600 mt-4">
+           {% for error in form.non_field_errors %}
+             <p>{{ error }}</p>
+           {% endfor %}
+         </div>
+       {% endif %}
+   </form>
+ 
+   {% if error %}
+     <p class="text-red-600 text-center mt-4">{{ error }}</p>
+   {% endif %}
+ 
+   {% if form.errors %}
+     <div class="text-red-600 text-sm mt-4">
+       {% for field in form %}
+         {% for error in field.errors %}
+           <p>{{ field.label }}: {{ error }}</p>
+         {% endfor %}
+       {% endfor %}
+       {% for error in form.non_field_errors %}
+         <p>{{ error }}</p>
+       {% endfor %}
+     </div>
+   {% endif %}
+ 
+ </body>
+ </html>
+ 

@@ -1,0 +1,12 @@
+<h2>Моё расписание</h2>
+{% if lessons %}
+    <ul>
+    {% for lesson in lessons %}
+        <li>
+            {{ lesson.date }} в {{ lesson.time }} — {{ lesson.subject.name }} ({{ lesson.teacher.username if user.role == "student" else lesson.student.username }})
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>У вас пока нет назначенных уроков.</p>
+{% endif %}

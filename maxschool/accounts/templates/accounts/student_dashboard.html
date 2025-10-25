@@ -1,0 +1,675 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет ученика — MaxSchool</title>
+    
+    <!-- Подключение тех же ресурсов, что и на главной странице -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo2.PNG' %}">
+
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Глобальные стили */
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .content-container {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* Анимации */
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Градиентный текст */
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* Кастомные кнопки */
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Навигационные ссылки */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        .mobile-menu-link {
+            transition: all 0.3s ease;
+        }
+        .mobile-menu-link:hover {
+            background-color: #f3f4f6;
+            padding-left: 1.5rem;
+        }
+        
+        .logo-animate {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .section-header {
+            position: relative;
+            display: inline-block;
+        }
+        .section-header:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+        }
+        
+        /* Специфичные стили для страницы ученика */
+        .student-dashboard-header {
+            background: linear-gradient(to right, #004E89, #00A6FB);
+            color: white;
+            padding-top: 100px;
+            padding-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .student-dashboard-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+            border-radius: 50%;
+        }
+        
+        .student-profile-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .student-profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .student-stats-card {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .student-stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .lesson-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #FF6B35;
+        }
+        
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 4px solid #00A6FB;
+        }
+        
+        .student-nav-btn {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 180px;
+        }
+        
+        .student-nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(255, 107, 53, 0.3);
+        }
+        
+        .student-nav-btn i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .student-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        
+        .student-stat-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .student-stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .student-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #004E89 0%, #00A6FB 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .student-stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .homework-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #FFBE0B;
+        }
+        
+        .homework-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .chat-btn {
+            background: linear-gradient(90deg, #00A6FB 0%, #004E89 100%);
+            transition: all 0.3s ease;
+        }
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 166, 251, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+
+    <!-- Фиксированная шапка -->
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <!-- Логотип -->
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-12 w-auto logo-animate">
+                <h1 class="text-2xl font-bold gradient-text">MaxSchool</h1>
+            </div>
+
+            <!-- Навигация для ученика -->
+            <nav class="hidden lg:flex space-x-6 items-center">
+                <a href="{% url 'lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
+                <a href="{% url 'my_homeworks' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
+                <a href="#" class="text-dark font-medium transition nav-link">Прогресс</a>
+                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
+            </nav>
+            
+            <!-- Профиль ученика -->
+            <div class="hidden lg:flex items-center space-x-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+                        <img src="{% static 'images/student-avatar.jpg' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="ml-3 font-medium">{{ user.first_name|default:user.username }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Выйти</a>
+            </div>
+            
+            <!-- Кнопка бургера -->
+            <button id="burger-btn" class="lg:hidden text-2xl text-dark focus:outline-none">
+                ☰
+            </button>
+        </div>
+
+        <!-- Мобильное меню -->
+        <nav id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg absolute top-20 left-0 right-0 mx-4 rounded-lg p-4">
+            <ul class="flex flex-col space-y-3">
+                <li><a href="{% url 'lesson_history' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">История уроков</a></li>
+                <li><a href="{% url 'my_homeworks' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Домашние задания</a></li>
+                <li><a href="#" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Прогресс</a></li>
+                <li><a href="{% url 'chat:list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои чаты</a></li>
+                <li class="pt-2 border-t border-gray-200">
+                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Выйти</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Шапка личного кабинета -->
+    <section class="student-dashboard-header">
+        <div class="content-container px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0 animate__animated animate__fadeInLeft" data-aos="fade-right">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">Личный кабинет ученика</h2>
+                    <p class="text-xl mb-6 opacity-90">Привет, <span class="font-bold">{{ user.first_name|default:user.username }}</span>! Здесь ты можешь управлять своим обучением.</p>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <a href="{% url 'lesson_history' %}" class="student-nav-btn hover-scale">
+                            <i class="fas fa-history"></i> История уроков
+                        </a>
+                        <a href="{% url 'my_homeworks' %}" class="student-nav-btn hover-scale">
+                            <i class="fas fa-tasks"></i> Мои домашние задания
+                        </a>
+                        <a href="{% url 'chat:list' %}" class="student-nav-btn hover-scale">
+                            <i class="fas fa-comments"></i> Мои чаты
+                        </a>
+                        <!-- Новая кнопка для записи на урок -->
+                        <a href="{% url 'schedule_lesson' %}" class="student-nav-btn hover-scale" style="background: linear-gradient(90deg, #00A6FB 0%, #004E89 100%);">
+                            <i class="fas fa-calendar-plus"></i> Записаться на урок
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center animate__animated animate__fadeInRight" data-aos="fade-left">
+                    <div class="w-64 h-64 rounded-full overflow-hidden border-4 border-white border-opacity-30">
+                        <img src="{% static 'images/student-avatar.jpg' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Статистика ученика -->
+    <section class="py-12 bg-white">
+        <div class="content-container px-6 lg:px-8">
+            <div class="student-stats-grid">
+                <div class="student-stat-item" data-aos="fade-up" data-aos-delay="100">
+                    <div class="student-stat-value">{{ lessons|length }}</div>
+                    <div class="student-stat-label">Предстоящих уроков</div>
+                </div>
+                <div class="student-stat-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="student-stat-value">{{ completed_lessons|default:"42" }}</div>
+                    <div class="student-stat-label">Пройдено уроков</div>
+                </div>
+                <div class="student-stat-item" data-aos="fade-up" data-aos-delay="300">
+                    <div class="student-stat-value">{{ homework_completion|default:"87" }}%</div>
+                    <div class="student-stat-label">Выполнено ДЗ</div>
+                </div>
+                <div class="student-stat-item" data-aos="fade-up" data-aos-delay="400">
+                    <div class="student-stat-value">{{ average_grade|default:"4.7" }}</div>
+                    <div class="student-stat-label">Средняя оценка</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент -->
+    <main class="content-container py-10 px-6 lg:px-8">
+        <!-- Предстоящие уроки -->
+        <div class="mb-16" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold section-header">Ваши предстоящие уроки</h2>
+                <span class="text-primary font-medium">{{ lessons|length }} уроков</span>
+            </div>
+            
+            {% if lessons %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for lesson in lessons %}
+                    <div class="lesson-card bg-white p-5 hover-scale">
+                        <div class="flex justify-between items-start mb-3">
+                            <h4 class="text-xl font-semibold">{{ lesson.subject.name }}</h4>
+                            <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
+                                {{ lesson.duration_minutes }} мин
+                            </span>
+                        </div>
+                        
+                        <p class="mb-3 flex items-center">
+                            <svg class="w-5 h-5 text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <span>Преподаватель: <strong>{{ lesson.teacher.get_full_name|default:lesson.teacher.username }}</strong></span>
+                        </p>
+                        
+                        <p class="mb-4 flex items-center">
+                            <svg class="w-5 h-5 text-secondary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>{{ lesson.date }} в {{ lesson.time }}</span>
+                        </p>
+                        
+                        <!-- Кнопки действий -->
+                        <div class="mt-4 flex flex-col space-y-2">
+                            {% if lesson.show_video %}
+                                <a href="{% url 'lesson_session' lesson.id %}" 
+                                   class="w-full text-center px-4 py-2 btn-primary text-white rounded-lg font-semibold hover-scale">
+                                    <i class="fas fa-video mr-2"></i> Перейти в урок
+                                </a>
+                            {% else %}
+                                <div class="bg-gray-100 rounded-lg p-3 text-center">
+                                    <p class="text-sm text-gray-600">Ссылка появится во время урока</p>
+                                </div>
+                            {% endif %}
+                            
+                            <a href="{% url 'chat:start' lesson.teacher.id %}" 
+                               class="w-full text-center px-4 py-2 chat-btn text-white rounded-lg font-semibold hover-scale">
+                                <i class="fas fa-comment-dots mr-2"></i> Написать преподавателю
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div class="text-5xl mb-4">📅</div>
+                    <h3 class="text-xl font-semibold mb-2">Пока нет предстоящих уроков</h3>
+                    <p class="text-gray-600 mb-4">Ваши запланированные уроки появятся здесь</p>
+                    <!-- Исправленная кнопка записи на урок -->
+                    <a href="{% url 'schedule_lesson' %}" class="inline-block px-6 py-3 btn-primary text-white rounded-lg font-semibold hover-scale">
+                        Записаться на урок
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Дополнительные разделы -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Быстрые действия -->
+            <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Быстрые действия
+                </h3>
+                
+                <div class="space-y-3">
+                    <a href="{% url 'my_homeworks' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Посмотреть домашние задания</h4>
+                            <p class="text-sm text-gray-600">{{ pending_homeworks|default:"2" }} новых задания</p>
+                        </div>
+                    </a>
+                    
+                    <!-- Исправленная кнопка записи на урок -->
+                    <a href="{% url 'schedule_lesson' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Записаться на урок</h4>
+                            <p class="text-sm text-gray-600">Выберите предмет и время</p>
+                        </div>
+                    </a>
+                    
+                    <!-- Новая кнопка для выбора предметов -->
+                    <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Выбрать предметы</h4>
+                            <p class="text-sm text-gray-600">Изучайте разные направления</p>
+                        </div>
+                    </a>
+                    
+                    <!-- Новая кнопка для списка учителей -->
+                    <a href="# class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Наши преподаватели</h4>
+                            <p class="text-sm text-gray-600">Выберите подходящего учителя</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'chat:list' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Мои чаты</h4>
+                            <p class="text-sm text-gray-600">Общение с преподавателями</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Последние домашние задания -->
+            <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up" data-aos-delay="100">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Последние домашние задания
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="homework-card bg-gray-50 p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold">Программирование</h4>
+                                <p class="text-sm text-gray-600">Срок: 15.08.2025</p>
+                            </div>
+                            <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                Выполнено
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3">Напишите программу на Python для решения квадратного уравнения.</p>
+                        <p class="text-sm font-medium">Оценка: <span class="text-green-600">5/5</span></p>
+                    </div>
+                    
+                    <div class="homework-card bg-gray-50 p-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-bold">Математика</h4>
+                                <p class="text-sm text-gray-600">Срок: 18.08.2025</p>
+                            </div>
+                            <span class="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                В процессе
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3">Решите задачи по геометрии на страницах 45-47 учебника.</p>
+                        <p class="text-sm font-medium">Осталось: 2 дня</p>
+                    </div>
+                    
+                    <a href="{% url 'my_homeworks' %}" class="block mt-4 text-center text-primary font-medium hover:text-primary-dark transition">
+                        Посмотреть все задания →
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Прогресс обучения -->
+            <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up" data-aos-delay="200">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    Ваш прогресс обучения
+                </h3>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">Программирование</h4>
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                            <div class="bg-primary h-4 rounded-full" style="width: 75%"></div>
+                        </div>
+                        <p class="text-right text-sm">75% завершено</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">Математика</h4>
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                            <div class="bg-primary h-4 rounded-full" style="width: 60%"></div>
+                        </div>
+                        <p class="text-right text-sm">60% завершено</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">Английский язык</h4>
+                        <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                            <div class="bg-primary h-4 rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-right text-sm">85% завершено</p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="#" class="inline-block px-6 py-2 btn-primary text-white rounded-lg font-semibold hover-scale">
+                            Подробная статистика
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="content-container px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-10 w-auto mr-3">
+                    <h3 class="text-xl font-bold">MaxSchool</h3>
+                </div>
+                
+                <div class="flex flex-col items-center md:items-end">
+                    <p class="text-gray-400 text-sm mb-2">© 2025 MaxSchool. Все права защищены.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Подключение скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.2/imask.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        // Инициализация AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+        
+        // Бургер-меню
+        const burgerBtn = document.getElementById('burger-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        burgerBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    
+                    // Закрываем мобильное меню после клика
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

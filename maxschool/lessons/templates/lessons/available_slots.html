@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="text-2xl font-bold mb-4">Свободное время учителя</h2>
+
+{% if free_slots %}
+    <ul>
+    {% for slot in free_slots %}
+        <li class="mb-2">
+            📅 {{ slot.date }} — 🕒 {{ slot.time }}
+            <a href="{% url 'book_lesson' slot.teacher.id slot.date slot.time %}"
+               class="bg-green-500 text-white px-3 py-1 rounded ml-2">
+               Забронировать
+            </a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>Свободных слотов нет.</p>
+{% endif %}
+{% endblock %}

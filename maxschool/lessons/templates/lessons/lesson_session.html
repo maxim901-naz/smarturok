@@ -1,0 +1,2139 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная учебная доска | MaxSchool</title>
+    <style>
+        :root {
+            --primary: #f5821e;
+            --primary-dark: #d96b0d;
+            --secondary: #2c3e50;
+            --light: #f5f7fa;
+            --dark: #34495e;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --text: #2d3748;
+            --text-light: #718096;
+            --grid-color: rgba(200, 200, 200, 0.3);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text);
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+
+        header {
+            background: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: var(--light);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .header-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .header-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 280px;
+            background: var(--light);
+            padding: 20px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        #sidebar.hidden {
+            transform: translateX(-100%);
+            width: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #boards-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .board-item {
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .board-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(245, 130, 30, 0.2);
+        }
+
+        .board-item.active {
+            background: rgba(245, 130, 30, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .delete-board {
+            background: none;
+            color: var(--text-light);
+            border: none;
+            border-radius: 4px;
+            padding: 4px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .delete-board:hover {
+            color: var(--danger);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        #whiteboard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            background: #f8fafc;
+        }
+
+        #toolbar {
+            padding: 12px 20px;
+            background: white;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            z-index: 10;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 0 10px;
+            border-radius: 8px;
+            background: var(--light);
+        }
+
+        .tool-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .tool-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .color-sample {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .color-sample:hover {
+            transform: scale(1.15);
+        }
+
+        .color-sample.active {
+            box-shadow: 0 0 0 3px white, 0 0 0 5px var(--primary);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            background: var(--light);
+        }
+
+        .colors-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .grid-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            background: var(--light);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #image-upload {
+            display: none;
+        }
+
+        .toggle-sidebar {
+            background: none;
+            color: var(--text);
+            border: none;
+            border-radius: 5px;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #whiteboard-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background: white;
+        }
+
+        #whiteboard {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: white;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .image-preview {
+            position: absolute;
+            max-width: 300px;
+            max-height: 200px;
+            cursor: move;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            display: none;
+        }
+
+        footer {
+            padding: 15px;
+            text-align: center;
+            background: white;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .shape-tools {
+            display: flex;
+            gap: 8px;
+        }
+
+        .shape-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: var(--light);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shape-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .shape-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .text-input-container {
+            position: absolute;
+            z-index: 100;
+            display: none;
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: white;
+        }
+
+        .text-input {
+            width: 200px;
+            padding: 10px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+        }
+
+        .text-toolbar {
+            display: flex;
+            gap: 5px;
+            padding: 5px;
+            background: #f0f0f0;
+        }
+
+        .font-size-btn {
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        /* Стиль контейнера Jitsi */
+        .jitsi-float {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            height: 200px;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: move;
+        }
+        
+        .jitsi-header {
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+        
+        .jitsi-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        /* Модальное окно подтверждения */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .modal-btn {
+            padding: 10px 25px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .modal-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .modal-btn.secondary {
+            background: var(--light);
+            color: var(--text);
+        }
+        
+        .modal-btn.secondary:hover {
+            background: #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                position: absolute;
+                height: calc(100% - 60px);
+                z-index: 100;
+                background: white;
+                box-shadow: 3px 0 15px rgba(0,0,0,0.1);
+            }
+            
+            .tool-btn span {
+                display: none;
+            }
+            
+            .tool-btn {
+                padding: 8px;
+            }
+            
+            .header-actions .header-btn span {
+                display: none;
+            }
+            
+            .jitsi-float {
+                width: 150px;
+                height: 120px;
+                top: 5px;
+                right: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <span>MaxSchool Board</span>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn">
+                    <i>📥</i> <span>Сохранить</span>
+                </button>
+                <button class="header-btn">
+                    <i>👥</i> <span>Поделиться</span>
+                </button>
+                <button class="header-btn primary" id="finishLessonBtn">
+                    <i>✅</i> <span>Завершить урок</span>
+                </button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div id="sidebar">
+                <div class="sidebar-section">
+                    <h2 class="sidebar-title">📋 Доски</h2>
+                    <div class="board-actions">
+                        <button id="newBoard" class="header-btn">
+                            <i>➕</i> Новая доска
+                        </button>
+                    </div>
+                    <ul id="boards-list">
+                        <li class="board-item active" data-id="1">
+                            Основная доска
+                            <button class="delete-board">✕</button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h2 class="sidebar-title">🎨 Инструменты</h2>
+                    <div class="grid-toggle">
+                        <input type="checkbox" id="gridToggle" checked>
+                        <label for="gridToggle">Показать сетку</label>
+                    </div>
+                    
+                    <div class="slider-container" style="margin-top: 15px;">
+                        <span>Толщина:</span>
+                        <input type="range" id="lineWidth" min="1" max="50" value="5">
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h2 class="sidebar-title">🌈 Цвета</h2>
+                    <div class="colors-container">
+                        <div class="color-sample active" style="background:#000;" data-color="#000" title="Черный"></div>
+                        <div class="color-sample" style="background:#e74c3c;" data-color="#e74c3c" title="Красный"></div>
+                        <div class="color-sample" style="background:#3498db;" data-color="#3498db" title="Синий"></div>
+                        <div class="color-sample" style="background:#2ecc71;" data-color="#2ecc71" title="Зеленый"></div>
+                        <div class="color-sample" style="background:#f1c40f;" data-color="#f1c40f" title="Желтый"></div>
+                        <div class="color-sample" style="background:#9b59b6;" data-color="#9b59b6" title="Фиолетовый"></div>
+                        <div class="color-sample" style="background:#1abc9c;" data-color="#1abc9c" title="Бирюзовый"></div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h2 class="sidebar-title">🖼️ Изображения</h2>
+                    <button id="addImage" class="header-btn">
+                        <i>📁</i> Загрузить изображение
+                    </button>
+                    <input type="file" id="image-upload" accept="image/*">
+                </div>
+                
+                <div class="sidebar-section">
+                    <h2 class="sidebar-title">📊 Графики</h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button id="addGraph" class="header-btn">
+                            <i>📈</i> Добавить график
+                        </button>
+                        <select id="graphType" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                            <option value="line">Линейный график</option>
+                            <option value="bar">Столбчатая диаграмма</option>
+                            <option value="pie">Круговая диаграмма</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="whiteboard-container">
+                <div id="toolbar">
+                    <div class="tool-group">
+                        <button id="pencil" class="tool-btn active">
+                            <i>✏️</i> <span>Карандаш</span>
+                        </button>
+                        <button id="eraser" class="tool-btn">
+                            <i>🧹</i> <span>Ластик</span>
+                        </button>
+                        <button id="textTool" class="tool-btn">
+                            <i>🔤</i> <span>Текст</span>
+                        </button>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <button id="clear" class="tool-btn">
+                            <i>🗑️</i> <span>Очистить</span>
+                        </button>
+                        <button id="undo" class="tool-btn">
+                            <i>↩️</i> <span>Отменить</span>
+                        </button>
+                        <button id="redo" class="tool-btn">
+                            <i>↪️</i> <span>Повторить</span>
+                        </button>
+                    </div>
+                    
+                    <div class="tool-group shape-tools">
+                        <button id="rectTool" class="shape-btn" title="Прямоугольник">
+                            ▭
+                        </button>
+                        <button id="circleTool" class="shape-btn" title="Круг">
+                            ⚪
+                        </button>
+                        <button id="lineTool" class="shape-btn" title="Линия">
+                            ─
+                        </button>
+                        <button id="arrowTool" class="shape-btn" title="Стрелка">
+                            ➔
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="whiteboard-wrapper">
+                    <canvas id="whiteboard"></canvas>
+                    <img id="image-preview" class="image-preview" alt="Предпросмотр">
+                    
+                    <!-- Контейнер для ввода текста -->
+                    <div id="text-input-container" class="text-input-container">
+                        <textarea id="text-input" class="text-input" placeholder="Введите текст..."></textarea>
+                        <div class="text-toolbar">
+                            <button id="text-apply" class="font-size-btn">✓</button>
+                            <button id="text-cancel" class="font-size-btn">✕</button>
+                            <select id="text-size">
+                                <option value="16">16px</option>
+                                <option value="20">20px</option>
+                                <option value="24">24px</option>
+                                <option value="28">28px</option>
+                                <option value="32">32px</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Плавающий контейнер Jitsi -->
+                    <div class="jitsi-float">
+                        <div class="jitsi-header">
+                            <span>Видеоконференция</span>
+                            <button class="jitsi-close">✕</button>
+                        </div>
+                        <div id="jitsi-container" style="width:100%; height:calc(100% - 25px);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            Интерактивная доска для онлайн-школы MaxSchool | &copy; 2025
+        </footer>
+    </div>
+    
+    <!-- Модальное окно завершения урока -->
+    <div id="finishModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Завершение урока</h2>
+            <p>Вы уверены, что хотите завершить урок?</p>
+            
+            <div class="modal-buttons">
+                <button id="confirmFinish" class="modal-btn primary">Да, завершить</button>
+                <button id="cancelFinish" class="modal-btn secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script src='https://meet.jit.si/external_api.js'></script>
+    <script>
+        // Инициализация WebSocket
+        const lessonId = "{{ lesson.id }}";
+        const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socket = new WebSocket(
+            `${socketProtocol}//${window.location.host}/ws/lesson/${lessonId}/`
+        );
+
+        // Инициализация элементов
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('clear');
+        const eraserBtn = document.getElementById('eraser');
+        const pencilBtn = document.getElementById('pencil');
+        const textToolBtn = document.getElementById('textTool');
+        const rectToolBtn = document.getElementById('rectTool');
+        const circleToolBtn = document.getElementById('circleTool');
+        const lineToolBtn = document.getElementById('lineTool');
+        const arrowToolBtn = document.getElementById('arrowTool');
+        const undoBtn = document.getElementById('undo');
+        const redoBtn = document.getElementById('redo');
+        const lineWidth = document.getElementById('lineWidth');
+        const colorSamples = document.querySelectorAll('.color-sample');
+        const gridToggle = document.getElementById('gridToggle');
+        const newBoardBtn = document.getElementById('newBoard');
+        const boardsList = document.getElementById('boards-list');
+        const addImageBtn = document.getElementById('addImage');
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const addGraphBtn = document.getElementById('addGraph');
+        const graphTypeSelect = document.getElementById('graphType');
+        const textInputContainer = document.getElementById('text-input-container');
+        const textInput = document.getElementById('text-input');
+        const textApplyBtn = document.getElementById('text-apply');
+        const textCancelBtn = document.getElementById('text-cancel');
+        const textSizeSelect = document.getElementById('text-size');
+        const jitsiContainer = document.querySelector('.jitsi-float');
+        const jitsiCloseBtn = document.querySelector('.jitsi-close');
+        const finishLessonBtn = document.getElementById('finishLessonBtn');
+        const finishModal = document.getElementById('finishModal');
+        const confirmFinishBtn = document.getElementById('confirmFinish');
+        const cancelFinishBtn = document.getElementById('cancelFinish');
+        
+        // Состояние приложения
+        const state = {
+            isDrawing: false,
+            lastX: 0,
+            lastY: 0,
+            currentColor: '#000000',
+            currentTool: 'pencil',
+            gridEnabled: true,
+            boards: [
+                { 
+                    id: 1, 
+                    name: 'Основная доска', 
+                    images: [],
+                    drawingData: [],
+                    shapes: [],
+                    texts: [],
+                    graphs: [],
+                    history: [],
+                    redoStack: [],
+                    toolState: {
+                        currentTool: 'pencil',
+                        currentColor: '#000000',
+                        lineWidth: 5,
+                        gridEnabled: true
+                    }
+                }
+            ],
+            currentBoardId: 1,
+            movingImage: null,
+            moveStartX: 0,
+            moveStartY: 0,
+            movingText: null,
+            movingGraph: null,
+            currentLine: [],
+            tempShape: null,
+            drawingShape: false,
+            addingText: false,
+            textPosition: { x: 0, y: 0 },
+            fontSize: 16,
+            jitsiDragging: false,
+            jitsiOffsetX: 0,
+            jitsiOffsetY: 0
+        };
+        
+        // Функции для работы с WebSocket
+        function sendEvent(type, data = {}) {
+            const message = {
+                type,
+                boardId: state.currentBoardId,
+                ...data
+            };
+            socket.send(JSON.stringify(message));
+        }
+
+        function drawFromData(data) {
+            if (data.boardId !== state.currentBoardId) return;
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            switch (data.type) {
+                case 'draw_line':
+                    if (!currentBoard.drawingData) currentBoard.drawingData = [];
+                    currentBoard.drawingData.push(data.line);
+                    drawAll();
+                    break;
+                    
+                case 'draw_shape':
+                    if (!currentBoard.shapes) currentBoard.shapes = [];
+                    currentBoard.shapes.push(data.shape);
+                    drawAll();
+                    break;
+                    
+                case 'draw_text':
+                    if (!currentBoard.texts) currentBoard.texts = [];
+                    currentBoard.texts.push(data.text);
+                    drawAll();
+                    break;
+                    
+                case 'draw_image':
+                    if (!currentBoard.images) currentBoard.images = [];
+                    // Создаем изображение из данных
+                    const img = new Image();
+                    img.onload = function() {
+                        data.image.img = img;
+                        currentBoard.images.push(data.image);
+                        drawAll();
+                    };
+                    img.src = data.image.src;
+                    break;
+                    
+                case 'draw_graph':
+                    if (!currentBoard.graphs) currentBoard.graphs = [];
+                    currentBoard.graphs.push(data.graph);
+                    drawAll();
+                    break;
+                    
+                case 'clear':
+                    currentBoard.drawingData = [];
+                    currentBoard.shapes = [];
+                    currentBoard.texts = [];
+                    currentBoard.images = [];
+                    currentBoard.graphs = [];
+                    drawAll();
+                    break;
+                    
+                case 'tool_change':
+                    state.currentTool = data.tool;
+                    state.currentColor = data.color;
+                    ctx.lineWidth = data.size;
+                    ctx.strokeStyle = data.color;
+                    updateToolUI();
+                    updateColorUI();
+                    break;
+            }
+        }
+        
+        // Настройка холста
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = state.boards.find(b => b.id === state.currentBoardId).toolState.lineWidth;
+            ctx.strokeStyle = state.boards.find(b => b.id === state.currentBoardId).toolState.currentColor;
+            
+            drawGrid();
+            drawAll();
+        }
+        
+        // Отрисовка сетки
+        function drawGrid() {
+            if (!state.gridEnabled) return;
+            
+            const gridSize = 20;
+            ctx.beginPath();
+            
+            // Вертикальные линии
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+            }
+            
+            // Горизонтальные линии
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+            }
+            
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.strokeStyle = state.currentColor;
+            ctx.lineWidth = lineWidth.value;
+        }
+        
+        // Функции рисования
+        function startDrawing(e) {
+            if (state.movingImage || state.movingText || state.movingGraph) return;
+            
+            state.isDrawing = true;
+            [state.lastX, state.lastY] = [e.offsetX, e.offsetY];
+            
+            if (state.currentTool === 'pencil' || state.currentTool === 'eraser') {
+                // Начинаем новую линию
+                state.currentLine = [];
+                state.currentLine.push({
+                    x: e.offsetX,
+                    y: e.offsetY,
+                    color: state.currentTool === 'eraser' ? '#ffffff' : state.currentColor,
+                    width: lineWidth.value
+                });
+            } else if (state.currentTool.startsWith('shape-')) {
+                // Начинаем рисовать фигуру
+                state.drawingShape = true;
+                state.tempShape = {
+                    type: state.currentTool.split('-')[1],
+                    startX: e.offsetX,
+                    startY: e.offsetY,
+                    endX: e.offsetX,
+                    endY: e.offsetY,
+                    color: state.currentColor,
+                    width: lineWidth.value
+                };
+            } else if (state.currentTool === 'text') {
+                // Начинаем добавлять текст
+                state.addingText = true;
+                state.textPosition = { x: e.offsetX, y: e.offsetY };
+                textInputContainer.style.display = 'block';
+                textInputContainer.style.left = e.offsetX + 'px';
+                textInputContainer.style.top = e.offsetY + 'px';
+                textInput.value = '';
+                textInput.focus();
+            }
+        }
+        
+        function draw(e) {
+            if (!state.isDrawing || state.movingImage || state.movingText || state.movingGraph) return;
+            
+            if (state.currentTool === 'pencil' || state.currentTool === 'eraser') {
+                ctx.beginPath();
+                ctx.moveTo(state.lastX, state.lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.strokeStyle = state.currentTool === 'eraser' ? '#ffffff' : state.currentColor;
+                ctx.lineWidth = lineWidth.value;
+                ctx.stroke();
+                
+                // Добавляем точку в текущую линию
+                state.currentLine.push({
+                    x: e.offsetX,
+                    y: e.offsetY,
+                    color: state.currentTool === 'eraser' ? '#ffffff' : state.currentColor,
+                    width: lineWidth.value
+                });
+                
+                [state.lastX, state.lastY] = [e.offsetX, e.offsetY];
+            } else if (state.currentTool.startsWith('shape-') && state.drawingShape) {
+                // Обновляем временную фигуру
+                state.tempShape.endX = e.offsetX;
+                state.tempShape.endY = e.offsetY;
+                
+                // Перерисовываем все
+                drawAll();
+                
+                // Рисуем временную фигуру
+                drawShape(state.tempShape);
+            }
+        }
+        
+        function drawShape(shape) {
+            ctx.beginPath();
+            ctx.strokeStyle = shape.color;
+            ctx.lineWidth = shape.width;
+            
+            switch(shape.type) {
+                case 'rectangle':
+                    const rectX = Math.min(shape.startX, shape.endX);
+                    const rectY = Math.min(shape.startY, shape.endY);
+                    const rectWidth = Math.abs(shape.endX - shape.startX);
+                    const rectHeight = Math.abs(shape.endY - shape.startY);
+                    
+                    ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+                    break;
+                    
+                case 'circle':
+                    const radius = Math.sqrt(
+                        Math.pow(shape.endX - shape.startX, 2) + 
+                        Math.pow(shape.endY - shape.startY, 2)
+                    );
+                    ctx.arc(shape.startX, shape.startY, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'line':
+                    ctx.moveTo(shape.startX, shape.startY);
+                    ctx.lineTo(shape.endX, shape.endY);
+                    ctx.stroke();
+                    break;
+                    
+                case 'arrow':
+                    ctx.moveTo(shape.startX, shape.startY);
+                    ctx.lineTo(shape.endX, shape.endY);
+                    ctx.stroke();
+                    
+                    // Рисуем наконечник стрелки
+                    const angle = Math.atan2(shape.endY - shape.startY, shape.endX - shape.startX);
+                    const arrowLength = 15;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(shape.endX, shape.endY);
+                    ctx.lineTo(
+                        shape.endX - arrowLength * Math.cos(angle - Math.PI/6),
+                        shape.endY - arrowLength * Math.sin(angle - Math.PI/6)
+                    );
+                    ctx.lineTo(
+                        shape.endX - arrowLength * Math.cos(angle + Math.PI/6),
+                        shape.endY - arrowLength * Math.sin(angle + Math.PI/6)
+                    );
+                    ctx.closePath();
+                    ctx.fillStyle = shape.color;
+                    ctx.fill();
+                    break;
+            }
+        }
+        
+        function endDrawing() {
+            if (!state.isDrawing) return;
+            
+            state.isDrawing = false;
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            // Сохраняем действие в историю
+            saveStateToHistory();
+            
+            if (state.currentTool === 'pencil' || state.currentTool === 'eraser') {
+                // Сохраняем линию в состоянии доски
+                if (state.currentLine.length > 1) {
+                    if (!currentBoard.drawingData) {
+                        currentBoard.drawingData = [];
+                    }
+                    currentBoard.drawingData.push([...state.currentLine]);
+                    
+                    // Отправляем событие синхронизации
+                    sendEvent('draw_line', {
+                        line: [...state.currentLine]
+                    });
+                }
+            } else if (state.currentTool.startsWith('shape-') && state.drawingShape && state.tempShape) {
+                // Сохраняем фигуру
+                if (!currentBoard.shapes) {
+                    currentBoard.shapes = [];
+                }
+                const shapeCopy = {...state.tempShape};
+                currentBoard.shapes.push(shapeCopy);
+                
+                // Отправляем событие синхронизации
+                sendEvent('draw_shape', {
+                    shape: shapeCopy
+                });
+                
+                state.drawingShape = false;
+                state.tempShape = null;
+            }
+        }
+        
+        // Получить текущую доску
+        function getCurrentBoard() {
+            return state.boards.find(board => board.id === state.currentBoardId);
+        }
+        
+        // Сохранение состояния в историю
+        function saveStateToHistory() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            // Сохраняем текущее состояние
+            const stateCopy = {
+                drawingData: JSON.parse(JSON.stringify(currentBoard.drawingData)),
+                images: JSON.parse(JSON.stringify(currentBoard.images)),
+                shapes: JSON.parse(JSON.stringify(currentBoard.shapes)),
+                texts: JSON.parse(JSON.stringify(currentBoard.texts)),
+                graphs: JSON.parse(JSON.stringify(currentBoard.graphs))
+            };
+            
+            // Добавляем в историю
+            currentBoard.history.push(stateCopy);
+            
+            // Ограничиваем размер истории
+            if (currentBoard.history.length > 50) {
+                currentBoard.history.shift();
+            }
+            
+            // Очищаем стек повтора
+            currentBoard.redoStack = [];
+            
+            // Обновляем кнопки
+            updateUndoRedoButtons();
+        }
+        
+        // Отмена действия
+        function undo() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard || currentBoard.history.length === 0) return;
+            
+            // Сохраняем текущее состояние в стек повтора
+            const currentState = {
+                drawingData: JSON.parse(JSON.stringify(currentBoard.drawingData)),
+                images: JSON.parse(JSON.stringify(currentBoard.images)),
+                shapes: JSON.parse(JSON.stringify(currentBoard.shapes)),
+                texts: JSON.parse(JSON.stringify(currentBoard.texts)),
+                graphs: JSON.parse(JSON.stringify(currentBoard.graphs))
+            };
+            currentBoard.redoStack.push(currentState);
+            
+            // Восстанавливаем предыдущее состояние
+            const prevState = currentBoard.history.pop();
+            currentBoard.drawingData = prevState.drawingData;
+            currentBoard.images = prevState.images;
+            currentBoard.shapes = prevState.shapes;
+            currentBoard.texts = prevState.texts;
+            currentBoard.graphs = prevState.graphs;
+            
+            // Перерисовываем
+            drawAll();
+            updateUndoRedoButtons();
+        }
+        
+        // Повтор действия
+        function redo() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard || currentBoard.redoStack.length === 0) return;
+            
+            // Сохраняем текущее состояние в историю
+            const currentState = {
+                drawingData: JSON.parse(JSON.stringify(currentBoard.drawingData)),
+                images: JSON.parse(JSON.stringify(currentBoard.images)),
+                shapes: JSON.parse(JSON.stringify(currentBoard.shapes)),
+                texts: JSON.parse(JSON.stringify(currentBoard.texts)),
+                graphs: JSON.parse(JSON.stringify(currentBoard.graphs))
+            };
+            currentBoard.history.push(currentState);
+            
+            // Восстанавливаем состояние из стека повтора
+            const nextState = currentBoard.redoStack.pop();
+            currentBoard.drawingData = nextState.drawingData;
+            currentBoard.images = nextState.images;
+            currentBoard.shapes = nextState.shapes;
+            currentBoard.texts = nextState.texts;
+            currentBoard.graphs = nextState.graphs;
+            
+            // Перерисовываем
+            drawAll();
+            updateUndoRedoButtons();
+        }
+        
+        // Обновление состояния кнопок отмены/повтора
+        function updateUndoRedoButtons() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            undoBtn.disabled = currentBoard.history.length === 0;
+            redoBtn.disabled = currentBoard.redoStack.length === 0;
+        }
+        
+        // Работа с изображениями
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Добавляем изображение в состояние
+                    const newImage = {
+                        id: Date.now(),
+                        img: img,
+                        x: canvas.width/2 - img.width/2,
+                        y: canvas.height/2 - img.height/2,
+                        width: img.width,
+                        height: img.height,
+                        src: event.target.result // сохраняем src для синхронизации
+                    };
+                    
+                    // Сохраняем изображение в текущей доске
+                    const currentBoard = getCurrentBoard();
+                    if (currentBoard) {
+                        currentBoard.images.push(newImage);
+                    }
+                    
+                    // Сохраняем в историю
+                    saveStateToHistory();
+                    
+                    // Отправляем событие синхронизации
+                    sendEvent('draw_image', {
+                        image: {
+                            ...newImage,
+                            img: null // не отправляем само изображение
+                        }
+                    });
+                    
+                    drawAll();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function startMovingImage(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Проверяем, на какое изображение кликнули
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            for (let i = currentBoard.images.length - 1; i >= 0; i--) {
+                const img = currentBoard.images[i];
+                if (x > img.x && x < img.x + img.width && 
+                    y > img.y && y < img.y + img.height) {
+                    
+                    state.movingImage = img;
+                    state.moveStartX = x - img.x;
+                    state.moveStartY = y - img.y;
+                    return;
+                }
+            }
+            
+            // Проверяем, на какой текст кликнули
+            for (let i = currentBoard.texts.length - 1; i >= 0; i--) {
+                const text = currentBoard.texts[i];
+                ctx.font = `${text.fontSize}px Arial`;
+                const textWidth = ctx.measureText(text.text).width;
+                
+                if (x > text.x && x < text.x + textWidth && 
+                    y > text.y - text.fontSize && y < text.y) {
+                    
+                    state.movingText = text;
+                    state.moveStartX = x - text.x;
+                    state.moveStartY = y - text.y;
+                    return;
+                }
+            }
+            
+            // Проверяем, на какой график кликнули
+            for (let i = currentBoard.graphs.length - 1; i >= 0; i--) {
+                const graph = currentBoard.graphs[i];
+                if (x > graph.x && x < graph.x + graph.width && 
+                    y > graph.y && y < graph.y + graph.height) {
+                    
+                    state.movingGraph = graph;
+                    state.moveStartX = x - graph.x;
+                    state.moveStartY = y - graph.y;
+                    return;
+                }
+            }
+        }
+        
+        function moveImage(e) {
+            if (!state.movingImage && !state.movingText && !state.movingGraph) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (state.movingImage) {
+                state.movingImage.x = x - state.moveStartX;
+                state.movingImage.y = y - state.moveStartY;
+            }
+            
+            if (state.movingText) {
+                state.movingText.x = x - state.moveStartX;
+                state.movingText.y = y - state.moveStartY;
+            }
+            
+            if (state.movingGraph) {
+                state.movingGraph.x = x - state.moveStartX;
+                state.movingGraph.y = y - state.moveStartY;
+            }
+            
+            drawAll();
+        }
+        
+        function stopMovingImage() {
+            state.movingImage = null;
+            state.movingText = null;
+            state.movingGraph = null;
+            // Сохраняем в историю после перемещения
+            saveStateToHistory();
+        }
+        
+        // Работа с текстом
+        function addText() {
+            const text = textInput.value.trim();
+            if (!text) {
+                textInputContainer.style.display = 'none';
+                return;
+            }
+            
+            const currentBoard = getCurrentBoard();
+            if (currentBoard) {
+                if (!currentBoard.texts) currentBoard.texts = [];
+                const textObj = {
+                    id: Date.now(),
+                    x: state.textPosition.x,
+                    y: state.textPosition.y,
+                    text: text,
+                    color: state.currentColor,
+                    fontSize: parseInt(textSizeSelect.value)
+                };
+                currentBoard.texts.push(textObj);
+                saveStateToHistory();
+                
+                // Отправляем событие синхронизации
+                sendEvent('draw_text', {
+                    text: textObj
+                });
+                
+                drawAll();
+            }
+            
+            textInputContainer.style.display = 'none';
+            textInput.value = '';
+        }
+        
+        // Работа с графиками
+        function addGraph() {
+            const graphType = graphTypeSelect.value;
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            const graph = {
+                id: Date.now(),
+                type: graphType,
+                x: canvas.width/2 - 150,
+                y: canvas.height/2 - 100,
+                width: 300,
+                height: 200,
+                data: [
+                    { label: 'Янв', value: 30 },
+                    { label: 'Фев', value: 45 },
+                    { label: 'Мар', value: 25 },
+                    { label: 'Апр', value: 60 },
+                    { label: 'Май', value: 50 }
+                ],
+                colors: ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#9b59b6']
+            };
+            
+            if (!currentBoard.graphs) currentBoard.graphs = [];
+            currentBoard.graphs.push(graph);
+            saveStateToHistory();
+            
+            // Отправляем событие синхронизации
+            sendEvent('draw_graph', {
+                graph: graph
+            });
+            
+            drawAll();
+        }
+        
+        function drawGraph(graph) {
+            ctx.save();
+            ctx.translate(graph.x, graph.y);
+            
+            // Рисуем фон
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, graph.width, graph.height);
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, graph.width, graph.height);
+            
+            // Заголовок
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`График: ${graph.type === 'line' ? 'Линейный' : graph.type === 'bar' ? 'Столбчатый' : 'Круговой'}`, 
+                         graph.width/2, 25);
+            
+            if (graph.type === 'line' || graph.type === 'bar') {
+                // Оси
+                ctx.beginPath();
+                ctx.moveTo(40, 40);
+                ctx.lineTo(40, graph.height - 40);
+                ctx.lineTo(graph.width - 20, graph.height - 40);
+                ctx.strokeStyle = '#333';
+                ctx.stroke();
+                
+                // Подписи осей
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Значения', 20, 20);
+                
+                // Максимальное значение
+                const maxValue = Math.max(...graph.data.map(d => d.value));
+                
+                // Сетка и значения
+                for (let i = 0; i <= 5; i++) {
+                    const y = graph.height - 40 - (i * (graph.height - 80) / 5);
+                    ctx.beginPath();
+                    ctx.moveTo(40, y);
+                    ctx.lineTo(graph.width - 20, y);
+                    ctx.strokeStyle = '#eee';
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#666';
+                    ctx.fillText(Math.round(maxValue * i / 5).toString(), 30, y + 4);
+                }
+                
+                // Данные
+                const barWidth = (graph.width - 60) / graph.data.length;
+                const step = (graph.width - 60) / graph.data.length;
+                
+                if (graph.type === 'line') {
+                    ctx.beginPath();
+                    ctx.moveTo(40, graph.height - 40);
+                    
+                    graph.data.forEach((d, i) => {
+                        const x = 40 + (i * step) + step/2;
+                        const y = graph.height - 40 - (d.value / maxValue) * (graph.height - 80);
+                        
+                        ctx.lineTo(x, y);
+                        
+                        // Точка
+                        ctx.fillStyle = graph.colors[i % graph.colors.length];
+                        ctx.beginPath();
+                        ctx.arc(x, y, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    
+                    ctx.strokeStyle = '#3498db';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                } else if (graph.type === 'bar') {
+                    graph.data.forEach((d, i) => {
+                        const x = 40 + (i * step) + 10;
+                        const height = (d.value / maxValue) * (graph.height - 80);
+                        const y = graph.height - 40 - height;
+                        
+                        ctx.fillStyle = graph.colors[i % graph.colors.length];
+                        ctx.fillRect(x, y, barWidth - 20, height);
+                    });
+                }
+                
+                // Подписи данных
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                graph.data.forEach((d, i) => {
+                    const x = 40 + (i * step) + step/2;
+                    ctx.fillText(d.label, x, graph.height - 20);
+                });
+            } else if (graph.type === 'pie') {
+                const centerX = graph.width / 2;
+                const centerY = graph.height / 2 + 10;
+                const radius = Math.min(graph.width, graph.height) / 3;
+                
+                let startAngle = 0;
+                const total = graph.data.reduce((sum, d) => sum + d.value, 0);
+                
+                graph.data.forEach((d, i) => {
+                    const sliceAngle = (d.value / total) * Math.PI * 2;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+                    ctx.closePath();
+                    
+                    ctx.fillStyle = graph.colors[i % graph.colors.length];
+                    ctx.fill();
+                    
+                    // Подпись
+                    const angle = startAngle + sliceAngle / 2;
+                    const labelX = centerX + Math.cos(angle) * (radius * 0.7);
+                    const labelY = centerY + Math.sin(angle) * (radius * 0.7);
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(d.label, labelX, labelY);
+                    
+                    startAngle += sliceAngle;
+                });
+            }
+            
+            ctx.restore();
+        }
+        
+        // Работа с досками
+        function createNewBoard() {
+            const boardId = Date.now();
+            const boardName = `Доска ${state.boards.length + 1}`;
+            
+            const newBoard = {
+                id: boardId,
+                name: boardName,
+                images: [],
+                drawingData: [],
+                shapes: [],
+                texts: [],
+                graphs: [],
+                history: [],
+                redoStack: [],
+                toolState: {
+                    currentTool: 'pencil',
+                    currentColor: '#000000',
+                    lineWidth: 5,
+                    gridEnabled: true
+                }
+            };
+            
+            state.boards.push(newBoard);
+            
+            // Добавляем в список
+            const boardItem = document.createElement('li');
+            boardItem.className = 'board-item';
+            boardItem.dataset.id = boardId;
+            boardItem.innerHTML = `
+                ${boardName}
+                <button class="delete-board">✕</button>
+            `;
+            boardsList.appendChild(boardItem);
+            
+            // Обработчик удаления
+            boardItem.querySelector('.delete-board').addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteBoard(boardId, boardItem);
+            });
+            
+            // Переключаемся на новую доску
+            switchBoard(boardId);
+            
+            // Отправляем событие создания доски
+            sendEvent('create_board', {
+                boardId: boardId,
+                boardName: boardName
+            });
+        }
+        
+        function switchBoard(boardId) {
+            // Сохраняем состояние текущей доски перед переключением
+            saveCurrentBoardState();
+            
+            // Переключаемся на новую доску
+            state.currentBoardId = boardId;
+            
+            // Обновляем активный элемент в списке
+            document.querySelectorAll('.board-item').forEach(item => {
+                if (parseInt(item.dataset.id) === boardId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // Восстанавливаем состояние инструментов для новой доски
+            restoreBoardState();
+            
+            // Перерисовываем доску
+            drawAll();
+            updateUndoRedoButtons();
+        }
+        
+        function saveCurrentBoardState() {
+            const currentBoard = getCurrentBoard();
+            if (currentBoard) {
+                // Сохраняем активный инструмент и параметры
+                currentBoard.toolState = {
+                    currentTool: state.currentTool,
+                    currentColor: state.currentColor,
+                    lineWidth: parseInt(lineWidth.value),
+                    gridEnabled: state.gridEnabled
+                };
+            }
+        }
+        
+        function restoreBoardState() {
+            const currentBoard = getCurrentBoard();
+            if (currentBoard && currentBoard.toolState) {
+                // Восстанавливаем параметры
+                state.currentTool = currentBoard.toolState.currentTool;
+                state.currentColor = currentBoard.toolState.currentColor;
+                state.gridEnabled = currentBoard.toolState.gridEnabled;
+                lineWidth.value = currentBoard.toolState.lineWidth;
+                
+                // Обновляем UI
+                updateToolUI();
+                updateColorUI();
+                gridToggle.checked = state.gridEnabled;
+                
+                // Обновляем контекст рисования
+                ctx.lineWidth = currentBoard.toolState.lineWidth;
+                ctx.strokeStyle = currentBoard.toolState.currentColor;
+            }
+        }
+        
+        function updateToolUI() {
+            // Сбросить все активные состояния
+            pencilBtn.classList.remove('active');
+            eraserBtn.classList.remove('active');
+            textToolBtn.classList.remove('active');
+            rectToolBtn.classList.remove('active');
+            circleToolBtn.classList.remove('active');
+            lineToolBtn.classList.remove('active');
+            arrowToolBtn.classList.remove('active');
+            
+            // Установить активное состояние
+            if (state.currentTool === 'pencil') {
+                pencilBtn.classList.add('active');
+            } else if (state.currentTool === 'eraser') {
+                eraserBtn.classList.add('active');
+            } else if (state.currentTool === 'text') {
+                textToolBtn.classList.add('active');
+            } else if (state.currentTool === 'shape-rectangle') {
+                rectToolBtn.classList.add('active');
+            } else if (state.currentTool === 'shape-circle') {
+                circleToolBtn.classList.add('active');
+            } else if (state.currentTool === 'shape-line') {
+                lineToolBtn.classList.add('active');
+            } else if (state.currentTool === 'shape-arrow') {
+                arrowToolBtn.classList.add('active');
+            }
+        }
+        
+        function updateColorUI() {
+            // Обновить активный цвет
+            colorSamples.forEach(sample => {
+                sample.classList.remove('active');
+                if (sample.dataset.color === state.currentColor) {
+                    sample.classList.add('active');
+                }
+            });
+        }
+        
+        function deleteBoard(boardId, element) {
+            if (state.boards.length <= 1) {
+                alert('Нельзя удалить последнюю доску!');
+                return;
+            }
+            
+            // Удаляем из состояния
+            state.boards = state.boards.filter(board => board.id !== boardId);
+            
+            // Удаляем из списка
+            element.remove();
+            
+            // Переключаемся на первую доску
+            if (state.boards.length > 0) {
+                switchBoard(state.boards[0].id);
+            }
+            
+            // Отправляем событие удаления доски
+            sendEvent('delete_board', {
+                boardId: boardId
+            });
+        }
+        
+        // Обработка событий создания/удаления досок
+        function handleCreateBoard(data) {
+            // Проверяем, нет ли уже такой доски
+            if (state.boards.some(b => b.id === data.boardId)) return;
+
+            // Создаем новую доску
+            const newBoard = {
+                id: data.boardId,
+                name: data.boardName,
+                images: [],
+                drawingData: [],
+                shapes: [],
+                texts: [],
+                graphs: [],
+                history: [],
+                redoStack: [],
+                toolState: {
+                    currentTool: 'pencil',
+                    currentColor: '#000000',
+                    lineWidth: 5,
+                    gridEnabled: true
+                }
+            };
+            state.boards.push(newBoard);
+
+            // Добавляем в интерфейс
+            const boardItem = document.createElement('li');
+            boardItem.className = 'board-item';
+            boardItem.dataset.id = data.boardId;
+            boardItem.innerHTML = `
+                ${data.boardName}
+                <button class="delete-board">✕</button>
+            `;
+            boardsList.appendChild(boardItem);
+
+            // Назначаем обработчик удаления
+            boardItem.querySelector('.delete-board').addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteBoard(data.boardId, boardItem);
+            });
+        }
+
+        function handleDeleteBoard(data) {
+            // Удаляем доску из состояния
+            state.boards = state.boards.filter(b => b.id !== data.boardId);
+
+            // Удаляем из интерфейса
+            const boardItem = document.querySelector(`.board-item[data-id="${data.boardId}"]`);
+            if (boardItem) {
+                boardItem.remove();
+            }
+
+            // Если удалена текущая доска, переключаемся на первую
+            if (state.currentBoardId === data.boardId) {
+                if (state.boards.length > 0) {
+                    switchBoard(state.boards[0].id);
+                } else {
+                    // Если досок не осталось, создаем новую
+                    createNewBoard();
+                }
+            }
+        }
+        
+        // Отрисовка всего содержимого
+        function drawAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            // Восстанавливаем рисунки
+            if (currentBoard.drawingData && currentBoard.drawingData.length > 0) {
+                currentBoard.drawingData.forEach(line => {
+                    if (line.length < 2) return;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(line[0].x, line[0].y);
+                    
+                    for (let i = 1; i < line.length; i++) {
+                        ctx.strokeStyle = line[i].color;
+                        ctx.lineWidth = line[i].width;
+                        ctx.lineTo(line[i].x, line[i].y);
+                        ctx.stroke();
+                        
+                        // Перемещаем контекст для следующего сегмента
+                        ctx.beginPath();
+                        ctx.moveTo(line[i].x, line[i].y);
+                    }
+                });
+            }
+            
+            // Восстанавливаем фигуры
+            if (currentBoard.shapes && currentBoard.shapes.length > 0) {
+                currentBoard.shapes.forEach(shape => {
+                    drawShape(shape);
+                });
+            }
+            
+            // Восстанавливаем изображения
+            currentBoard.images.forEach(img => {
+                if (img.img) {
+                    ctx.drawImage(img.img, img.x, img.y, img.width, img.height);
+                }
+            });
+            
+            // Восстанавливаем тексты
+            if (currentBoard.texts && currentBoard.texts.length > 0) {
+                currentBoard.texts.forEach(text => {
+                    ctx.fillStyle = text.color;
+                    ctx.font = `${text.fontSize}px Arial`;
+                    ctx.fillText(text.text, text.x, text.y);
+                });
+            }
+            
+            // Восстанавливаем графики
+            if (currentBoard.graphs && currentBoard.graphs.length > 0) {
+                currentBoard.graphs.forEach(graph => {
+                    drawGraph(graph);
+                });
+            }
+            
+            // Рисуем временную фигуру, если она есть
+            if (state.drawingShape && state.tempShape) {
+                drawShape(state.tempShape);
+            }
+        }
+        
+        // Установка активного инструмента
+        function setActiveTool(tool) {
+            state.currentTool = tool;
+            
+            // Обновляем UI
+            pencilBtn.classList.toggle('active', tool === 'pencil');
+            eraserBtn.classList.toggle('active', tool === 'eraser');
+            textToolBtn.classList.toggle('active', tool === 'text');
+            
+            // Сбрасываем временную фигуру
+            state.drawingShape = false;
+            state.tempShape = null;
+            
+            // Отправляем изменение инструмента
+            sendEvent('tool_change', {
+                tool: tool,
+                color: state.currentColor,
+                size: parseInt(lineWidth.value)
+            });
+        }
+        
+        // Установка инструмента фигуры
+        function setShapeTool(shapeType) {
+            state.currentTool = `shape-${shapeType}`;
+            
+            // Обновляем UI
+            rectToolBtn.classList.toggle('active', shapeType === 'rectangle');
+            circleToolBtn.classList.toggle('active', shapeType === 'circle');
+            lineToolBtn.classList.toggle('active', shapeType === 'line');
+            arrowToolBtn.classList.toggle('active', shapeType === 'arrow');
+            
+            // Сбрасываем другие инструменты
+            pencilBtn.classList.remove('active');
+            eraserBtn.classList.remove('active');
+            textToolBtn.classList.remove('active');
+            
+            // Отправляем изменение инструмента
+            sendEvent('tool_change', {
+                tool: state.currentTool,
+                color: state.currentColor,
+                size: parseInt(lineWidth.value)
+            });
+        }
+        
+        // Инициализация Jitsi
+        function initJitsi() {
+            const domain = "meet.jit.si";
+            const options = {
+                roomName: "{{ jitsi_room }}",
+                width: "100%",
+                height: "100%",
+                parentNode: document.querySelector('#jitsi-container'),
+                userInfo: {
+                    displayName: "{{ user_name }}"
+                },
+                configOverwrite: {
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: false,
+                    disableModeratorIndicator: true,
+                },
+                interfaceConfigOverwrite: {
+                    TOOLBAR_BUTTONS: ['microphone', 'camera', 'hangup'],
+                    SHOW_JITSI_WATERMARK: false,
+                    DEFAULT_REMOTE_DISPLAY_NAME: 'Участник',
+                    VERTICAL_FILMSTRIP: false
+                }
+            };
+            
+            const api = new JitsiMeetExternalAPI(domain, options);
+        }
+        
+        // Перетаскивание контейнера Jitsi
+        function startJitsiDrag(e) {
+            state.jitsiDragging = true;
+            const rect = jitsiContainer.getBoundingClientRect();
+            state.jitsiOffsetX = e.clientX - rect.left;
+            state.jitsiOffsetY = e.clientY - rect.top;
+            
+            // Запрещаем выделение текста при перетаскивании
+            e.preventDefault();
+        }
+        
+        function moveJitsi(e) {
+            if (!state.jitsiDragging) return;
+            
+            const wrapper = document.getElementById('whiteboard-wrapper');
+            const rect = wrapper.getBoundingClientRect();
+            
+            let x = e.clientX - state.jitsiOffsetX - rect.left;
+            let y = e.clientY - state.jitsiOffsetY - rect.top;
+            
+            // Ограничение перемещения внутри области доски
+            x = Math.max(0, Math.min(wrapper.clientWidth - jitsiContainer.offsetWidth, x));
+            y = Math.max(0, Math.min(wrapper.clientHeight - jitsiContainer.offsetHeight, y));
+            
+            jitsiContainer.style.left = x + 'px';
+            jitsiContainer.style.top = y + 'px';
+        }
+        
+        function stopJitsiDrag() {
+            state.jitsiDragging = false;
+        }
+        
+        // Функция завершения урока
+        function finishLesson() {
+            // Определяем URL для перенаправления на основе роли пользователя
+            let redirectUrl;
+            
+            // Используем переменную из Django контекста
+            {% if is_teacher %}
+                // Перенаправление в кабинет учителя
+                redirectUrl = "{% url 'teacher_dashboard' %}";
+            {% else %}
+                // Перенаправление в кабинет ученика
+                redirectUrl = "{% url 'student_dashboard' %}";
+            {% endif %}
+            
+            // Перенаправляем в личный кабинет
+            window.location.href = redirectUrl;
+        }
+        
+        // Инициализация
+        function init() {
+            setupCanvas();
+            window.addEventListener('resize', setupCanvas);
+            
+            // Обработчики событий
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', endDrawing);
+            canvas.addEventListener('mouseout', endDrawing);
+            
+            canvas.addEventListener('mousedown', startMovingImage);
+            canvas.addEventListener('mousemove', moveImage);
+            canvas.addEventListener('mouseup', stopMovingImage);
+            canvas.addEventListener('mouseout', stopMovingImage);
+            
+            // Инструменты
+            pencilBtn.addEventListener('click', () => setActiveTool('pencil'));
+            eraserBtn.addEventListener('click', () => setActiveTool('eraser'));
+            textToolBtn.addEventListener('click', () => setActiveTool('text'));
+            
+            // Фигуры
+            rectToolBtn.addEventListener('click', () => setShapeTool('rectangle'));
+            circleToolBtn.addEventListener('click', () => setShapeTool('circle'));
+            lineToolBtn.addEventListener('click', () => setShapeTool('line'));
+            arrowToolBtn.addEventListener('click', () => setShapeTool('arrow'));
+            
+            // Действия
+            clearBtn.addEventListener('click', () => {
+                const currentBoard = getCurrentBoard();
+                if (currentBoard) {
+                    currentBoard.drawingData = [];
+                    currentBoard.images = [];
+                    currentBoard.shapes = [];
+                    currentBoard.texts = [];
+                    currentBoard.graphs = [];
+                    saveStateToHistory();
+                }
+                drawAll();
+                sendEvent('clear');
+            });
+            
+            undoBtn.addEventListener('click', undo);
+            redoBtn.addEventListener('click', redo);
+            
+            // Цвета
+            colorSamples.forEach(sample => {
+                sample.addEventListener('click', () => {
+                    state.currentColor = sample.dataset.color;
+                    
+                    // Обновляем активный цвет
+                    colorSamples.forEach(s => s.classList.remove('active'));
+                    sample.classList.add('active');
+                    
+                    state.currentTool = 'pencil';
+                    setActiveTool('pencil');
+                });
+            });
+            
+            lineWidth.addEventListener('input', () => {
+                ctx.lineWidth = lineWidth.value;
+                sendEvent('tool_change', {
+                    tool: state.currentTool,
+                    color: state.currentColor,
+                    size: parseInt(lineWidth.value)
+                });
+            });
+            
+            gridToggle.addEventListener('change', () => {
+                state.gridEnabled = gridToggle.checked;
+                drawAll();
+            });
+            
+            // Доски
+            newBoardBtn.addEventListener('click', createNewBoard);
+            
+            addImageBtn.addEventListener('click', () => {
+                imageUpload.click();
+            });
+            
+            imageUpload.addEventListener('change', handleImageUpload);
+            
+            // Обработчики для переключения досок
+            boardsList.addEventListener('click', (e) => {
+                // Обработка текстовых узлов
+                let target = e.target;
+                if (target.nodeType === 3) target = target.parentNode;
+                
+                const boardItem = target.closest('.board-item');
+                if (boardItem) {
+                    switchBoard(parseInt(boardItem.dataset.id));
+                }
+            });
+            
+            // Текст
+            textApplyBtn.addEventListener('click', addText);
+            textCancelBtn.addEventListener('click', () => {
+                textInputContainer.style.display = 'none';
+            });
+            
+            textSizeSelect.addEventListener('change', (e) => {
+                state.fontSize = parseInt(e.target.value);
+            });
+            
+            // Графики
+            addGraphBtn.addEventListener('click', addGraph);
+            
+            // Обработчики для сенсорных устройств
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                const mouseEvent = new MouseEvent('mouseup');
+                canvas.dispatchEvent(mouseEvent);
+            });
+            
+            // Инициализация Jitsi
+            initJitsi();
+            
+            // Перетаскивание контейнера Jitsi
+            jitsiContainer.addEventListener('mousedown', startJitsiDrag);
+            document.addEventListener('mousemove', moveJitsi);
+            document.addEventListener('mouseup', stopJitsiDrag);
+            
+            // Закрытие Jitsi
+            jitsiCloseBtn.addEventListener('click', () => {
+                jitsiContainer.style.display = 'none';
+            });
+            
+            // Обработчики завершения урока
+            finishLessonBtn.addEventListener('click', () => {
+                finishModal.style.display = 'flex';
+            });
+            
+            confirmFinishBtn.addEventListener('click', finishLesson);
+            
+            cancelFinishBtn.addEventListener('click', () => {
+                finishModal.style.display = 'none';
+            });
+            
+            // Закрытие модального окна при клике вне его
+            finishModal.addEventListener('click', (e) => {
+                if (e.target === finishModal) {
+                    finishModal.style.display = 'none';
+                }
+            });
+            
+            // Обработка сообщений WebSocket
+            socket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                
+                // Обработка событий досок
+                if (data.type === 'create_board') {
+                    handleCreateBoard(data);
+                } 
+                else if (data.type === 'delete_board') {
+                    handleDeleteBoard(data);
+                }
+                // Остальные события
+                else {
+                    drawFromData(data);
+                }
+            };
+            
+            // Обработка закрытия соединения
+            socket.onclose = function(e) {
+                console.error('WebSocket closed unexpectedly');
+            };
+            
+            // Обработка ошибок соединения
+            socket.onerror = function(err) {
+                console.error('WebSocket error:', err);
+            };
+            
+            // Инициализация кнопок
+            updateUndoRedoButtons();
+        }
+        
+        // Запуск приложения
+        init();
+    </script>
+</body>
+</html>

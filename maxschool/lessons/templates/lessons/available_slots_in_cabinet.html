@@ -1,0 +1,10 @@
+<h2>Свободные слоты преподавателя {{ teacher }} {{ teacher.last_name }}</h2>
+{% for slot in slots %}
+  <li>
+    <a href="{% url 'book_lesson_in_cabinet' teacher.id %}">
+      {{ slot.date }} {{ slot.time }}
+    </a>
+  </li>
+{% empty %}
+  <li>Свободных слотов нет.</li>
+{% endfor %}

@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История уроков преподавателя — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black">
+
+<header class="bg-[#f5821e] text-white p-4 shadow">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">MaxSchool — История уроков</h1>
+        <a href="{% url 'teacher_dashboard' %}" class="text-white underline">← Назад в кабинет</a>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto py-10 px-4">
+    <h2 class="text-3xl font-bold text-center mb-8 text-orange-500">Спасибо за проведённые уроки</h2>
+
+    {% if lessons %}
+        <div class="grid md:grid-cols-2 gap-6">
+            {% for lesson in lessons %}
+                <div class="bg-white p-6 rounded-lg shadow border-l-4 border-gray-400">
+                    <h3 class="text-xl font-semibold mb-2">{{ lesson.subject.name }}</h3>
+                    <p class="mb-1">👨‍🎓 Ученик: {{ lesson.student.get_full_name|default:lesson.student.username }}</p>
+                    <p class="mb-1">📅 Дата: {{ lesson.date }} &nbsp;&nbsp; 🕒 Время: {{ lesson.time }}</p>
+                    <p class="mb-1">⏱ Длительность: {{ lesson.duration_minutes }} мин</p>
+
+                    {% if not lesson.homework and not lesson.teacher_notes %}
+    <a href="{% url 'lesson_feedback' lesson.id %}"
+       class="mt-3 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+       ✏️ Добавить ДЗ и комментарий
+    </a>
+{% else %}
+    <a href="{% url 'lesson_feedback' lesson.id %}"
+       class="mt-3 inline-block bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+       ✏️ Редактировать ДЗ
+    </a>
+{% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-600">Прошедших уроков пока нет.</p>
+    {% endif %}
+</main>
+
+<footer class="text-center text-sm text-gray-500 py-6">
+    MaxSchool © 2025. Все права защищены.
+</footer>
+
+</body>
+</html>

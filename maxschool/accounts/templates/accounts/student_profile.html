@@ -1,0 +1,597 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль ученика — MaxSchool</title>
+    
+    <!-- Подключение шрифтов и библиотек -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo2.PNG' %}">
+
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Глобальные стили */
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Анимации */
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Градиентный текст */
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* Кастомные кнопки */
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Навигационные ссылки */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        .mobile-menu-link {
+            transition: all 0.3s ease;
+        }
+        .mobile-menu-link:hover {
+            background-color: #f3f4f6;
+            padding-left: 1.5rem;
+        }
+        
+        .logo-animate {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .section-header {
+            position: relative;
+            display: inline-block;
+        }
+        .section-header:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+        }
+        
+        /* Специфичные стили для страницы профиля */
+        .profile-header {
+            background: linear-gradient(to right, #004E89, #00A6FB);
+            color: white;
+            padding-top: 100px;
+            padding-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+            border-radius: 50%;
+        }
+        
+        .profile-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .teacher-nav-btn {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 180px;
+        }
+        
+        .teacher-nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(255, 107, 53, 0.3);
+        }
+        
+        .teacher-nav-btn i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .info-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #004E89;
+        }
+        
+        .avatar-container {
+            position: relative;
+        }
+        
+        .avatar-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background-color: #10B981;
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .profile-header {
+                padding-top: 120px;
+                padding-bottom: 40px;
+                text-align: center;
+            }
+            
+            .teacher-nav-btn {
+                min-width: auto;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+
+    <!-- Фиксированная шапка -->
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <!-- Логотип -->
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-12 w-auto logo-animate">
+                <h1 class="text-2xl font-bold gradient-text">MaxSchool</h1>
+            </div>
+
+            <!-- Навигация для преподавателя -->
+            <nav class="hidden lg:flex space-x-6 items-center">
+                <a href="{% url 'teacher_bookings' %}" class="text-dark font-medium transition nav-link">Заявки на уроки</a>
+                <a href="{% url 'teacher_lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
+                <a href="{% url 'teacher_homework_submissions' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
+                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
+                <a href="{% url 'my_students' %}" class="text-dark font-medium transition nav-link">Мои ученики</a>
+            </nav>
+            
+            <!-- Профиль преподавателя -->
+            <div class="hidden lg:flex items-center space-x-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+                        <img src="{% static 'default-teacher.jpg' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="ml-3 font-medium">{{ user.first_name|default:user.username }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Выйти</a>
+            </div>
+            
+            <!-- Кнопка бургера -->
+            <button id="burger-btn" class="lg:hidden text-2xl text-dark focus:outline-none">
+                ☰
+            </button>
+        </div>
+
+        <!-- Мобильное меню -->
+        <nav id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg absolute top-full left-0 right-0 mx-4 rounded-lg p-4">
+            <ul class="flex flex-col space-y-3">
+                <li><a href="{% url 'teacher_bookings' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Заявки на уроки</a></li>
+                <li><a href="{% url 'teacher_lesson_history' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">История уроков</a></li>
+                <li><a href="{% url 'teacher_homework_submissions' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Домашние задания</a></li>
+                <li><a href="{% url 'chat:list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои чаты</a></li>
+                <li><a href="{% url 'my_students' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои ученики</a></li>
+                <li class="pt-2 border-t border-gray-200">
+                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Выйти</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Шапка профиля ученика -->
+    <section class="profile-header mt-16">
+        <div class="content-container px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-2/3 mb-10 md:mb-0 animate__animated animate__fadeInLeft" data-aos="fade-right">
+                    <div class="flex items-center mb-4">
+                        <a href="{% url 'my_students' %}" class="mr-4 text-white hover:text-opacity-80 transition">
+                            <i class="fas fa-arrow-left text-xl"></i>
+                        </a>
+                        <h2 class="text-4xl md:text-5xl font-bold leading-tight">Профиль ученика</h2>
+                    </div>
+                    <p class="text-xl mb-6 opacity-90">Подробная информация об ученике и его успехах</p>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <a href="{% url 'chat:start' student.id %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-comment mr-2"></i> Написать сообщение
+                        </a>
+                        <a href="#" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-chart-line mr-2"></i> Статистика прогресса
+                        </a>
+                        <a href="#" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-tasks mr-2"></i> Домашние задания
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/3 flex justify-center animate__animated animate__fadeInRight" data-aos="fade-left">
+                    <div class="w-48 h-48 rounded-full overflow-hidden border-4 border-white border-opacity-30 avatar-container">
+                        <img src="{% static 'default-student.jpg' %}" alt="{{ student.first_name }} {{ student.last_name }}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент -->
+    <main class="content-container py-10 px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Основная информация -->
+            <div class="lg:col-span-2" data-aos="fade-right">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold section-header">Основная информация</h2>
+                </div>
+                
+                <div class="info-grid mb-8">
+                    <div class="info-item hover-scale">
+                        <div class="info-label">Имя и фамилия</div>
+                        <div class="info-value">{{ student.first_name }} {{ student.last_name }}</div>
+                    </div>
+                    
+                    <div class="info-item hover-scale">
+                        <div class="info-label">Логин</div>
+                        <div class="info-value">{{ student.username }}</div>
+                    </div>
+                    
+                    <div class="info-item hover-scale">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">{{ student.email }}</div>
+                    </div>
+                    
+                    <div class="info-item hover-scale">
+                        <div class="info-label">Желаемый предмет</div>
+                        <div class="info-value">{{ student.desired_subject.name }}</div>
+                    </div>
+                </div>
+                
+                <!-- Закреплённые учителя -->
+                {% comment %} <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-chalkboard-teacher text-primary mr-2"></i>
+                        Закреплённые учителя
+                    </h3>
+                    
+                    {% if student.teachers.all %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for teacher in student.teachers.all %}
+                        <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border-2 border-primary mr-3">
+                                <img src="{% static 'default-teacher.jpg' %}" alt="{{ teacher.first_name }} {{ teacher.last_name }}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">{{ teacher.first_name }} {{ teacher.last_name }}</h4>
+                                <p class="text-sm text-gray-600">{{ teacher.subject_set.first.name|default:"Преподаватель" }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-6">
+                        <div class="text-4xl mb-4">👨‍🏫</div>
+                        <p class="text-gray-600">У ученика пока нет закреплённых учителей</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div> {% endcomment %}
+            
+            <!-- Боковая панель с дополнительной информацией -->
+            {% comment %} <div data-aos="fade-left">
+                <!-- Статистика -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-chart-pie text-primary mr-2"></i>
+                        Статистика
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">Прогресс обучения</span>
+                                <span class="text-sm font-medium">65%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">Посещаемость</span>
+                                <span class="text-sm font-medium">85%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-accent h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium">Выполнение ДЗ</span>
+                                <span class="text-sm font-medium">78%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 78%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Последняя активность -->
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-history text-primary mr-2"></i>
+                        Последняя активность
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-book text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Последний урок</h4>
+                                <p class="text-sm text-gray-600">12 апреля 2023, Математика</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-tasks text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Последнее ДЗ</h4>
+                                <p class="text-sm text-gray-600">10 апреля 2023, оценка 5</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-comment text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Последнее сообщение</h4>
+                                <p class="text-sm text-gray-600">Вчера в 15:42</p>
+                            </div>
+                        </div>
+                    </div>
+                </div> {% endcomment %}
+                
+                <!-- Быстрые действия -->
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-bolt text-primary mr-2"></i>
+                        Быстрые действия
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <a href="{% url 'chat:start' student.id %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-comment text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Написать сообщение</h4>
+                                <p class="text-sm text-gray-600">Отправить ученику сообщение</p>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-tasks text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Задать домашнее задание</h4>
+                                <p class="text-sm text-gray-600">Создать новое задание</p>
+                            </div>
+                        </a>
+                        
+                        <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                                <i class="fas fa-calendar-plus text-primary"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Назначить урок</h4>
+                                <p class="text-sm text-gray-600">Запланировать новый урок</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="content-container px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-10 w-auto mr-3">
+                    <h3 class="text-xl font-bold">MaxSchool</h3>
+                </div>
+                
+                <div class="flex flex-col items-center md:items-end">
+                    <p class="text-gray-400 text-sm mb-2">© 2025 MaxSchool. Все права защищены.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Подключение скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.2/imask.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Инициализация AOS
+            AOS.init({ duration: 800, once: true, offset: 100 });
+        
+            // Бургер-меню
+            const burgerBtn = document.getElementById('burger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            burgerBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Закрытие мобильного меню при клике на ссылку
+            document.querySelectorAll('.mobile-menu-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+            
+            // Закрытие мобильного меню при клике вне его
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.classList.contains('hidden') && 
+                    !e.target.closest('#mobile-menu') && 
+                    !e.target.closest('#burger-btn')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

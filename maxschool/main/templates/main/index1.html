@@ -1,0 +1,516 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxSchool – Онлайн-школа</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo2.PNG' %}">
+
+
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{% static 'js/script.js' %}" defer></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+
+    <style>
+        /* Анимация появления модального окна */
+        .modal {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            
+        }
+
+        .modal.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .swiper-button-next,
+.swiper-button-prev {
+    color: #d08918 !important; /* Делаем стрелки синими */
+    font-size: 24px !important; /* Увеличиваем размер */
+}
+
+.swiper-pagination-bullet {
+    background: #ffaa00 !important; /* Синие точки */
+}
+
+.swiper-pagination-bullet-active {
+    background: #0c0b0b !important; /* Темно-синий для активной точки */
+}
+/* Контейнер Swiper */
+.swiper {
+    z-index: 1 !important;
+}
+
+/* Плавающее окно "Общайтесь с нами" */
+#floating-chat {
+    z-index: 10000 !important;
+}
+
+/* Форма обратного звонка */
+#callback-box {
+    z-index: 10001 !important;
+}
+#callback-box1 {
+    z-index: 10002 !important;
+}
+    </style>
+</head>
+<body class="bg-white text-black">
+
+    <!-- Фиксированная шапка -->
+    <header class="bg-black text-white fixed top-0 left-0 w-full z-50 shadow-md">
+        <div class="container mx-auto flex justify-between items-center py-6 px-8">
+            
+            <!-- Логотип -->
+            <div class="flex items-center">
+                <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-16 w-auto p-2 bg-gray-300 rounded-lg shadow-md">
+
+
+                <h1 class="text-3xl font-bold tracking-wide ml-4" style="font-family: 'Poppins', sans-serif;">MaxSchool</h1>
+
+            </div>
+
+            <!-- Десктопное меню -->
+            <nav class="hidden md:flex space-x-8 text-lg">
+                <a href="#" class="px-6 py-3 text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">Курсы</a>
+                <a href="#" class="px-6 py-3 text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">Преподаватели</a>
+                <a href="#" class="px-6 py-3 text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">Отзывы</a>
+                <a href="#" class="px-6 py-3 text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg hover:shadow-orange-500/50 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">Контакты</a>
+            </nav>
+            <div class="hidden md:flex space-x-4">
+                <a href="{% url 'register' %}" class="px-6 py-3 text-white bg-gray-700 rounded-xl shadow-lg hover:bg-gray-800 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">
+                    Регистрация
+                </a>
+                <a href="{% url 'login' %}" class="px-6 py-3 text-white bg-gray-700 rounded-xl shadow-lg hover:bg-gray-800 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">
+                    Войти
+                </a>
+                <a href="{% url 'trial' %}" class="px-6 py-3 text-white bg-green-600 rounded-xl shadow-lg hover:bg-green-700 hover:scale-105 transition-all duration-300 ease-in-out font-semibold">
+                    Записаться на бесплатный урок
+                </a>
+            </div>
+            <!-- Кнопка бургера -->
+            <button id="burger-btn" class="md:hidden text-3xl focus:outline-none">
+                ☰
+            </button>
+        </div>
+
+        <!-- Мобильное меню -->
+        <nav id="mobile-menu" class="hidden md:hidden bg-black shadow-lg absolute top-20 right-8 w-56 rounded-lg">
+            <ul class="flex flex-col text-center text-lg">
+                <li><a href="#" class="block px-6 py-3 text-white hover:bg-[#f5821e]">Курсы</a></li>
+                <li><a href="#" class="block px-6 py-3 text-white hover:bg-[#f5821e]">Преподаватели</a></li>
+                <li><a href="#" class="block px-6 py-3 text-white hover:bg-[#f5821e]">Отзывы</a></li>
+                <li><a href="#" class="block px-6 py-3 text-white hover:bg-[#f5821e]">Контакты</a></li>
+                <li>
+                    
+                    <a href="#" class="block px-6 py-3 text-white bg-gray-700 rounded-lg shadow-lg hover:bg-gray-800 transition-all duration-300 ease-in-out font-semibold">
+                        Войти
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="block px-6 py-3 text-white bg-green-600 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300 ease-in-out font-semibold">
+                        Записаться на бесплатный урок
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Отступ сверху -->
+    <div class="pt-24"></div>
+
+    <!-- Главный экран -->
+    <section class="bg-[#f5821e] text-white text-center py-24">
+        <h2 class="text-5xl font-bold mb-6">Онлайн-школа MaxSchool</h2>
+        <p class="text-xl">С 4 лет до 17 лет. Поможем создать успешное будущее для ваших детей.</p>
+        <button class="mt-8 bg-white text-[#f5821e] px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-200">
+            Подобрать занятия
+        </button>
+
+        <div class="mt-6 flex justify-center gap-4 flex-wrap">
+            <a href="#" class="bg-white text-[#f5821e] px-6 py-3 rounded-lg text-base font-semibold hover:bg-gray-200 shadow">
+                Материалы ОГЭ
+            </a>
+            <a href="#" class="bg-white text-[#f5821e] px-6 py-3 rounded-lg text-base font-semibold hover:bg-gray-200 shadow">
+                Материалы ЕГЭ
+            </a>
+            <a href="#" class="bg-white text-[#f5821e] px-6 py-3 rounded-lg text-base font-semibold hover:bg-gray-200 shadow">
+                Материалы программирования
+            </a>
+            <a href="#" class="bg-white text-[#f5821e] px-6 py-3 rounded-lg text-base font-semibold hover:bg-gray-200 shadow">
+                ВПР,МЦКО
+            </a>
+        </div>
+    </section>
+
+    <!-- Курсы с модальными окнами -->
+    <!-- Курсы с модальными окнами -->
+<section class="container mx-auto py-16 px-6" >
+    <h2 class="text-3xl font-bold text-center mb-8">Наши курсы</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+
+        <!-- Программирование -->
+        <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer"
+             onclick="openModal('modal-course1')">
+            <img src="{% static 'images/PROGRAMM.jpg' %}" alt="Курс" class="mx-auto w-40 rounded-lg">
+            <h3 class="text-xl font-semibold mt-4">Программирование</h3>
+            <p class="text-gray-600 mt-2">Python, Scratch, алгоритмы.</p>
+        </div>
+
+        <!-- Математика -->
+        <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer"
+             onclick="openModal('modal-course2')">
+            <img src="{% static 'images/math.jpg' %}" alt="Курс" class="mx-auto w-40 rounded-lg">
+            <h3 class="text-xl font-semibold mt-4">Математика</h3>
+            <p class="text-gray-600 mt-2">Школьная программа и олимпиады.</p>
+        </div>
+
+        <!-- Физика -->
+        <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer"
+             onclick="openModal('modal-course3')">
+            <img src="{% static 'images/FIZ.jpg' %}" alt="Курс" class="mx-auto w-40 rounded-lg">
+            <h3 class="text-xl font-semibold mt-4">Физика</h3>
+            <p class="text-gray-600 mt-2">Законы, теоремы, задачи.</p>
+        </div>
+
+        <!-- Химия -->
+        <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer"
+             onclick="openModal('modal-course4')">
+            <img src="курс4.jpg" alt="Курс" class="mx-auto w-40 rounded-lg">
+            <h3 class="text-xl font-semibold mt-4">Химия</h3>
+            <p class="text-gray-600 mt-2">Реакции, формулы, молекулы.</p>
+        </div>
+
+        <!-- Английский язык -->
+        <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer"
+             onclick="openModal('modal-course5')">
+            <img src="{% static 'images/ENGLISH.jpg' %}" alt="Курс" class="mx-auto w-40 rounded-lg">
+            <h3 class="text-xl font-semibold mt-4">Английский язык</h3>
+            <p class="text-gray-600 mt-2">Грамматика, разговорная речь.</p>
+        </div>
+
+        <!-- Подготовка к ЕГЭ и ОГЭ -->
+        <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer"
+             onclick="openModal('modal-course6')">
+            <img src="{% static 'images/ogeege.jpg' %}" alt="Курс" class="mx-auto w-40 rounded-lg">
+            <h3 class="text-xl font-semibold mt-4">Подготовка к ЕГЭ и ОГЭ</h3>
+            <p class="text-gray-600 mt-2">Поможем сдать экзамены на 100 баллов!</p>
+        </div>
+
+    </div>
+</section>
+
+
+    <!-- Преподаватели с модальными окнами -->
+    <section class="container mx-auto py-16 px-6">
+        <h2 class="text-3xl font-bold text-center mb-8">Наши преподаватели</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for teacher in teachers %}
+                <div class="bg-white p-6 rounded-lg shadow-md text-center border border-gray-300 cursor-pointer hover:shadow-lg transition"
+                     onclick="openModal('modal-teacher-{{ teacher.id }}')" data-aos="zoom-in">
+                    <img src="{% static 'default-teacher.jpg' %}" alt="Преподаватель" class="mx-auto w-24 rounded-full">
+                    <h3 class="text-xl font-semibold mt-4">{{ teacher.get_full_name|default:teacher.username }}</h3>
+                    <p class="text-gray-600">{{ teacher.desired_subject.name }}</p>
+                    <a href="{% url 'book_lesson' teacher.id %}"
+                    class="inline-block mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                    Записаться на урок
+                 </a>
+                 
+
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    
+    
+
+    <!-- Модальные окна -->
+    <div id="modal-course1" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg w-96 text-center">
+            <h3 class="text-xl font-semibold">Курс Программирование</h3>
+            <p>Подробнее о курсе...</p>
+            <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course1')">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- Модальные окна преподавателей -->
+{% for teacher in teachers %}
+<div id="modal-teacher-{{ teacher.id }}" class="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center">
+        <h3 class="text-xl font-semibold">{{ teacher.get_full_name|default:teacher.username }}</h3>
+        <p>
+            {% if teacher.desired_subject %}
+                Преподаёт: {{ teacher.desired_subject.name }}<br>
+            {% endif %}
+            Опыт: 3+ лет (пример, можно расширить)
+        </p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-teacher-{{ teacher.id }}')">Закрыть</button>
+    </div>
+</div>
+{% endfor %}
+
+    <!-- <section class="container mx-auto py-16 px-6">
+        <h2 class="text-3xl font-bold text-center mb-8">Отзывы</h2> -->
+        
+        <section class="container mx-auto py-16 px-6 bg-[#f8f9fa]">
+            <h2 class="text-3xl font-bold text-center mb-8 text-[#007bff]">Отзывы</h2>
+        
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <!-- Отзыв 1 -->
+                    <div class="swiper-slide bg-white p-6 rounded-lg shadow-lg text-center border border-gray-300">
+                        <p class="text-gray-700 italic">"Прекрасный курс! Всё очень доступно и понятно!"</p>
+                        <h4 class="font-semibold mt-4 text-[#007bff]">Анна Петрова</h4>
+                    </div>
+        
+                    <!-- Отзыв 2 -->
+                    <div class="swiper-slide bg-white p-6 rounded-lg shadow-lg text-center border border-gray-300">
+                        <p class="text-gray-700 italic">"Отличные преподаватели, быстро разобрался в сложных темах."</p>
+                        <h4 class="font-semibold mt-4 text-[#007bff]">Иван Сидоров</h4>
+                    </div>
+        
+                    <!-- Отзыв 3 -->
+                    <div class="swiper-slide bg-white p-6 rounded-lg shadow-lg text-center border border-gray-300">
+                        <p class="text-gray-700 italic">"Ребёнок в восторге, всем советую!"</p>
+                        <h4 class="font-semibold mt-4 text-[#007bff]">Мария Иванова</h4>
+                    </div>
+                </div>
+        
+                <!-- Навигация -->
+                <div class="swiper-button-next text-[#007bff]"></div>
+                <div class="swiper-button-prev text-[#007bff]"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </section>
+        
+    
+<!-- Блок "Мы в социальных сетях" -->
+<footer class="bg-gray-900 text-white py-12 mt-16">
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-center md:text-left px-8 md:px-16">
+        
+        <!-- 1️⃣ Блок с описанием школы -->
+        <div class="md:pl-6">
+            <h3 class="text-xl font-bold mb-3">MaxSchool — онлайн-обучение</h3>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                Обучаем математике, программированию и физике. Современные методики, индивидуальный подход и живые занятия.
+            </p>
+        </div>
+
+        <!-- 2️⃣ Блок с контактами -->
+        <div class="md:pl-6">
+            <h3 class="text-xl font-bold mb-3">Контакты</h3>
+            <p class="text-gray-400 text-sm flex items-center">
+                📞 <a href="tel:+37496801410" class="hover:text-[#f5821e] ml-2">+374 96 801 410</a>
+            </p>
+            <p class="text-gray-400 text-sm flex items-center">
+                ✉️ <a href="mailto:nazarov.maxim.200@gmail.com" class="hover:text-[#f5821e] ml-2">nazarov.maxim.200@gmail.com</a>
+            </p>
+            <p class="text-gray-400 text-sm flex items-center">
+                📍 <span class="ml-2">Онлайн-формат, работаем по всему миру</span>
+            </p>
+        </div>
+
+        <!-- 3️⃣ Быстрые ссылки -->
+        <div class="md:pl-6">
+            <h3 class="text-xl font-bold mb-3">Разделы</h3>
+            <ul class="text-gray-400 text-sm space-y-2">
+                <li class="flex items-center"><span class="mr-2">📌</span> <a href="#" class="hover:text-[#f5821e]">О нас</a></li>
+                <li class="flex items-center"><span class="mr-2">📚</span> <a href="#" class="hover:text-[#f5821e]">Курсы</a></li>
+                <li class="flex items-center"><span class="mr-2">💰</span> <a href="#" class="hover:text-[#f5821e]">Цены</a></li>
+                <li class="flex items-center"><span class="mr-2">⭐</span> <a href="#" class="hover:text-[#f5821e]">Отзывы</a></li>
+                <li class="flex items-center"><span class="mr-2">📝</span> <a href="{% url 'trial' %}" class="hover:text-[#f5821e]">Записаться</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Раздел с соцсетями -->
+    <div class="mt-12 border-t border-gray-700 pt-6 text-center">
+        <h3 class="text-lg font-semibold mb-4">Мы в социальных сетях</h3>
+        <div class="flex justify-center space-x-6">
+            <a href="https://t.me/MaxiiNaz" class="hover:opacity-80 transition"><img src="{% static 'images/telegram.png' %}" alt="Telegram" class="w-8"></a>
+            <a href="#" class="hover:opacity-80 transition"><img src="{% static 'images/whatsapp.png' %}" alt="WhatsApp" class="w-8"></a>
+            <a href="#" class="hover:opacity-80 transition"><img src="{% static 'images/youtube.png' %}" alt="YouTube" class="w-8"></a>
+            <a href="https://www.instagram.com" class="hover:opacity-80 transition"><img src="{% static 'images/instagram.png' %}" alt="Instagram" class="w-8"></a>
+        </div>
+    </div>
+
+    <!-- Копирайт -->
+    <div class="text-center text-gray-500 text-sm mt-6">
+        © 2025 MaxSchool. Все права защищены.
+    </div>
+</footer>
+
+
+
+<!-- Плавающее окно "Общайтесь с нами" -->
+<div id="floating-chat" class="fixed bottom-10 left-4 bg-gray-300 p-4 rounded-full shadow-xl border border-gray-400 flex items-center space-x-4 px-6">
+    <p class="text-black font-semibold text-lg whitespace-nowrap">Общайтесь с нами:</p>
+    <div class="flex space-x-3">
+        <a href="#" class="hover:opacity-80"><img src="{% static 'images/telegram.png' %}" alt="Telegram" class="w-8"></a>
+        <a href="#" class="hover:opacity-80"><img src="{% static 'images/whatsapp.png' %}" alt="WhatsApp" class="w-8"></a>
+        <a href="#" class="hover:opacity-80"><img src="{% static 'images/viber.png' %}" alt="Viber" class="w-8"></a>
+        <a href="#" class="hover:opacity-80"><img src="{% static 'images/instagram.png' %}" alt="Instagram" class="w-8"></a>
+    </div>
+    <button onclick="closeFloatingChat()" class="ml-3 text-gray-600 hover:text-black text-xl">✖</button>
+</div>
+
+<!-- Модальные окна для курсов -->
+<div id="modal-course1" class="modal fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center shadow-lg relative">
+        <h3 class="text-xl font-semibold">Программирование</h3>
+        <p>Курс программирования включает Python, Scratch и основы алгоритмов.</p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course1')">Закрыть</button>
+    </div>
+</div>
+
+<div id="modal-course2" class="modal fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center shadow-lg relative">
+        <h3 class="text-xl font-semibold">Математика</h3>
+        <p>Подготовка по школьной программе и олимпиадным задачам.</p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course2')">Закрыть</button>
+    </div>
+</div>
+
+<div id="modal-course3" class="modal fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center shadow-lg relative">
+        <h3 class="text-xl font-semibold">Физика</h3>
+        <p>Разбираем законы Ньютона, механику, электродинамику.</p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course3')">Закрыть</button>
+    </div>
+</div>
+
+<div id="modal-course4" class="modal fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center shadow-lg relative">
+        <h3 class="text-xl font-semibold">Химия</h3>
+        <p>Разбираем формулы, реакции, молекулы, готовимся к ЕГЭ и ОГЭ.</p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course4')">Закрыть</button>
+    </div>
+</div>
+
+<div id="modal-course5" class="modal fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center shadow-lg relative">
+        <h3 class="text-xl font-semibold">Английский язык</h3>
+        <p>Курс грамматики, разговорного английского и подготовки к экзаменам.</p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course5')">Закрыть</button>
+    </div>
+</div>
+
+<div id="modal-course6" class="modal fixed inset-0 items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg w-96 text-center shadow-lg relative">
+        <h3 class="text-xl font-semibold">Подготовка к ЕГЭ и ОГЭ</h3>
+        <p>Готовим к экзаменам по математике, русскому и другим предметам.</p>
+        <button class="mt-4 bg-[#f5821e] text-white px-6 py-3 rounded-lg" onclick="closeModal('modal-course6')">Закрыть</button>
+    </div>
+</div>
+
+
+<div id="callback-box" class="fixed bottom-[100px] right-4 bg-gray-300 p-6 rounded-xl shadow-xl border border-gray-400 flex items-center space-x-4 w-[380px] transition-all transform scale-95 opacity-0">
+    <!-- Контейнер для анимированной иконки -->
+    <div id="animated-phone" class="w-12 h-12"></div> 
+
+    <div class="flex-1">
+        <p class="text-black font-semibold text-lg">Оставьте номер телефона</p>
+        <p class="text-black text-sm">Наш специалист свяжется с вами в ближайшее время и ответит на все вопросы.</p>
+        
+        <form id="callback-form" class="flex items-center space-x-2 mt-2">
+            <input type="tel" id="phone-input" placeholder="+7 (___) ___-__-__" 
+                   class="border border-gray-400 rounded-lg px-3 py-2 w-40 text-black focus:ring-2 focus:ring-orange-500 text-sm outline-none transition-all">
+            <button type="submit" class="bg-orange-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-orange-600 text-sm transition-all">✔</button>
+        </form>
+    </div>
+
+    <button onclick="closeCallbackBox1()" class="text-gray-600 hover:text-black text-xl transition-all">✖</button>
+</div>
+
+<!-- Подключение Lottie-анимации -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+<!--  -->
+
+
+
+<!-- Вставь этот код перед </body> -->
+<!-- Модальное окно -->
+<!-- Модальное окно -->
+<div id="callback-box1" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white p-6 rounded-lg shadow-2xl text-center relative w-96 transform scale-95 transition-transform duration-300 ease-out">
+        
+        <!-- Кнопка закрытия -->
+        <button onclick="closeCallbackBox()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 text-2xl">
+            ✖
+        </button>
+
+        <!-- Заголовок -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Запишись на бесплатный урок!</h2>
+
+        <!-- Описание -->
+        <p class="text-gray-600 mb-6 text-sm">Оставь заявку прямо сейчас и получи первый урок бесплатно.</p>
+
+        <!-- Кнопка-ссылка -->
+        <a href="{% url 'trial' %}" id="signup-link" class="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg shadow-md hover:from-orange-600 hover:to-orange-700 text-lg font-semibold transition-all duration-300">
+            🚀 Записаться
+        </a>
+    </div>
+</div>
+
+
+
+
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<!-- Swiper JS -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+var swiper = new Swiper(".mySwiper", {
+    loop: true, // Бесконечный слайдер
+    spaceBetween: 20, // Отступ между слайдами
+    slidesPerView: 1, // По умолчанию 1 слайд
+  
+    autoplay: {
+      delay: 3000, // Автопрокрутка каждые 3 сек
+      disableOnInteraction: false, // Не отключать при взаимодействии
+    },
+  
+    speed: 800, // Плавность перехода
+    grabCursor: true, // Меняет курсор на "руку" при наведении
+  
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true, // Можно кликать по точкам
+    },
+  
+    navigation: {
+      nextEl: ".swiper-button-next", // Стрелка "вперёд"
+      prevEl: ".swiper-button-prev", // Стрелка "назад"
+    },
+  
+    breakpoints: {
+      768: { slidesPerView: 2 }, // С 768px (планшеты) — 2 отзыва
+      1024: { slidesPerView: 3 } // С 1024px (ПК) — 3 отзыва
+    }
+  });
+</script>  
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+

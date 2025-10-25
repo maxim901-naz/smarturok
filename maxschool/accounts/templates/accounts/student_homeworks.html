@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Мои домашки — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black">
+
+<header class="bg-[#f5821e] text-white p-4 shadow">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">MaxSchool — Мои домашки</h1>
+        <a href="{% url 'student_dashboard' %}" class="text-white underline">← Назад в кабинет</a>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto py-10 px-4">
+    <h2 class="text-3xl font-bold text-center mb-8 text-orange-500">Выданные домашние задания</h2>
+
+    {% if lessons %}
+        <div class="grid md:grid-cols-2 gap-6">
+            {% for lesson in lessons %}
+                <div class="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+                    <h3 class="text-xl font-semibold mb-2">{{ lesson.subject.name }}</h3>
+                    <p>👨‍🏫 {{ lesson.teacher.get_full_name|default:lesson.teacher.username }}</p>
+                    <p>📅 {{ lesson.date }} &nbsp; 🕒 {{ lesson.time }}</p>
+
+                    {% if lesson.homework %}
+                        <p class="mt-2"><strong>📚 ДЗ:</strong> {{ lesson.homework }}</p>
+                    {% endif %}
+
+                    {% if lesson.homework_file %}
+                        <p class="mt-2">
+                            📎 <a href="{{ lesson.homework_file.url }}" target="_blank" class="text-blue-600 underline">Скачать файл</a>
+                        </p>
+                    {% endif %}
+
+                    <a href="{% url 'submit_homework' lesson.id %}"
+                       class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                        Отправить выполненное ДЗ
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-600">Пока нет выданных домашних заданий.</p>
+    {% endif %}
+</main>
+
+</body>
+</html>

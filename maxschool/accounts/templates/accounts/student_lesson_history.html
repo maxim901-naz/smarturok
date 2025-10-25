@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История уроков — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black">
+
+<header class="bg-[#f5821e] text-white p-4 shadow">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">MaxSchool — История уроков</h1>
+        <a href="{% url 'student_dashboard' %}" class="text-white underline">← Назад в кабинет</a>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto py-10 px-4">
+    <h2 class="text-3xl font-bold text-center mb-8 text-orange-500">Ваши прошедшие уроки</h2>
+
+    {% if lessons %}
+        <div class="grid md:grid-cols-2 gap-6">
+            {% for lesson in lessons %}
+                <div class="bg-white p-6 rounded-lg shadow border-l-4 border-gray-400">
+                    <h3 class="text-xl font-semibold mb-2">{{ lesson.subject.name }}</h3>
+                    <p class="mb-1">👨‍🏫 Преподаватель: {{ lesson.teacher.get_full_name|default:lesson.teacher.username }}</p>
+                    <p class="mb-1">📅 Дата: {{ lesson.date }} &nbsp;&nbsp; 🕒 Время: {{ lesson.time }}</p>
+                    <p class="mb-1">⏱ Длительность: {{ lesson.duration_minutes }} мин</p>
+
+                    {% if lesson.topic %}
+                        <p class="mt-2"><strong>📝 Тема:</strong> {{ lesson.topic }}</p>
+                    {% endif %}
+                    {% if lesson.homework %}
+                        <p><strong>📚 Домашнее задание:</strong> {{ lesson.homework }}</p>
+                    {% endif %}
+                    {% if lesson.teacher_notes %}
+                        <p><strong>💬 Комментарий преподавателя:</strong> {{ lesson.teacher_notes }}</p>
+                    {% endif %}
+                    {% if lesson.homework_file %}
+                    <p class="mt-2">
+                        📎 <a href="{{ lesson.homework_file.url }}" class="text-blue-600 underline" target="_blank">
+                            Скачать домашнее задание
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-600">Прошедших уроков пока нет.</p>
+    {% endif %}
+</main>
+
+<footer class="text-center text-sm text-gray-500 py-6">
+    MaxSchool © 2025. Все права защищены.
+</footer>
+
+</body>
+</html>

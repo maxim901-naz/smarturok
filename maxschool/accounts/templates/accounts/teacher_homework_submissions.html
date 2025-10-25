@@ -1,0 +1,54 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ответы на домашние задания — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black">
+
+<header class="bg-[#f5821e] text-white p-4 shadow">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold">MaxSchool — Ответы на домашние задания</h1>
+        <a href="{% url 'teacher_dashboard' %}" class="text-white underline">← Назад в кабинет</a>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto py-10 px-4">
+    <h2 class="text-3xl font-bold text-center mb-8 text-orange-500">Все отправленные ответы</h2>
+
+    {% if submissions %}
+        <div class="grid md:grid-cols-2 gap-6">
+            {% for submission in submissions %}
+                <div class="bg-white p-6 rounded-lg shadow border-l-4 border-green-400">
+                    <h3 class="text-xl font-semibold mb-2">{{ submission.lesson.subject.name }}</h3>
+                    <p class="mb-1">👨‍🎓 Ученик: {{ submission.student.get_full_name|default:submission.student.username }}</p>
+                    <p class="mb-1">📅 Дата урока: {{ submission.lesson.date }} &nbsp;&nbsp; 🕒 {{ submission.lesson.time }}</p>
+                    <p class="mb-1">🕘 Отправлено: {{ submission.submitted_at|date:"d.m.Y H:i" }}</p>
+
+                    {% if submission.text %}
+                        <p class="mt-2"><strong>💬 Комментарий ученика:</strong><br>{{ submission.text }}</p>
+                    {% endif %}
+
+                    {% if submission.file %}
+                        <p class="mt-2">
+                            📎 <a href="{{ submission.file.url }}" class="text-blue-600 underline" target="_blank">
+                                Скачать файл
+                            </a>
+                        </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center text-gray-600">Пока нет отправленных домашних заданий.</p>
+    {% endif %}
+</main>
+
+<footer class="text-center text-sm text-gray-500 py-6">
+    MaxSchool © 2025. Все права защищены.
+</footer>
+
+</body>
+</html>
