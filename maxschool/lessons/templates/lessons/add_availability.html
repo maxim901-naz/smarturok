@@ -1,0 +1,466 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить слот — SmartUrok</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.PNG' %}">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .content-container {
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #FF6B35, #00A6FB);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo-animate {
+            transition: transform 0.3s ease;
+        }
+
+        .logo-animate:hover {
+            transform: scale(1.03);
+        }
+
+        .slot-type-option {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .slot-type-option:hover {
+            border-color: #FF6B35;
+            transform: translateY(-2px);
+        }
+        
+        .slot-type-option.selected {
+            border-color: #FF6B35;
+            background-color: rgba(255, 107, 53, 0.05);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.1);
+        }
+        
+        .duration-option {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .duration-option:hover {
+            border-color: #00A6FB;
+        }
+        
+        .duration-option.selected {
+            border-color: #00A6FB;
+            background-color: rgba(0, 166, 251, 0.05);
+            color: #00A6FB;
+            font-weight: 600;
+        }
+        
+        .form-section {
+            background: linear-gradient(to right, rgba(255, 107, 53, 0.05), rgba(0, 166, 251, 0.05));
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            color: #1A1A2E;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #FF6B35;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: #FF6B35;
+        }
+    </style>
+
+</head>
+<body class="bg-light font-sans min-h-screen">
+
+<!-- Шапка -->
+<header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+    <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+        <div class="flex items-center space-x-3">
+            <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-12 w-auto logo-animate">
+            <h1 class="text-2xl font-bold gradient-text">SmartUrok</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+                <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+                    {% if user.photo %}
+                    <img src="{{ user.photo.url }}" alt="Преподаватель {{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <img src="{% static 'images/default-teacher.jpg' %}" alt="Преподаватель" class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+                <span class="ml-3 font-medium">{{ user.first_name|default:user.username }}</span>
+            </div>
+            <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Выйти</a>
+        </div>
+    </div>
+</header>
+
+<!-- Сообщения -->
+{% if messages %}
+<div class="max-w-7xl mx-auto mt-24 px-6">
+    {% for message in messages %}
+    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-200{% elif message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<section class="pt-24 pb-12 max-w-7xl mx-auto px-6">
+    <a href="{% url 'teacher_availability' %}" class="inline-flex items-center text-secondary font-medium hover:text-primary mb-6">
+        <i class="fas fa-arrow-left mr-2"></i> Назад к списку слотов
+    </a>
+
+    <!-- Форма -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-primary to-yellow-500 p-8 text-white relative">
+            <h2 class="text-3xl font-bold flex items-center">
+                <i class="fas fa-clock mr-3"></i> Добавить доступное время
+            </h2>
+            <p class="mt-2 opacity-90">Заполните форму, чтобы ученики могли записываться к вам на уроки</p>
+        </div>
+
+        <div class="p-8">
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Тип слота -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-sync-alt"></i> Тип слота
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <!-- Разовый слот -->
+                        <label class="slot-type-option block p-4 rounded-lg cursor-pointer text-center">
+                            <input type="radio" name="slot_type" value="once" checked class="hidden">
+                            <i class="fas fa-calendar-day text-3xl mb-3 text-primary"></i>
+                            <div class="font-semibold text-lg">Разовый слот</div>
+                            <div class="text-sm text-gray-600 mt-1">Одно конкретное время</div>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <i class="fas fa-check-circle mr-1"></i> Указываете дату и время
+                            </div>
+                        </label>
+                        
+                        <!-- Регулярный слот -->
+                        <label class="slot-type-option block p-4 rounded-lg cursor-pointer text-center">
+                            <input type="radio" name="slot_type" value="recurring" class="hidden">
+                            <i class="fas fa-redo-alt text-3xl mb-3 text-green-500"></i>
+                            <div class="font-semibold text-lg">Регулярный слот</div>
+                            <div class="text-sm text-gray-600 mt-1">Повторяется каждую неделю</div>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <i class="fas fa-check-circle mr-1"></i> Указываете день недели и время
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Блок для разового слота -->
+                <div id="once_options" class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-day"></i> Настройки разового слота
+                    </h3>
+                    
+                    <div class="mb-4">
+                        <label class="block font-medium text-dark mb-2" for="date">
+                            <i class="fas fa-calendar-alt mr-2"></i> Дата
+                        </label>
+                        <input type="date" name="date" id="date" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent" required>
+                        <span class="text-sm text-gray-500 mt-1 block">Выберите конкретную дату для урока</span>
+                    </div>
+                </div>
+
+                <!-- Блок для регулярного слота (скрыт по умолчанию) -->
+                <div id="recurring_options" class="form-section hidden">
+                    <h3 class="section-title">
+                        <i class="fas fa-redo-alt"></i> Настройки регулярного слота
+                    </h3>
+                    
+                    <div class="mb-4">
+                        <label class="block font-medium text-dark mb-2" for="weekday">
+                            <i class="fas fa-calendar-week mr-2"></i> День недели
+                        </label>
+                        <select name="weekday" id="weekday" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent">
+                            {% for num, name in weekdays %}
+                                <option value="{{ num }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="text-sm text-gray-500 mt-1 block">Выберите день недели для повторения</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block font-medium text-dark mb-2" for="end_date">
+                            <i class="fas fa-calendar-times mr-2"></i> Завершение повторения (опционально)
+                        </label>
+                        <input type="date" name="end_date" id="end_date" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent">
+                        <span class="text-sm text-gray-500 mt-1 block">До какой даты повторять (оставьте пустым для бессрочного)</span>
+                    </div>
+                </div>
+
+                <!-- Время и длительность (общие для обоих типов) -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-clock"></i> Время и длительность
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block font-medium text-dark mb-2" for="time">
+                                <i class="fas fa-clock mr-2"></i> Время начала
+                            </label>
+                            <input type="time" name="time" id="time" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-accent" required>
+                            <span class="text-sm text-gray-500 mt-1 block">Укажите время начала урока</span>
+                        </div>
+                        
+                        <div>
+                            <label class="block font-medium text-dark mb-2">
+                                <i class="fas fa-hourglass-half mr-2"></i> Длительность урока
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="duration-option block p-3 rounded-lg cursor-pointer text-center">
+                                    <input type="radio" name="duration" value="30" checked class="hidden">
+                                    30 мин
+                                </label>
+                                <label class="duration-option block p-3 rounded-lg cursor-pointer text-center">
+                                    <input type="radio" name="duration" value="60" class="hidden">
+                                    60 мин
+                                </label>
+                            </div>
+                            <span class="text-sm text-gray-500 mt-1 block">Выберите продолжительность урока</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Информационная панель -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 class="font-semibold text-blue-800 mb-3 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i> Информация о слотах
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+                        <div class="flex items-start">
+                            <i class="fas fa-calendar-day text-blue-500 mt-1 mr-2"></i>
+                            <div>
+                                <span class="font-medium">Разовый слот:</span>
+                                <p class="mt-1">Ученики увидят только эту конкретную дату и время. После записи слот будет помечен как занятый.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-redo-alt text-green-500 mt-1 mr-2"></i>
+                            <div>
+                                <span class="font-medium">Регулярный слот:</span>
+                                <p class="mt-1">Ученики увидят ближайшие 4 недели этого времени. Слот остаётся доступным для записи других учеников.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопка отправки -->
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary to-yellow-500 text-white py-4 rounded-lg font-semibold text-lg hover:shadow-xl transition-all duration-300 flex justify-center items-center hover:scale-[1.02]">
+                        <i class="fas fa-save mr-3"></i> Сохранить слот
+                    </button>
+                </div>
+            </form>
+
+            <!-- Советы -->
+            <div class="mt-10 pt-8 border-t border-gray-200">
+                <h3 class="text-xl font-bold mb-4 flex items-center text-dark">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> Советы по добавлению слотов
+                </h3>
+                <ul class="space-y-3 text-gray-600">
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                        <span><strong>Планируйте заранее:</strong> Добавляйте слоты минимум за 24 часа до начала, чтобы ученики успели записаться.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                        <span><strong>Блоки времени:</strong> Старайтесь добавлять несколько слотов подряд (например, 2-3 часа) для удобства учеников.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                        <span><strong>Регулярные слоты:</strong> Идеально подходят для учеников, которые хотят заниматься в одно и то же время каждую неделю.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                        <span><strong>Разовые слоты:</strong> Используйте для дополнительных занятий, консультаций или замены отменённых уроков.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Футер -->
+<footer class="bg-dark text-white py-8 mt-16">
+    <div class="content-container flex flex-col md:flex-row justify-between items-center">
+        <div class="flex items-center mb-4 md:mb-0">
+            <img src="{% static 'images/logo3.PNG' %}" alt="SmartUrok" class="h-10 w-auto mr-3 logo-animate">
+            <h3 class="text-xl font-bold gradient-text">SmartUrok</h3>
+        </div>
+        <div class="flex flex-col items-center md:items-end">
+            <p class="text-gray-400 text-sm mb-2">© 2026 SmartUrok. Все права защищены.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="text-gray-400 hover:text-white text-sm transition">Политика конфиденциальности</a>
+                <a href="#" class="text-gray-400 hover:text-white text-sm transition">Договор-оферта</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Скрипты -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Минимальная дата (сегодня)
+    const today = "{{ today|date:'Y-m-d' }}";
+    const dateField = document.getElementById('date');
+    if (dateField) {
+        dateField.min = today;
+        dateField.value = today;
+    }
+    
+    // Время (текущее время +1 час)
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = '00';
+    const timeField = document.getElementById('time');
+    if (timeField) {
+        timeField.value = `${hours}:${minutes}`;
+    }
+    
+    // Дата окончания для регулярных слотов (+2 месяца)
+    const endDateField = document.getElementById('end_date');
+    if (endDateField) {
+        const parts = today.split('-').map(Number);
+        const endDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+        endDate.setUTCMonth(endDate.getUTCMonth() + 2);
+        const defaultEndDate = endDate.toISOString().split('T')[0];
+        endDateField.value = defaultEndDate;
+        endDateField.min = today;
+    }
+    
+    // Переключение типа слота
+    const slotTypeRadios = document.querySelectorAll('input[name="slot_type"]');
+    const recurringOptions = document.getElementById('recurring_options');
+    const onceOptions = document.getElementById('once_options');
+    const dateInput = document.getElementById('date');
+    const weekdaySelect = document.getElementById('weekday');
+    
+    // Функция переключения
+    function updateSlotType() {
+        const selectedType = document.querySelector('input[name="slot_type"]:checked').value;
+        
+        // Показываем/скрываем соответствующие блоки
+        if (selectedType === 'recurring') {
+            recurringOptions.classList.remove('hidden');
+            onceOptions.classList.add('hidden');
+            if (dateInput) dateInput.removeAttribute('required');
+            if (weekdaySelect) weekdaySelect.setAttribute('required', 'required');
+        } else {
+            recurringOptions.classList.add('hidden');
+            onceOptions.classList.remove('hidden');
+            if (dateInput) dateInput.setAttribute('required', 'required');
+            if (weekdaySelect) weekdaySelect.removeAttribute('required');
+        }
+        
+        // Обновляем стили выбранной опции
+        document.querySelectorAll('.slot-type-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        const selectedOption = document.querySelector(`input[name="slot_type"]:checked`).closest('.slot-type-option');
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+        }
+    }
+    
+    // Обработчики для типа слота
+    slotTypeRadios.forEach(radio => {
+        radio.addEventListener('change', updateSlotType);
+    });
+    
+    // Клик по блокам выбора типа
+    document.querySelectorAll('.slot-type-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                updateSlotType();
+            }
+        });
+    });
+    
+    // Обработчики для длительности
+    document.querySelectorAll('.duration-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Убираем выделение со всех опций
+            document.querySelectorAll('.duration-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Добавляем выделение текущей
+            this.classList.add('selected');
+            
+            // Выбираем соответствующий radio
+            const radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+        });
+    });
+    
+    // Инициализация выбранных опций
+    const selectedDuration = document.querySelector('.duration-option input[checked]');
+    if (selectedDuration) {
+        selectedDuration.closest('.duration-option').classList.add('selected');
+    }
+    
+    // Выделяем первую опцию типа слота
+    const firstSlotType = document.querySelector('.slot-type-option');
+    if (firstSlotType) {
+        firstSlotType.classList.add('selected');
+    }
+    
+    // Инициализация
+    updateSlotType();
+});
+</script>
+</body>
+</html>

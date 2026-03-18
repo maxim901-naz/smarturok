@@ -1,0 +1,739 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}">
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:image" content="{% if subject.landing_image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.landing_image.url }}{% elif subject.image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo4-round.png' %}{% endif %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0F172A',
+                        secondary: '#1E293B',
+                        accent: '#0EA5E9',
+                        dark: '#020617',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(rgba(14, 165, 233, 0.14) 1px, transparent 1px);
+            background-size: 22px 22px;
+            overflow-x: hidden;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #0EA5E9 0%, #38BDF8 55%, #7DD3FC 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 58%, #0EA5E9 100%);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(14, 165, 233, 0.28);
+        }
+        .section-header {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+        .section-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #0EA5E9 0%, #38BDF8 100%);
+            border-radius: 2px;
+        }
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .hero-orb {
+            position: absolute;
+            border-radius: 999px;
+            pointer-events: none;
+            filter: blur(2px);
+            opacity: 0.55;
+        }
+        .hero-orb-1 {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0));
+            top: -120px;
+            right: -80px;
+        }
+        .hero-orb-2 {
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.45), rgba(56, 189, 248, 0));
+            bottom: -80px;
+            left: -70px;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            backdrop-filter: blur(6px);
+        }
+        .floating-chip {
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+            animation: floatChip 5s ease-in-out infinite;
+        }
+        .floating-chip.delay {
+            animation-delay: 0.7s;
+        }
+        .surface-card {
+            border: 1px solid rgba(15, 23, 42, 0.05);
+            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.07);
+            border-radius: 18px;
+            background: #fff;
+        }
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(56, 189, 248, 0.24), rgba(15, 23, 42, 0.16));
+            opacity: 0.8;
+        }
+        .metric-card > * {
+            position: relative;
+        }
+        .timeline-step {
+            position: relative;
+            padding-left: 32px;
+        }
+        .timeline-step::before {
+            content: "";
+            position: absolute;
+            left: 8px;
+            top: 10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0EA5E9;
+        }
+        .timeline-step::after {
+            content: "";
+            position: absolute;
+            left: 12px;
+            top: 22px;
+            width: 2px;
+            bottom: -18px;
+            background: linear-gradient(to bottom, rgba(14, 165, 233, 0.55), rgba(15, 23, 42, 0.16));
+        }
+        .timeline-step:last-child::after {
+            display: none;
+        }
+        .subject-image-wrap {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .subject-image-wrap::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.34), rgba(15, 23, 42, 0));
+            pointer-events: none;
+        }
+        .sticky-mobile-cta {
+            box-shadow: 0 20px 35px rgba(17, 24, 39, 0.18);
+        }
+        .modal {
+            display: none;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            box-shadow: 0 24px 50px rgba(2, 6, 23, 0.28);
+            animation: modalEnter 0.22s ease-out;
+        }
+        @keyframes floatChip {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes modalEnter {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @media (max-width: 640px) {
+            .hero-orb-1,
+            .hero-orb-2 {
+                display: none;
+            }
+        }
+    </style>
+    {% if analytics.ga4_id %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ analytics.ga4_id|urlencode }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ analytics.ga4_id|escapejs }}');
+    </script>
+    {% endif %}
+    {% if analytics.yandex_id %}
+    <script>
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for (var j = 0; j < document.scripts.length; j++) {
+                if (document.scripts[j].src === r) { return; }
+            }
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a);
+        })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym');
+        ym('{{ analytics.yandex_id|escapejs }}', 'init', {
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true,
+            webvisor: true
+        });
+    </script>
+    {% endif %}
+    {% if analytics.meta_pixel_id %}
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ analytics.meta_pixel_id|escapejs }}');
+        fbq('track', 'PageView');
+    </script>
+    {% endif %}
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+    {% if analytics.yandex_id %}
+    <noscript>
+        <div><img src="https://mc.yandex.ru/watch/{{ analytics.yandex_id|urlencode }}" style="position:absolute; left:-9999px;" alt=""></div>
+    </noscript>
+    {% endif %}
+    {% if analytics.meta_pixel_id %}
+    <noscript>
+        <img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ analytics.meta_pixel_id|urlencode }}&ev=PageView&noscript=1" alt="">
+    </noscript>
+    {% endif %}
+
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-40">
+        <div class="content-container flex justify-between items-center py-4 px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'home' %}">
+                    <img src="{% static 'images/logo3.png' %}" alt="Логотип SmartUrok" class="h-10 sm:h-12 w-auto">
+                </a>
+                <a href="{% url 'home' %}" class="text-xl sm:text-2xl font-bold gradient-text">SmartUrok</a>
+            </div>
+            <nav class="hidden md:flex items-center gap-4">
+                <a href="{% url 'home' %}#courses" class="text-sm font-medium hover:text-primary transition">Курсы</a>
+                <a href="{% url 'teachers_list' %}" class="text-sm font-medium hover:text-primary transition">Преподаватели</a>
+                <a href="{% url 'trial' %}" data-cta="subject_trial_open" class="px-5 py-2 btn-primary text-white rounded-lg text-sm font-semibold">Пробный урок</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="pt-24">
+        <section class="relative overflow-hidden bg-gradient-to-r from-primary to-accent text-white">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+            <div class="content-container px-4 sm:px-6 lg:px-8 py-14 sm:py-20 relative">
+                <div class="grid lg:grid-cols-2 gap-10 items-center">
+                    <div>
+                        <a href="{% url 'home' %}#courses" class="inline-flex items-center text-sm underline mb-5">← Все предметы</a>
+                        <div class="mb-5 inline-flex items-center gap-2 glass-panel rounded-full px-3 py-1 text-xs font-semibold">
+                            SmartUrok • Онлайн-направление
+                        </div>
+                        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">{{ hero_title }}</h1>
+                        <p class="mt-5 text-white/90 text-lg max-w-xl">{{ hero_subtitle }}</p>
+                        <div class="mt-7 flex flex-wrap gap-3">
+                            {% if subject.price_per_lesson %}
+                            <span class="px-4 py-2 rounded-lg bg-white text-primary font-semibold">от {{ subject.price_per_lesson }} ₽/урок</span>
+                            {% endif %}
+                            <span class="px-4 py-2 rounded-lg bg-white/15 border border-white/35">Бесплатный пробный урок</span>
+                            <span class="px-4 py-2 rounded-lg bg-white/15 border border-white/35">Подбор преподавателя за 15 минут</span>
+                        </div>
+                        <div class="mt-8 flex flex-wrap gap-3">
+                            <a href="{% url 'trial' %}" data-cta="subject_trial_open" class="px-6 py-3 bg-white text-primary rounded-lg font-semibold hover:bg-opacity-90 transition">Записаться на пробный</a>
+                            <a href="#lead-form" data-cta="subject_lead_open" class="px-6 py-3 border border-white rounded-lg font-semibold hover:bg-white hover:text-primary transition">Получить консультацию</a>
+                        </div>
+                        <p class="mt-4 text-sm text-white/85">Без предоплаты и без обязательств на старте.</p>
+                    </div>
+                    <div class="relative">
+                        <div class="subject-image-wrap">
+                            {% if subject.landing_image %}
+                                <img src="{{ subject.landing_image.url }}" alt="{{ subject.name }}" class="w-full object-cover max-h-[460px]">
+                            {% elif subject.image %}
+                                <img src="{{ subject.image.url }}" alt="{{ subject.name }}" class="w-full object-cover max-h-[460px]">
+                            {% else %}
+                                <div class="h-72 flex items-center justify-center text-7xl font-bold bg-white/15 border border-white/40">
+                                    {{ subject.name|slice:":1" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="floating-chip absolute -bottom-5 left-4 bg-white text-dark rounded-xl px-4 py-3">
+                            <div class="text-xs text-gray-500">Средняя оценка родителей</div>
+                            <div class="font-bold text-lg">4.9 / 5</div>
+                        </div>
+                        <div class="floating-chip delay absolute -top-4 right-4 bg-white text-dark rounded-xl px-4 py-3">
+                            <div class="text-xs text-gray-500">Первый контакт</div>
+                            <div class="font-bold text-lg">~ 15 минут</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="-mt-3 sm:-mt-5 relative z-20 pb-12">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {% for metric in metrics %}
+                    <article class="metric-card rounded-xl p-4 sm:p-5 text-dark">
+                        <div class="text-xs text-gray-600">{{ metric.label }}</div>
+                        <div class="text-lg font-bold">{{ metric.value }}</div>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="pb-14">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-3 gap-7">
+                    <article class="surface-card lg:col-span-2 p-6 sm:p-8">
+                        <h2 class="text-3xl font-bold section-header">{{ results_title }}</h2>
+                        <p class="mt-6 text-gray-700 leading-7 whitespace-pre-line">
+                            {% if subject.landing_description %}
+                                {{ subject.landing_description }}
+                            {% else %}
+                                Индивидуальные занятия по предмету «{{ subject.name }}» с преподавателем SmartUrok.
+                                Помогаем закрыть пробелы, улучшить оценки и подготовиться к экзаменам в комфортном темпе.
+                            {% endif %}
+                        </p>
+                        <div class="mt-6 grid sm:grid-cols-2 gap-3">
+                            {% for point in result_points %}
+                            <div class="rounded-xl bg-light border border-gray-200 p-4">
+                                <div class="text-sm font-semibold text-secondary">{{ point.title }}</div>
+                                <p class="text-xs text-gray-600 mt-1">{{ point.description }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+                    <aside class="surface-card p-6 sm:p-8">
+                        <h3 class="text-xl font-bold mb-4">{{ include_items_title }}</h3>
+                        <ul class="space-y-3 text-sm text-gray-700">
+                            {% for item in include_items %}
+                            <li class="flex gap-2"><span class="text-primary font-bold">✓</span><span>{{ item }}</span></li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{% url 'trial' %}" data-cta="subject_trial_open" class="mt-6 block text-center w-full px-5 py-3 btn-primary text-white rounded-lg font-semibold">Хочу пробный урок</a>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <section class="pb-14">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-7">
+                    <div class="surface-card p-6 sm:p-8">
+                        <h2 class="text-2xl font-bold mb-5">{{ subject.benefits_title|default:"Чему научится ученик" }}</h2>
+                        <ul class="space-y-3">
+                            {% for item in benefits %}
+                            <li class="flex gap-3">
+                                <span class="w-2.5 h-2.5 rounded-full bg-primary mt-2 shrink-0"></span>
+                                <span class="text-gray-700">{{ item }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="surface-card p-6 sm:p-8">
+                        <h2 class="text-2xl font-bold mb-5">{{ subject.program_title|default:"Программа обучения" }}</h2>
+                        <ol class="space-y-3">
+                            {% for item in program %}
+                            <li class="timeline-step text-gray-700">{{ item }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="pb-14">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="surface-card p-6 sm:p-8">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <h2 class="text-3xl font-bold">{{ progress_title }}</h2>
+                            <p class="text-gray-600 mt-2">{{ progress_subtitle }}</p>
+                        </div>
+                        <a href="#lead-form" data-cta="subject_lead_open" class="px-6 py-3 btn-primary text-white rounded-lg font-semibold text-center">Обсудить план обучения</a>
+                    </div>
+                    <div class="mt-7 grid md:grid-cols-3 gap-4">
+                        {% for card in progress_cards %}
+                        <div class="rounded-xl bg-light p-5 border border-gray-200">
+                            <div class="text-sm text-gray-500">{{ card.title }}</div>
+                            <div class="text-2xl font-bold mt-1">{{ card.highlight }}</div>
+                            <p class="text-sm text-gray-600 mt-2">{{ card.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {% if teachers %}
+        <section class="pb-14">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold section-header">Преподаватели по предмету</h2>
+                </div>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for teacher in teachers %}
+                    <a href="#" data-cta="subject_teacher_open" onclick="openModal('modal-teacher-{{ teacher.id }}'); return false;" class="block group" aria-haspopup="dialog" aria-controls="modal-teacher-{{ teacher.id }}">
+                        <article class="surface-card p-5 hover-scale h-full cursor-pointer border border-transparent group-hover:border-accent/30 transition">
+                            <div class="flex items-center gap-4">
+                                {% if teacher.photo %}
+                                    <img src="{{ teacher.photo.url }}" alt="{{ teacher.get_full_name|default:teacher.username }}" class="w-14 h-14 rounded-full object-cover">
+                                {% else %}
+                                    <div class="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-700">
+                                        {{ teacher.get_full_name|default:teacher.username|slice:":1" }}
+                                    </div>
+                                {% endif %}
+                                <div>
+                                    <h3 class="font-bold">{{ teacher.get_full_name|default:teacher.username }}</h3>
+                                    <p class="text-sm text-gray-600">Преподаватель SmartUrok</p>
+                                    <p class="text-sm text-accent mt-1 group-hover:underline">Подробнее</p>
+                                </div>
+                            </div>
+                        </article>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        {% for teacher in teachers %}
+        <div id="modal-teacher-{{ teacher.id }}" class="modal fixed inset-0 items-center justify-center z-50 bg-black/60 p-4" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-teacher-title-{{ teacher.id }}">
+            <div class="modal-content bg-white rounded-2xl p-6 w-full max-w-3xl relative max-h-[90vh] overflow-y-auto">
+                <button type="button" aria-label="Закрыть карточку преподавателя" onclick="closeModal('modal-teacher-{{ teacher.id }}')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
+                    ✖
+                </button>
+
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/3">
+                        <div class="w-full h-52 md:h-64 rounded-lg overflow-hidden border border-gray-200">
+                            {% if teacher.photo %}
+                                <img src="{{ teacher.photo.url }}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                            {% else %}
+                                <img src="{% static 'images/logo4-round.png' %}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
+                            {% endif %}
+                        </div>
+                        <div class="mt-4 flex justify-center space-x-1">
+                            {% for _ in "12345" %}
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 id="modal-teacher-title-{{ teacher.id }}" class="text-2xl font-bold mb-2">{{ teacher.get_full_name|default:teacher.username }}</h3>
+                        <p class="text-primary font-medium mb-4">
+                            {% with subjects=teacher.subjects_taught.all %}
+                                {% if subjects %}
+                                    {% for s in subjects %}{{ s.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                {% else %}
+                                    {{ teacher.desired_subject.name }}
+                                {% endif %}
+                            {% endwith %}
+                        </p>
+
+                        <div class="mb-4">
+                            <h4 class="font-semibold mb-2">Образование:</h4>
+                            <p class="text-gray-700">МГУ им. М.В. Ломоносова, профильное педагогическое направление.</p>
+                        </div>
+                        <div class="mb-4">
+                            <h4 class="font-semibold mb-2">Опыт работы:</h4>
+                            <p class="text-gray-700">Практика индивидуальных онлайн-занятий и подготовка к контрольным и экзаменам.</p>
+                        </div>
+                        <div class="mb-6">
+                            <h4 class="font-semibold mb-2">Подход:</h4>
+                            <p class="text-gray-700">Понятное объяснение сложных тем, системная практика и обратная связь для родителей.</p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <a href="{% url 'book_lesson' teacher.id %}" data-cta="subject_teacher_book_open" class="px-6 py-3 btn-primary text-white rounded-lg font-semibold text-center">
+                                Записаться к преподавателю
+                            </a>
+                            <button type="button" onclick="closeModal('modal-teacher-{{ teacher.id }}')" class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-primary hover:text-primary transition">
+                                Закрыть
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <section id="lead-form" class="pb-20">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="relative rounded-2xl overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-r from-primary to-accent"></div>
+                    <div class="relative m-[1px] bg-white rounded-2xl p-6 sm:p-8 lg:p-10">
+                        <div class="grid lg:grid-cols-5 gap-8">
+                            <div class="lg:col-span-2">
+                                <h2 class="text-2xl sm:text-3xl font-bold leading-tight">Соберем персональный план по предмету «{{ subject.name }}»</h2>
+                                <p class="text-gray-600 mt-3">Оставьте заявку, и мы свяжемся с вами, чтобы подобрать преподавателя и удобное время занятий.</p>
+                                <div class="mt-5 space-y-2 text-sm text-gray-700">
+                                    <div class="flex gap-2"><span class="text-primary font-bold">•</span><span>Ответ менеджера в ближайшее время</span></div>
+                                    <div class="flex gap-2"><span class="text-primary font-bold">•</span><span>Подбор по уровню и цели ученика</span></div>
+                                    <div class="flex gap-2"><span class="text-primary font-bold">•</span><span>Старт с бесплатного пробного урока</span></div>
+                                </div>
+                            </div>
+                            <form method="post" action="{% url 'home_lead' %}" data-lead-form="subject_detail" class="lg:col-span-3 grid md:grid-cols-2 gap-4">
+                                {% csrf_token %}
+                                <input type="text" name="website" class="hidden" tabindex="-1" autocomplete="off">
+                                <input type="hidden" name="lead_form" value="subject_detail">
+                                <input type="hidden" name="subject" value="{{ subject.id }}">
+                                <input type="hidden" name="message" value="Заявка со страницы предмета: {{ subject.name }}">
+                                <input type="hidden" name="utm_source">
+                                <input type="hidden" name="utm_medium">
+                                <input type="hidden" name="utm_campaign">
+                                <input type="hidden" name="utm_content">
+                                <input type="hidden" name="utm_term">
+                                <input type="hidden" name="gclid">
+                                <input type="hidden" name="fbclid">
+                                <input type="hidden" name="yclid">
+                                <input type="hidden" name="landing_path">
+                                <input type="hidden" name="referrer">
+
+                                <div>
+                                    <label for="lead-name" class="block text-sm font-medium text-gray-700 mb-1">Имя</label>
+                                    <input id="lead-name" type="text" name="name" autocomplete="name" required class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label for="lead-phone" class="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                                    <input id="lead-phone" type="tel" name="phone" autocomplete="tel" required class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label for="lead-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input id="lead-email" type="email" name="email" autocomplete="email" required class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                </div>
+                                <label class="md:col-span-2 flex items-start gap-2 text-sm text-gray-600">
+                                    <input type="checkbox" name="privacy_consent" value="1" required class="mt-1">
+                                    <span>Я согласен на обработку персональных данных, <a href="{% url 'privacy_policy' %}" class="underline">политику конфиденциальности</a> и <a href="{% url 'public_offer' %}" class="underline">договор-оферту</a>.</span>
+                                </label>
+                                <div class="md:col-span-2">
+                                    <button type="submit" data-cta="subject_lead_submit" class="w-full sm:w-auto px-7 py-3 btn-primary text-white rounded-lg font-semibold">Получить консультацию</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="sticky-mobile-cta fixed bottom-3 left-3 right-3 sm:hidden z-40 bg-white rounded-xl p-2 border border-gray-200">
+        <div class="grid grid-cols-2 gap-2">
+            <a href="{% url 'trial' %}" data-cta="subject_trial_open" class="text-center px-3 py-2 btn-primary text-white rounded-lg text-sm font-semibold">Пробный урок</a>
+            <a href="#lead-form" data-cta="subject_lead_open" class="text-center px-3 py-2 border border-primary text-primary rounded-lg text-sm font-semibold">Консультация</a>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white py-8">
+        <div class="content-container px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <img src="{% static 'images/logo4-round.png' %}" alt="Логотип SmartUrok" class="h-10 w-auto mr-3">
+                    <h3 class="text-xl font-bold">SmartUrok</h3>
+                </div>
+                <div class="flex flex-col items-center md:items-end">
+                    <p class="text-gray-400 text-sm mb-2">© {% now "Y" %} SmartUrok. Все права защищены.</p>
+                    <div class="flex space-x-4">
+                        <a href="{% url 'privacy_policy' %}" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                        <a href="{% url 'public_offer' %}" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (!modal) return;
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            if (!document.querySelector('.modal.active')) {
+                document.body.style.overflow = '';
+            }
+        }
+
+        document.addEventListener('click', (event) => {
+            if (event.target.classList.contains('modal')) {
+                closeModal(event.target.id);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key !== 'Escape') return;
+            const activeModal = document.querySelector('.modal.active');
+            if (activeModal) {
+                closeModal(activeModal.id);
+            }
+        });
+
+        const LEAD_ATTR_STORAGE_KEY = 'smartutok_lead_attribution';
+        const LEAD_ATTR_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'fbclid', 'yclid'];
+        const LEAD_EXTRA_KEYS = ['landing_path', 'referrer'];
+        const LEAD_ALL_KEYS = [...LEAD_ATTR_KEYS, ...LEAD_EXTRA_KEYS];
+        const YANDEX_COUNTER_ID = '{{ analytics.yandex_id|default_if_none:""|escapejs }}';
+        const HAS_META_PIXEL = {{ analytics.meta_pixel_id|yesno:"true,false" }};
+
+        function sanitizeValue(value, maxLength = 255) {
+            return (value || '').toString().trim().replace(/[\r\n]+/g, ' ').slice(0, maxLength);
+        }
+
+        function readStoredAttribution() {
+            try {
+                const raw = window.localStorage.getItem(LEAD_ATTR_STORAGE_KEY);
+                if (!raw) return {};
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (error) {
+                return {};
+            }
+        }
+
+        function getAttributionFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const result = {};
+            LEAD_ATTR_KEYS.forEach((key) => {
+                const value = sanitizeValue(params.get(key));
+                if (value) result[key] = value;
+            });
+            return result;
+        }
+
+        function saveAttribution(data) {
+            try {
+                window.localStorage.setItem(LEAD_ATTR_STORAGE_KEY, JSON.stringify(data));
+            } catch (error) {}
+        }
+
+        function buildLeadAttribution() {
+            const merged = { ...readStoredAttribution(), ...getAttributionFromUrl() };
+            if (!merged.landing_path) merged.landing_path = sanitizeValue(`${window.location.pathname}${window.location.search}`, 500);
+            if (!merged.referrer) merged.referrer = sanitizeValue(document.referrer, 500);
+            saveAttribution(merged);
+            return merged;
+        }
+
+        function fillLeadFormsAttribution(attribution) {
+            document.querySelectorAll('form[data-lead-form]').forEach((form) => {
+                LEAD_ALL_KEYS.forEach((key) => {
+                    const input = form.querySelector(`input[name="${key}"]`);
+                    if (!input) return;
+                    input.value = sanitizeValue(attribution[key], key === 'landing_path' || key === 'referrer' ? 500 : 255);
+                });
+            });
+        }
+
+        function trackEvent(eventName, payload = {}) {
+            window.dataLayer = window.dataLayer || [];
+            const eventPayload = { event: eventName, page_type: 'subject_detail', ...payload };
+            window.dataLayer.push(eventPayload);
+
+            if (typeof window.gtag === 'function') {
+                window.gtag('event', eventName, eventPayload);
+            }
+            if (YANDEX_COUNTER_ID && typeof window.ym === 'function') {
+                window.ym(YANDEX_COUNTER_ID, 'reachGoal', eventName, payload);
+            }
+            if (HAS_META_PIXEL && typeof window.fbq === 'function') {
+                if (eventName === 'subject_lead_submit') {
+                    window.fbq('track', 'Lead', payload);
+                } else {
+                    window.fbq('trackCustom', eventName, payload);
+                }
+            }
+        }
+
+        const leadAttribution = buildLeadAttribution();
+        fillLeadFormsAttribution(leadAttribution);
+
+        document.querySelectorAll('[data-cta]').forEach((element) => {
+            element.addEventListener('click', () => {
+                trackEvent(element.dataset.cta || 'subject_cta_click', {
+                    subject_slug: '{{ subject.slug|escapejs }}',
+                });
+            });
+        });
+
+        document.querySelectorAll('form[data-lead-form]').forEach((form) => {
+            form.addEventListener('submit', () => {
+                trackEvent('subject_lead_submit', {
+                    subject_slug: '{{ subject.slug|escapejs }}',
+                    utm_source: leadAttribution.utm_source || '(direct)',
+                });
+            });
+        });
+    </script>
+</body>
+</html>

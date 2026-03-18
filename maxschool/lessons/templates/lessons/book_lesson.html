@@ -1,0 +1,742 @@
+{% load static %}
+{% load widget_tweaks %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Запись к преподавателю - SmartUrok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .slot-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #FF6B35;
+            background: white;
+            color: #FF6B35;
+        }
+        .slot-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.15);
+            background: #FF6B35;
+            color: white;
+        }
+        .slot-btn.selected {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .date-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .date-card:hover {
+            border-color: #FF6B35;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .teacher-card {
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .teacher-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+        .section-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            border-radius: 2px;
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 8px 0;
+        }
+        .nav-link::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .floating-button {
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+        }
+        .floating-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.5);
+        }
+        
+        .hero-pattern {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,182,77,0.1) 0%, rgba(255,182,77,0) 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
+        
+        /* Стили для слотов времени */
+        .slot-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .slot-item:hover {
+            transform: translateY(-2px);
+        }
+        .slot-item.selected {
+            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+            color: white;
+            border-color: #10b981;
+        }
+        
+        /* Стили для регулярных слотов */
+        .recurring-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- Фиксированная шапка -->
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <!-- Логотип -->
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'home' %}">
+                        <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-10 sm:h-12 w-auto">
+                    </a>
+                </div>
+                
+                <!-- Десктопное меню -->
+                <nav class="hidden lg:flex space-x-6">
+                    <a href="{% url 'home' %}#courses" class="text-dark font-medium transition nav-link">Курсы</a>
+                    <a href="{% url 'home' %}#materials" class="text-dark font-medium transition nav-link">Материалы</a>
+                    <a href="{% url 'teachers_list' %}" class="text-dark font-medium transition nav-link">Преподаватели</a>
+                    <a href="{% url 'home' %}#reviews" class="text-dark font-medium transition nav-link">Отзывы</a>
+                    <a href="{% url 'home' %}#contacts" class="text-dark font-medium transition nav-link">Контакты</a>
+                </nav>
+                
+                <!-- Кнопки авторизации -->
+                {% if user.is_authenticated %}
+                <div class="hidden lg:flex items-center space-x-4">
+                    {% if user.role == 'teacher' %}
+                        <a href="{% url 'teacher_dashboard' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                            {{ user.get_full_name|default:user.username }}
+                        </a>
+                    {% elif user.role == 'student' %}
+                        <a href="{% url 'student_dashboard' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                            {{ user.get_full_name|default:user.username }}
+                        </a>
+                    {% elif user.role == 'admin' %}
+                        <a href="{% url 'admin:index' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                            Панель администратора
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                        Выйти
+                    </a>
+                </div>
+                {% else %}
+                <div class="hidden lg:flex items-center space-x-4">
+                    <a href="{% url 'login' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Войти</a>
+                    <a href="{% url 'register' %}" class="px-6 py-2 btn-primary text-white rounded-lg font-medium">Регистрация</a>
+                </div>
+                {% endif %}
+
+                <!-- Кнопка бургера -->
+                <button id="burger-btn" class="lg:hidden text-2xl text-dark focus:outline-none">
+                    ☰
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="pt-24 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Хлебные крошки -->
+            <nav class="mb-8">
+                <a href="{% url 'teachers_list' %}" class="inline-flex items-center text-gray-600 hover:text-primary transition font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Назад к преподавателям
+                </a>
+            </nav>
+
+            <!-- Заголовок страницы -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">
+                    Запись к преподавателю
+                </h1>
+                <div class="max-w-2xl mx-auto">
+                    <!-- Карточка преподавателя -->
+                    <div class="teacher-card p-6 mb-6">
+                        <div class="flex items-center space-x-6">
+                            <div class="w-20 h-20 rounded-full overflow-hidden border-4 border-primary border-opacity-20">
+                                {% if teacher.photo %}
+                                    <img src="{{ teacher.photo.url }}" 
+                                         alt="{{ teacher.get_full_name|default:teacher.username }}"
+                                         class="w-full h-full object-cover">
+                                {% else %}
+                                    <img src="{% static 'images/default-avatar.png' %}" 
+                                         alt="{{ teacher.get_full_name|default:teacher.username }}"
+                                         class="w-full h-full object-cover">
+                                {% endif %}
+                            </div>
+                            <div class="text-left">
+                                <h2 class="text-2xl font-bold text-gray-800">
+                                    {{ teacher.get_full_name|default:teacher.username }}
+                                </h2>
+                                {% if teacher.desired_subject %}
+                                <p class="text-lg text-primary font-medium mb-2">
+                                    {{ teacher.get_subjects_display }}
+                                </p>
+                                {% endif %}
+                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                        </svg>
+                                        <span>4.9/5</span>
+                                    </div>
+                                    <span>•</span>
+                                    <span>5+ лет опыта</span>
+                                    <span>•</span>
+                                    <span>120+ учеников</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма записи -->
+            <!-- Форма записи -->
+<div class="max-w-4xl mx-auto">
+    <form method="post" class="bg-white rounded-2xl shadow-xl overflow-hidden" id="bookingForm">
+        {% csrf_token %}
+        <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Выберите предмет:</h3>
+                    <div class="max-w-md">
+                        {{ form.subject }}
+                    </div>
+                </div>
+
+        
+        <!-- Шапка формы -->
+        <div class="bg-gradient-to-r from-primary to-accent text-white p-6">
+            <h2 class="text-2xl font-bold text-center">
+                Выберите удобное время
+            </h2>
+            <p class="text-center text-white text-opacity-90 mt-2">
+                Запишитесь на первое занятие и оцените качество обучения
+            </p>
+        </div>
+
+        <!-- Тело формы -->
+        <div class="p-6">
+            <!-- Скрытое поле для слота -->
+            <input type="hidden" name="slot" id="id_slot" value="{{ form.slot.value|default:'' }}">
+            <input type="hidden" name="slots" id="id_slots" value="{{ form.slots.value|default:'' }}">
+            
+            <!-- Отладочная информация (увидите в консоли Django) -->
+            
+            {% if form.slot.field.choices|length > 1 %}
+                <!-- Выбор времени -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Доступные слоты времени:</h3>
+                    <div class="mb-4">
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" id="multiModeToggle" class="rounded border-gray-300 text-primary focus:ring-primary">
+                            <span>Выбрать сразу несколько дат</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">Можно выбрать до 4 регулярных слотов за одну отправку.</p>
+                    </div>
+                    
+                    {% if form.available_slots_by_weekday %}
+                        <div class="mb-4 flex flex-wrap items-center gap-2">
+                            <button type="button" class="slot-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg border-2 border-primary bg-primary text-white" data-filter="all">
+                                Все
+                            </button>
+                            <button type="button" class="slot-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg border-2 border-primary text-primary bg-white" data-filter="one-time">
+                                Разовые
+                            </button>
+                            <button type="button" class="slot-filter-btn px-3 py-1.5 text-sm font-medium rounded-lg border-2 border-primary text-primary bg-white" data-filter="recurring">
+                                Регулярные
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <div class="min-w-[760px] grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+                                {% for day in form.available_slots_by_weekday %}
+                                    {% if day.slots %}
+                                    <div class="slot-day-column bg-gray-50 rounded-xl p-3" data-day="{{ day.label }}">
+                                        <div class="text-center mb-3">
+                                            <h4 class="text-sm font-semibold text-gray-800">{{ day.label }}</h4>
+                                            <span class="inline-block mt-1 text-xs text-gray-500">{{ day.slots|length }}</span>
+                                        </div>
+                                        <div class="space-y-2">
+                                            {% for slot in day.slots %}
+                                                <button type="button"
+                                                        class="slot-item {% if forloop.counter > 3 %}extra-slot hidden{% endif %} w-full py-2 px-3 rounded-lg font-medium text-sm border-2 border-primary text-center transition-all duration-300 hover:bg-primary hover:text-white {% if form.slot.value == slot.id %}bg-primary text-white{% else %}bg-white text-primary{% endif %}"
+                                                        data-slot-id="{{ slot.id }}"
+                                                        data-slot-text="{{ slot.display_text }}"
+                                                        data-slot-type="{% if slot.is_recurring %}recurring{% else %}one-time{% endif %}"
+                                                        onclick="selectSlot(this)">
+                                                    {% if slot.display_time %}
+                                                        <div class="font-semibold">{{ slot.display_time|time:"H:i" }}</div>
+                                                    {% else %}
+                                                        <div class="font-semibold">{{ slot.time|time:"H:i" }}</div>
+                                                    {% endif %}
+                                                    <div class="text-[11px] opacity-70 mt-0.5">{{ slot.display_date|date:"d.m" }}</div>
+                                                </button>
+                                            {% empty %}
+                                                <div class="py-6 text-center text-xs text-gray-400">-</div>
+                                            {% endfor %}
+                                        </div>
+                                        {% if day.slots|length > 3 %}
+                                        <button type="button" class="toggle-day-slots mt-2 w-full py-1.5 text-xs font-medium text-primary hover:text-white border border-primary rounded-md hover:bg-primary transition-colors">
+                                            &#1045;&#1097;&#1077;
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                            {% for value, text in form.slot.field.choices %}
+                                {% if value %}
+                                <button type="button"
+                                        class="slot-item py-3 px-4 rounded-lg font-medium text-sm border-2 border-primary text-center transition-all duration-300 hover:bg-primary hover:text-white {% if form.slot.value == value %}bg-primary text-white{% else %}bg-white text-primary{% endif %}"
+                                        data-slot-id="{{ value }}"
+                                        data-slot-text="{{ text }}"
+                                        onclick="selectSlot(this)">
+                                    <div class="font-semibold">{{ text|slice:"11:" }}</div>
+                                </button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% if form.slot.errors %}
+                        <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            {% for error in form.slot.errors %}
+                                <p class="text-red-600 text-sm">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {% if form.slots.errors %}
+                        <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            {% for error in form.slots.errors %}
+                                <p class="text-red-600 text-sm">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Выбранный слот -->
+                <div id="selectedSlotInfo" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg {% if not form.slot.value %}hidden{% endif %}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <div>
+                                <p class="text-green-800 font-medium">Выбрано время:</p>
+                                <p id="selectedSlotText" class="text-green-600 text-sm mt-1">
+                                    {% if form.slot.value %}
+                                        {% for value, text in form.slot.field.choices %}
+                                            {% if value == form.slot.value %}
+                                                {{ text }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </p>
+                                <ul id="selectedSlotsList" class="text-green-700 text-sm mt-2 space-y-1 hidden"></ul>
+                            </div>
+                        </div>
+                        <button type="button" onclick="clearSelection()" class="text-green-600 hover:text-green-800">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+                
+            {% else %}
+                <!-- Нет доступных слотов -->
+                <div class="text-center py-12">
+                    <div class="text-gray-400 mb-6">
+                        <svg class="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-600 mb-4">Нет доступных слотов</h3>
+                    <p class="text-gray-500 max-w-md mx-auto mb-8">
+                        У преподавателя пока нет свободного времени для записи. Попробуйте позже или свяжитесь с администратором.
+                    </p>
+                </div>
+            {% endif %}
+
+            <!-- Общие ошибки формы -->
+            {% if form.non_field_errors %}
+                <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    {% for error in form.non_field_errors %}
+                        <p class="text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Блок с призывом оставить заявку -->
+            <div class="mt-8 border-t border-gray-200 pt-8">
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 max-w-md mx-auto">
+                    <div class="text-blue-500 mb-4 text-center">
+                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-blue-800 mb-3 text-center">
+                        Не нашли подходящее время?
+                    </h3>
+                    <p class="text-blue-600 text-center mb-6">
+                        Оставьте заявку, и мы найдём удобное время для занятий с преподавателем
+                    </p>
+                    <div class="text-center">
+                        <a href="{% url 'trial' %}" class="inline-flex items-center px-8 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all duration-300 transform hover:-translate-y-1">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                            Оставить заявку
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Кнопка отправки -->
+        {% if form.slot.field.choices|length > 1 %}
+        <div class="bg-gray-50 px-6 py-6 border-t border-gray-200">
+            <button type="submit" 
+                    id="submitBtn"
+                    class="w-full py-4 btn-primary text-white rounded-xl font-semibold text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    {% if not form.slot.value %}disabled{% endif %}>
+                Записаться на занятие
+            </button>
+            <p class="text-center text-gray-600 mt-4 text-sm">
+                После записи с вами свяжется администратор для подтверждения времени
+            </p>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    const selectedSlotsMap = new Map();
+
+    function setActiveFilterButton(filterValue) {
+        document.querySelectorAll('.slot-filter-btn').forEach((btn) => {
+            const isActive = btn.dataset.filter === filterValue;
+            btn.classList.toggle('bg-primary', isActive);
+            btn.classList.toggle('text-white', isActive);
+            btn.classList.toggle('bg-white', !isActive);
+            btn.classList.toggle('text-primary', !isActive);
+        });
+    }
+
+    function applySlotTypeFilter(filterValue) {
+        const dayColumns = document.querySelectorAll('.slot-day-column');
+        dayColumns.forEach((column) => {
+            const buttons = column.querySelectorAll('.slot-item');
+            const toggleBtn = column.querySelector('.toggle-day-slots');
+            const expanded = toggleBtn && toggleBtn.dataset.expanded === 'true';
+            let visibleCount = 0;
+
+            buttons.forEach((btn) => {
+                const slotId = btn.dataset.slotId;
+                const type = btn.dataset.slotType;
+                const isExtra = btn.classList.contains('extra-slot');
+                const isSelected = selectedSlotsMap.has(slotId);
+                const isMatch = filterValue === 'all' || type === filterValue;
+
+                const allowedByFilter = isMatch || isSelected;
+                const shouldHideByCollapse = isExtra && !expanded && !isSelected;
+                const hidden = !allowedByFilter || shouldHideByCollapse;
+
+                btn.classList.toggle('hidden', hidden);
+                if (!hidden) {
+                    visibleCount += 1;
+                }
+            });
+
+            if (toggleBtn) {
+                toggleBtn.style.display = visibleCount > 3 ? '' : 'none';
+                if (!expanded) {
+                    toggleBtn.textContent = 'Еще';
+                }
+            }
+            column.style.display = visibleCount > 0 ? '' : 'none';
+        });
+    }
+
+    function refreshSlotButtonStyles() {
+        document.querySelectorAll('.slot-item').forEach((btn) => {
+            const isSelected = selectedSlotsMap.has(btn.dataset.slotId);
+            btn.classList.toggle('selected-slot', isSelected);
+            btn.classList.toggle('bg-primary', isSelected);
+            btn.classList.toggle('text-white', isSelected);
+            btn.classList.toggle('bg-white', !isSelected);
+            btn.classList.toggle('text-primary', !isSelected);
+        });
+    }
+
+    function syncHiddenSelectionFields() {
+        const ids = Array.from(selectedSlotsMap.keys());
+        document.getElementById('id_slot').value = ids[0] || '';
+        const hiddenSlots = document.getElementById('id_slots');
+        if (hiddenSlots) {
+            hiddenSlots.value = ids.join(',');
+        }
+        const submitBtn = document.getElementById('submitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = ids.length === 0;
+        }
+    }
+
+    function renderSelectedInfo() {
+        const info = document.getElementById('selectedSlotInfo');
+        const textNode = document.getElementById('selectedSlotText');
+        const listNode = document.getElementById('selectedSlotsList');
+        const ids = Array.from(selectedSlotsMap.keys());
+
+        if (!ids.length) {
+            info.classList.add('hidden');
+            textNode.textContent = '';
+            listNode.innerHTML = '';
+            listNode.classList.add('hidden');
+            return;
+        }
+
+        const multiMode = document.getElementById('multiModeToggle')?.checked;
+        const selectedItems = Array.from(selectedSlotsMap.values());
+
+        info.classList.remove('hidden');
+        if (multiMode && selectedItems.length > 1) {
+            textNode.textContent = `Выбрано занятий: ${selectedItems.length}`;
+            listNode.innerHTML = selectedItems
+                .map((item) => `<li>- ${item.text}</li>`)
+                .join('');
+            listNode.classList.remove('hidden');
+        } else {
+            textNode.textContent = selectedItems[0].text;
+            listNode.innerHTML = '';
+            listNode.classList.add('hidden');
+        }
+    }
+
+    function clearSelection() {
+        selectedSlotsMap.clear();
+        refreshSlotButtonStyles();
+        syncHiddenSelectionFields();
+        renderSelectedInfo();
+        const activeFilter = document.querySelector('.slot-filter-btn.bg-primary')?.dataset.filter || 'all';
+        applySlotTypeFilter(activeFilter);
+    }
+
+    function selectSlot(element) {
+        const slotId = element.getAttribute('data-slot-id');
+        const slotText = element.getAttribute('data-slot-text');
+        const slotType = element.getAttribute('data-slot-type') || 'one-time';
+        const multiMode = document.getElementById('multiModeToggle')?.checked;
+
+        if (!multiMode) {
+            selectedSlotsMap.clear();
+            selectedSlotsMap.set(slotId, { text: slotText, type: slotType });
+        } else {
+            if (selectedSlotsMap.has(slotId)) {
+                selectedSlotsMap.delete(slotId);
+            } else {
+                if (slotType === 'recurring') {
+                    const recurringCount = Array.from(selectedSlotsMap.values())
+                        .filter((meta) => meta.type === 'recurring').length;
+                    if (recurringCount >= 4) {
+                        alert('За один раз можно выбрать не более 4 регулярных слотов.');
+                        return;
+                    }
+                }
+                selectedSlotsMap.set(slotId, { text: slotText, type: slotType });
+            }
+        }
+
+        refreshSlotButtonStyles();
+        syncHiddenSelectionFields();
+        renderSelectedInfo();
+        const activeFilter = document.querySelector('.slot-filter-btn.bg-primary')?.dataset.filter || 'all';
+        applySlotTypeFilter(activeFilter);
+    }
+
+    function hydrateInitialSelection() {
+        const hiddenSlot = document.getElementById('id_slot').value;
+        const hiddenSlots = (document.getElementById('id_slots')?.value || '').trim();
+        const ids = [];
+
+        if (hiddenSlots) {
+            hiddenSlots.split(',').forEach((sid) => {
+                const trimmed = sid.trim();
+                if (trimmed && !ids.includes(trimmed)) {
+                    ids.push(trimmed);
+                }
+            });
+        }
+        if (!ids.length && hiddenSlot) {
+            ids.push(hiddenSlot);
+        }
+
+        ids.forEach((sid) => {
+            const button = document.querySelector(`[data-slot-id="${sid}"]`);
+            if (!button) {
+                return;
+            }
+            selectedSlotsMap.set(sid, {
+                text: button.getAttribute('data-slot-text') || sid,
+                type: button.getAttribute('data-slot-type') || 'one-time'
+            });
+        });
+
+        const toggle = document.getElementById('multiModeToggle');
+        if (toggle && selectedSlotsMap.size > 1) {
+            toggle.checked = true;
+        }
+
+        refreshSlotButtonStyles();
+        syncHiddenSelectionFields();
+        renderSelectedInfo();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.slot-filter-btn').forEach((btn) => {
+            btn.addEventListener('click', function() {
+                const filterValue = this.dataset.filter || 'all';
+                setActiveFilterButton(filterValue);
+                applySlotTypeFilter(filterValue);
+            });
+        });
+
+        document.querySelectorAll('.toggle-day-slots').forEach((btn) => {
+            btn.addEventListener('click', function() {
+                const dayColumn = this.closest('.slot-day-column');
+                const expanded = this.dataset.expanded === 'true';
+                const activeFilter = document.querySelector('.slot-filter-btn.bg-primary')?.dataset.filter || 'all';
+
+                dayColumn.querySelectorAll('.extra-slot').forEach((slotBtn) => {
+                    const slotId = slotBtn.dataset.slotId;
+                    const type = slotBtn.dataset.slotType;
+                    const isSelected = selectedSlotsMap.has(slotId);
+                    const isMatch = activeFilter === 'all' || type === activeFilter;
+
+                    if (!isMatch && !isSelected) {
+                        slotBtn.classList.add('hidden');
+                        return;
+                    }
+                    if (expanded && !isSelected) {
+                        slotBtn.classList.add('hidden');
+                    } else {
+                        slotBtn.classList.remove('hidden');
+                    }
+                });
+
+                this.dataset.expanded = expanded ? 'false' : 'true';
+                this.textContent = expanded ? 'Еще' : 'Свернуть';
+            });
+        });
+
+        const multiModeToggle = document.getElementById('multiModeToggle');
+        if (multiModeToggle) {
+            multiModeToggle.addEventListener('change', function() {
+                if (!this.checked && selectedSlotsMap.size > 1) {
+                    const firstEntry = selectedSlotsMap.entries().next().value;
+                    selectedSlotsMap.clear();
+                    selectedSlotsMap.set(firstEntry[0], firstEntry[1]);
+                }
+                refreshSlotButtonStyles();
+                syncHiddenSelectionFields();
+                renderSelectedInfo();
+                const activeFilter = document.querySelector('.slot-filter-btn.bg-primary')?.dataset.filter || 'all';
+                applySlotTypeFilter(activeFilter);
+            });
+        }
+
+        setActiveFilterButton('all');
+        hydrateInitialSelection();
+        applySlotTypeFilter('all');
+
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            const slotValue = document.getElementById('id_slot').value;
+            if (!slotValue) {
+                e.preventDefault();
+                alert('Пожалуйста, выберите хотя бы один слот времени.');
+                return false;
+            }
+        });
+    });
+</script>
+</body>
+</html>

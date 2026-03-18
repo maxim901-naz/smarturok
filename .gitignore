@@ -1,0 +1,35 @@
+﻿# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtualenv
+venv/
+.env/
+.env
+maxschool/.env
+.env.prod
+.env.local
+
+# Django
+*.log
+local_settings.py
+staticfiles/
+media/
+db.sqlite3
+
+# Secrets / keys
+*.pem
+maxschool/jaas_private_key.pem
+
+# Local tunnel binaries
+ngrok.exe
+.ngrok.exe.old
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,15 @@
+Django==5.2.11
+channels==4.3.2
+daphne==4.2.1
+channels-redis==4.2.1
+
+django-admin-interface==0.32.0
+django-colorfield==0.14.0
+django-widget-tweaks==1.5.1
+
+Pillow==12.1.1
+PyJWT==2.11.0
+python-dotenv==1.0.1
+
+# PostgreSQL driver for production
+psycopg[binary]==3.2.1

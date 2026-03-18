@@ -1,0 +1,218 @@
+{% comment %} {% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заявки на бронирование — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black py-10 px-4">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-orange-600 text-center">Запросы на бронирование уроков</h1>
+
+        {% if bookings %}
+            <ul class="space-y-6">
+                {% for booking in bookings %}
+                    <li class="bg-white shadow p-6 rounded-lg border-l-4 border-orange-500">
+                        <p><strong>👨‍🎓 Ученик:</strong> 
+                            {{ booking.student.get_full_name|default:booking.student.username }} 
+                            ({{ booking.student.email }})
+                        </p>
+                        <p><strong>📘 Предмет:</strong> {{ booking.subject }}</p>
+                        <p><strong>🗓️ Дата и время:</strong> {{ booking.date }} {{ booking.time }}</p>
+
+                        <a href="{% url 'confirm_booking' booking.id %}"
+                           class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+                            ✅ Подтвердить урок
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-gray-600 text-center">Нет новых заявок на бронирование.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html> {% endcomment %}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявки на бронирование — MaxSchool</title>
+    
+    <!-- Подключение шрифтов и библиотек -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo2.PNG' %}">
+
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e6eeff 100%);
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .booking-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border-left: 4px solid #FF6B35;
+        }
+        
+        .booking-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .confirm-btn {
+            background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .confirm-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+        }
+        
+        .header-gradient {
+            background: linear-gradient(to right, #004E89, #00A6FB);
+        }
+        
+        .info-item {
+            border-left: 3px solid #FF6B35;
+            padding-left: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            border-left: 3px solid #004E89;
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+    <!-- Шапка -->
+    <header class="header-gradient text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-10 w-auto">
+                <h1 class="text-xl font-bold">MaxSchool</h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="{% url 'teacher_dashboard' %}" class="text-white opacity-90 hover:opacity-100 transition">Главная</a>
+                <a href="{% url 'teacher_bookings' %}" class="text-white font-semibold border-b-2 border-white">Заявки</a>
+                <a href="{% url 'teacher_lesson_history' %}" class="text-white opacity-90 hover:opacity-100 transition">История уроков</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Заявки на бронирование уроков</h2>
+            <p class="text-gray-600">Подтвердите или отклоните запросы на уроки от учеников</p>
+        </div>
+        
+        {% if bookings %}
+        <div class="grid grid-cols-1 gap-6">
+            {% for booking in bookings %}
+            <div class="booking-card p-6">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between">
+                    <div class="md:w-2/3 mb-4 md:mb-0">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <span class="bg-primary text-white p-2 rounded-full mr-3">
+                                <i class="fas fa-calendar-check"></i>
+                            </span>
+                            Новая заявка на урок
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="info-item">
+                                <p class="text-sm text-gray-500">Ученик</p>
+                                <p class="text-lg font-semibold text-gray-800">
+                                    {{ booking.student.get_full_name|default:booking.student.username }}
+                                </p>
+                                <p class="text-sm text-gray-600">{{ booking.student.email }}</p>
+                            </div>
+                            
+                            <div class="info-item">
+                                <p class="text-sm text-gray-500">Предмет</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ booking.subject }}</p>
+                            </div>
+                            
+                            <div class="info-item">
+                                <p class="text-sm text-gray-500">Дата</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ booking.date }}</p>
+                            </div>
+                            
+                            <div class="info-item">
+                                <p class="text-sm text-gray-500">Время</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ booking.time }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/3 flex flex-col space-y-3">
+                        <a href="{% url 'confirm_booking' booking.id %}" class="confirm-btn text-white py-3 px-6 rounded-lg font-semibold text-center">
+                            <i class="fas fa-check-circle mr-2"></i> Подтвердить урок
+                        </a>
+                        <a href="#" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                            <i class="fas fa-times-circle mr-2"></i> Отклонить
+                        </a>
+                        <a href="#" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                            <i class="fas fa-comment mr-2"></i> Написать ученику
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center max-w-2xl mx-auto">
+            <div class="text-5xl mb-4">📭</div>
+            <h3 class="text-xl font-semibold mb-2">Нет новых заявок на бронирование</h3>
+            <p class="text-gray-600 mb-6">Все новые заявки от учеников будут появляться здесь</p>
+            <a href="{% url 'teacher_dashboard' %}" class="inline-block py-2 px-6 bg-gray-100 rounded-lg font-medium text-gray-700 hover:bg-gray-200 transition">
+                Вернуться на главную
+            </a>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-white mt-12 py-6 border-t border-gray-100">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500">© 2025 MaxSchool. Все права защищены.</p>
+        </div>
+    </footer>
+</body>
+</html>

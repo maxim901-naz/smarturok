@@ -1,0 +1,65 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Домашнее задание и комментарии — MaxSchool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-black py-10 px-4">
+
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow">
+    <h1 class="text-3xl font-bold mb-6 text-orange-600 text-center">
+        Отправка ДЗ и комментариев
+    </h1>
+
+    <h2 class="text-xl font-semibold mb-4 text-gray-800 text-center">
+        {{ lesson.subject.name }} — {{ lesson.student.get_full_name|default:lesson.student.username }}
+        <br>
+        <span class="text-sm text-gray-500">📅 {{ lesson.date }} &nbsp;&nbsp; 🕒 {{ lesson.time }}</span>
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Тема урока -->
+        <div>
+            <label class="block font-medium mb-1">📝 Тема урока</label>
+            {% render_field form.topic class="w-full border border-gray-300 rounded px-3 py-2" %}
+        </div>
+
+        <!-- Домашнее задание (текст) -->
+        <div>
+            <label class="block font-medium mb-1">📚 Домашнее задание (текст)</label>
+            {% render_field form.homework class="w-full border border-gray-300 rounded px-3 py-2" %}
+        </div>
+
+        <!-- Файл для ДЗ -->
+        <div>
+            <label class="block font-medium mb-1">📎 Прикрепить файл (изображение, PDF, DOCX)</label>
+            {% render_field form.homework_file class="w-full border border-gray-300 rounded px-3 py-2" %}
+            
+            {% if lesson.homework_file %}
+                <p class="mt-2 text-sm text-gray-600">
+                    Текущий файл: 
+                    <a href="{{ lesson.homework_file.url }}" target="_blank" class="text-blue-600 underline">Скачать</a>
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Комментарий -->
+        <div>
+            <label class="block font-medium mb-1">💬 Комментарий для ученика</label>
+            {% render_field form.teacher_notes class="w-full border border-gray-300 rounded px-3 py-2" %}
+        </div>
+
+        <!-- Кнопка -->
+        <button type="submit" class="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 transition">
+            💾 Сохранить
+        </button>
+    </form>
+</div>
+
+</body>
+</html>

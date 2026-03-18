@@ -1,0 +1,119 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Р’СЃРµ РїСЂРµРґСЃС‚РѕСЏС‰РёРµ СѓСЂРѕРєРё вЂ” SmartUrok</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        };
+    </script>
+    <style>
+        .lesson-card {
+            border-radius: 14px;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
+            border-left: 4px solid #FF6B35;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .lesson-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-900">
+    <div class="max-w-6xl mx-auto py-10 px-4 sm:px-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold">Р’СЃРµ РїСЂРµРґСЃС‚РѕСЏС‰РёРµ СѓСЂРѕРєРё</h1>
+                <p class="text-gray-600 mt-1">РЈРїСЂР°РІР»СЏР№С‚Рµ СѓСЂРѕРєР°РјРё: РІС…РѕРґ, С‡Р°С‚, РїРµСЂРµРЅРѕСЃ Рё РѕС‚РјРµРЅР°.</p>
+            </div>
+                        <div class="flex items-center gap-4">
+                <a href="{% url 'student_vacation_request' %}" class="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:opacity-95 transition">
+                    <i class="fas fa-umbrella-beach mr-2"></i>Отпуск
+                </a>
+                <a href="{% url 'student_dashboard' %}" class="text-secondary font-medium hover:underline">
+                    <i class="fas fa-arrow-left mr-2"></i>В кабинет
+                </a>
+            </div>
+        </div>
+
+        {% if lessons %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for lesson in lessons %}
+                <div class="lesson-card bg-white p-5">
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="text-xl font-semibold">{{ lesson.subject.name }}</h4>
+                        <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">{{ lesson.duration_minutes }} РјРёРЅ</span>
+                    </div>
+
+                    <p class="mb-2 text-gray-700">РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ: {{ lesson.teacher.get_full_name|default:lesson.teacher.username }}</p>
+                    <p class="mb-1 text-gray-600">{{ lesson.display_date|default:lesson.date }} РІ {{ lesson.display_time|default:lesson.time }} (РІР°С€Рµ РІСЂРµРјСЏ)</p>
+                    <p class="mb-3 text-sm text-gray-500">РџРѕ РњРЎРљ: {{ lesson.teacher_display_date|default:lesson.date }} РІ {{ lesson.teacher_display_time|default:lesson.time }}</p>
+
+                    {% if lesson.lesson_status %}
+                    <span class="inline-block mb-3 px-3 py-1 rounded-full text-xs font-medium
+                        {% if lesson.lesson_status == 'conducted' %}bg-green-100 text-green-800
+                        {% elif lesson.lesson_status == 'missed_teacher' %}bg-red-100 text-red-800
+                        {% elif lesson.lesson_status == 'missed_student' %}bg-orange-100 text-orange-800
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {% if lesson.lesson_status == 'conducted' %}РџСЂРѕРІРµРґС‘РЅ
+                        {% elif lesson.lesson_status == 'missed_teacher' %}РџСЂРѕРїСѓС‰РµРЅ РїСЂРµРїРѕРґР°РІР°С‚РµР»РµРј
+                        {% elif lesson.lesson_status == 'missed_student' %}РџСЂРѕРїСѓС‰РµРЅ СѓС‡РµРЅРёРєРѕРј
+                        {% else %}РћР¶РёРґР°РµС‚ РѕС‚РјРµС‚РєРё{% endif %}
+                    </span>
+                    {% endif %}
+
+                    <div class="mt-2 flex flex-col gap-2">
+                        {% if lesson.show_video %}
+                            <a href="{% url 'lesson_session' lesson.id %}" class="w-full text-center px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:opacity-95 transition">
+                                <i class="fas fa-video mr-2"></i>РџРµСЂРµР№С‚Рё РІ СѓСЂРѕРє
+                            </a>
+                        {% else %}
+                            <div class="w-full text-center px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm">
+                                РЎСЃС‹Р»РєР° РїРѕСЏРІРёС‚СЃСЏ Р·Р° 5 РјРёРЅСѓС‚ РґРѕ РЅР°С‡Р°Р»Р°
+                            </div>
+                        {% endif %}
+
+                        <a href="{% url 'chat:start' lesson.teacher.id %}" class="w-full text-center px-4 py-2 bg-secondary text-white rounded-lg font-semibold hover:opacity-95 transition">
+                            <i class="fas fa-comment-dots mr-2"></i>РќР°РїРёСЃР°С‚СЊ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЋ
+                        </a>
+
+                        <a href="{% url 'reschedule_lesson' lesson.id %}" class="w-full text-center px-4 py-2 border border-primary text-primary rounded-lg font-semibold hover:bg-orange-50 transition">
+                            <i class="fas fa-calendar-alt mr-2"></i>РџРµСЂРµРЅРµСЃС‚Рё СѓСЂРѕРє
+                        </a>
+                    </div>
+
+                    <form method="post" action="{% url 'student_cancel_lesson' lesson.id %}" class="mt-2">
+                        {% csrf_token %}
+                        <button type="submit" onclick="return confirm('РћС‚РјРµРЅРёС‚СЊ СѓСЂРѕРє? Р•СЃР»Рё РґРѕ РЅР°С‡Р°Р»Р° РјРµРЅРµРµ 4 С‡Р°СЃРѕРІ, СѓСЂРѕРє Р±СѓРґРµС‚ СЃРїРёСЃР°РЅ.')" class="w-full text-center px-4 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition">
+                            РћС‚РјРµРЅРёС‚СЊ СѓСЂРѕРє
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white p-8 rounded-xl shadow text-center">
+                <p class="text-gray-600">РќРµС‚ РїСЂРµРґСЃС‚РѕСЏС‰РёС… СѓСЂРѕРєРѕРІ.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+

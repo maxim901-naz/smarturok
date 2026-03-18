@@ -1,0 +1,2997 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная учебная доска | SmartUrok</title>
+    <style>
+        :root {
+            --primary: #f5821e;
+            --primary-dark: #d96b0d;
+            --secondary: #2c3e50;
+            --light: #f5f7fa;
+            --dark: #34495e;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --text: #2d3748;
+            --text-light: #718096;
+            --grid-color: rgba(200, 200, 200, 0.3);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            min-height: 100vh;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: none;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background: white;
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: var(--light);
+            color: var(--text);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .header-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .header-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 190px;
+            background: var(--light);
+            padding: 16px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            border-right: 1px solid #e2e8f0;
+            display: none;
+        }
+
+        #sidebar.hidden {
+            transform: translateX(-100%);
+            width: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .board-icon {
+            font-size: 1.1rem;
+        }
+
+        #sidebar.compact {
+            width: 72px;
+            padding: 12px 10px;
+        }
+
+        #sidebar.compact .sidebar-title-text,
+        #sidebar.compact .board-name,
+        #sidebar.compact .grid-toggle label,
+        #sidebar.compact .slider-container span,
+        #sidebar.compact .header-btn span {
+            display: none;
+        }
+
+        #sidebar.compact .board-item {
+            justify-content: center;
+            gap: 0;
+            padding: 10px;
+        }
+
+        #sidebar.compact .delete-board {
+            display: none;
+        }
+
+        #sidebar.compact .header-btn {
+            padding: 8px;
+            justify-content: center;
+        }
+
+        #boards-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .board-item {
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .board-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(245, 130, 30, 0.2);
+        }
+
+        .board-item.active {
+            background: rgba(245, 130, 30, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .delete-board {
+            background: none;
+            color: var(--text-light);
+            border: none;
+            border-radius: 4px;
+            padding: 4px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .delete-board:hover {
+            color: var(--danger);
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        #whiteboard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            background: #f8fafc;
+            min-width: 0;
+        }
+
+        #lesson-panel {
+            width: 50%;
+            max-width: 50%;
+            min-width: 320px;
+            border-left: 1px solid #e2e8f0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #lesson-panel.hidden {
+            transform: translateX(100%);
+            width: 0;
+            border: none;
+            display: none;
+        }
+
+        .main-content.materials-collapsed #whiteboard-container {
+            width: 100%;
+        }
+
+        .main-content.materials-collapsed #lesson-panel {
+            display: none;
+        }
+
+        .board-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 10px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar-btn {
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: var(--secondary);
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .topbar-btn:hover {
+            background: #eef2f7;
+        }
+
+        .lesson-panel-header {
+            padding: 10px 12px;
+            background: #8bc34a;
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .lesson-panel-content {
+            padding: 10px 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .lesson-section {
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .lesson-section h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .materials {
+            min-height: 120px;
+            height: auto;
+            flex: 1;
+            border: 1px dashed #e2e8f0;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+
+        #toolbar {
+            position: absolute;
+            left: 50%;
+            bottom: 12px;
+            transform: translateX(-50%);
+            padding: 0;
+            background: transparent;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 12;
+        }
+
+        .toolbar-dropdown {
+            position: relative;
+        }
+
+        .board-dropdown .dropdown-panel {
+            min-width: 240px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .boards-list-top {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .boards-list-top .board-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .boards-list-top .board-item.active {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .boards-list-top .delete-board {
+            border: none;
+            background: transparent;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+
+        .dropdown-summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 5px 6px;
+            border-radius: 6px;
+            background: var(--light);
+            border: 1px solid #e2e8f0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .dropdown-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .dropdown-panel {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+            min-width: 180px;
+            z-index: 9999;
+            display: none;
+        }
+
+        .dropdown-panel.colors {
+            min-width: 220px;
+        }
+
+        .toolbar-dropdown[open] .dropdown-panel {
+            display: block;
+        }
+
+        .dropdown-panel .colors-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 14px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .tool-btn {
+            padding: 5px 6px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn span {
+            display: none;
+        }
+
+        .tool-btn i {
+            font-size: 1rem;
+        }
+
+        .tool-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .tool-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .color-sample {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .color-sample:hover {
+            transform: scale(1.15);
+        }
+
+        .color-sample.active {
+            box-shadow: 0 0 0 3px white, 0 0 0 5px var(--primary);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 12px;
+            border-radius: 6px;
+            background: var(--light);
+        }
+
+        .colors-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .grid-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 6px;
+            background: var(--light);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #image-upload {
+            display: none;
+        }
+
+        .toggle-sidebar {
+            background: none;
+            color: var(--text);
+            border: none;
+            border-radius: 5px;
+            padding: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #whiteboard-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: auto;
+            background: white;
+        }
+
+        #whiteboard {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: white;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .image-preview {
+            position: absolute;
+            max-width: 300px;
+            max-height: 200px;
+            cursor: move;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            display: none;
+        }
+
+        footer {
+            padding: 15px;
+            text-align: center;
+            background: white;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .shape-tools {
+            display: flex;
+            gap: 6px;
+        }
+
+        .shape-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: var(--light);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shape-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .shape-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .text-input-container {
+            position: absolute;
+            z-index: 100;
+            display: none;
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: white;
+        }
+
+        .text-input {
+            width: 200px;
+            padding: 10px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-family: inherit;
+            resize: none;
+        }
+
+        .text-toolbar {
+            display: flex;
+            gap: 5px;
+            padding: 5px;
+            background: #f0f0f0;
+        }
+
+        .font-size-btn {
+            padding: 3px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        /* Стиль контейнера Jitsi */
+        .jitsi-float {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 460px;
+            height: 300px;
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            min-width: 240px;
+            min-height: 160px;
+            max-width: 75vw;
+            max-height: 70vh;
+            resize: both;
+        }
+
+        .jitsi-float.minimized {
+            width: 280px;
+            height: 180px;
+        }
+        
+        .jitsi-header {
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: move;
+        }
+
+        .jitsi-title {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .jitsi-controls {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .jitsi-action {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+            padding: 0;
+        }
+        
+        .jitsi-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+        
+        /* Модальное окно подтверждения */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .modal-btn {
+            padding: 10px 25px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .modal-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .modal-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .modal-btn.secondary {
+            background: var(--light);
+            color: var(--text);
+        }
+        
+        .modal-btn.secondary:hover {
+            background: #e2e8f0;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                position: absolute;
+                height: calc(100% - 60px);
+                z-index: 100;
+                background: white;
+                box-shadow: 3px 0 15px rgba(0,0,0,0.1);
+            }
+            
+            .tool-btn span {
+                display: none;
+            }
+            
+            .tool-btn {
+                padding: 8px;
+            }
+            
+            .header-actions .header-btn span {
+                display: none;
+            }
+            
+            .jitsi-float {
+                width: 150px;
+                height: 120px;
+                top: 5px;
+                right: 5px;
+                min-width: 140px;
+                min-height: 100px;
+                resize: none;
+            }
+
+            #lesson-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">M</div>
+                <span>SmartUrok Board</span>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn">
+                    <i>📥</i> <span>Сохранить</span>
+                </button>
+                <button class="header-btn">
+                    <i>👥</i> <span>Поделиться</span>
+                </button>
+                <button class="header-btn primary" id="finishLessonBtn">
+                    <i>✅</i> <span>Завершить урок</span>
+                </button>
+            </div>
+        </header>
+        
+        <div class="main-content materials-collapsed">
+            <div id="sidebar" class="hidden">
+                <div class="sidebar-section">
+                    <h2 class="sidebar-title">📋 <span class="sidebar-title-text">Доски</span></h2>
+                    <div class="board-actions">
+                        <button id="newBoard" class="header-btn">
+                            <i>➕</i> <span>Новая доска</span>
+                        </button>
+                    </div>
+                    <ul id="boards-list">
+                        <li class="board-item active" data-id="1">
+                            <span class="board-icon">🗂️</span>
+                            <span class="board-name">Основная доска</span>
+                            <button class="delete-board">✕</button>
+                        </li>
+                    </ul>
+                </div>
+                
+            </div>
+            
+            <div id="whiteboard-container">
+                <div class="board-topbar">
+                    <div class="topbar-actions">
+                        <button id="toggleSidebar" type="button" class="topbar-btn" title="Свернуть левую панель">
+                            ☰ Панели
+                        </button>
+                        <button id="toggleLessonPanel" type="button" class="topbar-btn" title="Скрыть материалы">
+                            📎 Материалы
+                        </button>
+                        <button id="newBoardTop" type="button" class="topbar-btn" title="Новая доска">
+                            ➕ Новая доска
+                        </button>
+                        <button id="prevBoardTop" type="button" class="topbar-btn" title="Предыдущая доска">
+                            ◀
+                        </button>
+                        <button id="nextBoardTop" type="button" class="topbar-btn" title="Следующая доска">
+                            ▶
+                        </button>
+                        <details class="toolbar-dropdown board-dropdown">
+                            <summary class="dropdown-summary" id="currentBoardName">Доска: Основная</summary>
+                            <div class="dropdown-panel">
+                                <ul id="boards-list-top" class="boards-list-top"></ul>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                <div id="toolbar">
+                    <div class="tool-group">
+                        <button id="handTool" class="tool-btn" title="Перемещение">
+                            <i>✋</i> <span>Перемещение</span>
+                        </button>
+                        <button id="pencil" class="tool-btn active" title="Карандаш">
+                            <i>✏️</i> <span>Карандаш</span>
+                        </button>
+                        <button id="eraser" class="tool-btn" title="Ластик">
+                            <i>🧹</i> <span>Ластик</span>
+                        </button>
+                        <button id="textTool" class="tool-btn" title="Текст">
+                            <i>🔤</i> <span>Текст</span>
+                        </button>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <button id="clear" class="tool-btn" title="Очистить">
+                            <i>🗑️</i> <span>Очистить</span>
+                        </button>
+                        <button id="undo" class="tool-btn" title="Отменить">
+                            <i>↩️</i> <span>Отменить</span>
+                        </button>
+                        <button id="redo" class="tool-btn" title="Повторить">
+                            <i>↪️</i> <span>Повторить</span>
+                        </button>
+                    </div>
+                    
+                    <div class="tool-group shape-tools">
+                        <button id="rectTool" class="shape-btn" title="Прямоугольник">
+                            ▭
+                        </button>
+                        <button id="circleTool" class="shape-btn" title="Круг">
+                            ⚪
+                        </button>
+                        <button id="lineTool" class="shape-btn" title="Линия">
+                            ─
+                        </button>
+                        <button id="arrowTool" class="shape-btn" title="Стрелка">
+                            ➔
+                        </button>
+                    </div>
+                    
+                    <div class="tool-group">
+                        <details class="toolbar-dropdown">
+                            <summary class="dropdown-summary" title="Цвет">🎨</summary>
+                            <div class="dropdown-panel colors">
+                                <div class="colors-container">
+                                    <div class="color-sample active" style="background:#000;" data-color="#000" title="Черный"></div>
+                                    <div class="color-sample" style="background:#e74c3c;" data-color="#e74c3c" title="Красный"></div>
+                                    <div class="color-sample" style="background:#3498db;" data-color="#3498db" title="Синий"></div>
+                                    <div class="color-sample" style="background:#2ecc71;" data-color="#2ecc71" title="Зеленый"></div>
+                                    <div class="color-sample" style="background:#f1c40f;" data-color="#f1c40f" title="Желтый"></div>
+                                    <div class="color-sample" style="background:#9b59b6;" data-color="#9b59b6" title="Фиолетовый"></div>
+                                    <div class="color-sample" style="background:#1abc9c;" data-color="#1abc9c" title="Бирюзовый"></div>
+                                </div>
+                            </div>
+                        </details>
+                        
+                        <details class="toolbar-dropdown">
+                            <summary class="dropdown-summary" title="Толщина">🖊️</summary>
+                            <div class="dropdown-panel">
+                                <div class="slider-container" title="Толщина линии" style="margin: 0;">
+                                    <span>Толщина:</span>
+                                    <input type="range" id="lineWidth" min="1" max="50" value="5">
+                                </div>
+                                <div class="grid-toggle" title="Показать/скрыть сетку" style="margin-top: 10px;">
+                                    <input type="checkbox" id="gridToggle" checked>
+                                    <label for="gridToggle">Сетка</label>
+                                </div>
+                            </div>
+                        </details>
+                        
+                        <button id="addImage" class="tool-btn" title="Добавить изображение">
+                            <i>📁</i> <span>Изображение</span>
+                        </button>
+                        <input type="file" id="image-upload" accept="image/*" style="display:none;">
+                    </div>
+                </div>
+                
+                <div id="whiteboard-wrapper">
+                    <canvas id="whiteboard"></canvas>
+                    <img id="image-preview" class="image-preview" alt="Предпросмотр">
+                    
+                    <!-- Контейнер для ввода текста -->
+                    <div id="text-input-container" class="text-input-container">
+                        <textarea id="text-input" class="text-input" placeholder="Введите текст..."></textarea>
+                        <div class="text-toolbar">
+                            <button id="text-apply" class="font-size-btn">✓</button>
+                            <button id="text-cancel" class="font-size-btn">✕</button>
+                            <select id="text-size">
+                                <option value="16">16px</option>
+                                <option value="20">20px</option>
+                                <option value="24">24px</option>
+                                <option value="28">28px</option>
+                                <option value="32">32px</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Плавающий контейнер Jitsi -->
+                <div class="jitsi-float">
+                    <div class="jitsi-header">
+                        <span class="jitsi-title">Видеоконференция</span>
+                        <div class="jitsi-controls">
+                            <button id="jitsi-iframe-btn" type="button" class="jitsi-action">Встроить iframe</button>
+                            <button id="jitsi-size-btn" type="button" class="jitsi-action">Уменьшить</button>
+                            <a id="jitsi-external-link" href="{{ jitsi_external_url }}" target="_blank" rel="noopener" class="text-xs text-white underline">Открыть в новой вкладке</a>
+                            <button class="jitsi-close" type="button" aria-label="Закрыть">✕</button>
+                        </div>
+                    </div>
+                    <div id="jitsi-container" style="width:100%; height:calc(100% - 25px); position:relative;"></div>
+                </div>
+                </div>
+            </div>
+
+            <aside id="lesson-panel" class="hidden">
+                <div class="lesson-panel-header">
+                    <span>Урок</span>
+                    <button class="header-btn" style="background:#ffffff;color:#2c3e50;">Материалы</button>
+                </div>
+                <div class="lesson-panel-content">
+                    <div class="lesson-section">
+                        <h3>Материалы</h3>
+                        <div class="materials"></div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+        
+        <footer>
+            Интерактивная доска для онлайн-школы SmartUrok | &copy; 2026
+        </footer>
+    </div>
+    
+    <!-- Модальное окно завершения урока -->
+    <div id="finishModal" class="modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Завершение урока</h2>
+            <p>Вы уверены, что хотите завершить урок?</p>
+            
+            <div class="modal-buttons">
+                <button id="confirmFinish" class="modal-btn primary">Да, завершить</button>
+                <button id="cancelFinish" class="modal-btn secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script src='{{ jitsi_script_url }}'></script>
+    <script>
+        // Инициализация WebSocket
+        const lessonId = "{{ lesson.id }}";
+        const socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const socketUrl = `${socketProtocol}//${window.location.host}/ws/lesson/${lessonId}/`;
+        let socket = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 8;
+        let reconnectTimeout = null;
+        let isPageUnloading = false;
+        let shouldResyncBoardStateOnOpen = false;
+        const canManageBoards = {% if is_teacher %}true{% else %}false{% endif %};
+        const boardStateUrl = "{% url 'lesson_board_state' lesson.id %}";
+        const MAX_PENDING_SOCKET_EVENTS = 400;
+        const MAX_IMAGE_FILE_BYTES = 5 * 1024 * 1024;
+        const MAX_IMAGE_DATA_URL_LENGTH = 1500000;
+        const BOARD_EXTRA_SCROLL_HEIGHT = 320;
+        const BOARD_MIN_HEIGHT = 900;
+        const pendingSocketEvents = [];
+
+        function getCsrfToken() {
+            const name = 'csrftoken=';
+            const decoded = decodeURIComponent(document.cookie || '');
+            const cookies = decoded.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let c = cookies[i].trim();
+                if (c.indexOf(name) === 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return '';
+        }
+
+        let saveTimeout = null;
+        let lastSaveAt = 0;
+        const SAVE_INTERVAL_MS = 1500;
+        function scheduleSaveBoardState(force = false) {
+            const now = Date.now();
+            const remaining = Math.max(0, SAVE_INTERVAL_MS - (now - lastSaveAt));
+            const delay = force ? 0 : remaining;
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                lastSaveAt = Date.now();
+                saveBoardState();
+            }, delay);
+        }
+
+        function serializeBoardState() {
+            return {
+                currentBoardId: state.currentBoardId,
+                boards: state.boards.map(b => ({
+                    id: b.id,
+                    name: b.name,
+                    drawingData: b.drawingData || [],
+                    shapes: b.shapes || [],
+                    texts: b.texts || [],
+                    images: (b.images || []).map(img => ({
+                        id: img.id,
+                        x: img.x,
+                        y: img.y,
+                        width: img.width,
+                        height: img.height,
+                        src: img.src
+                    })),
+                    toolState: b.toolState || {
+                        currentTool: 'pencil',
+                        currentColor: '#000000',
+                        lineWidth: 5,
+                        gridEnabled: true
+                    }
+                }))
+            };
+        }
+
+        function normalizeBoardName(rawName) {
+            const value = String(rawName || '').trim();
+            return value || '\u0414\u043e\u0441\u043a\u0430';
+        }
+
+        function applyBoardState(saved) {
+            if (!saved || !saved.boards || !Array.isArray(saved.boards)) return;
+
+            state.boards = saved.boards.map(b => ({
+                id: b.id || Date.now(),
+                name: normalizeBoardName(b.name),
+                drawingData: b.drawingData || [],
+                shapes: b.shapes || [],
+                texts: b.texts || [],
+                images: (b.images || []).map(img => ({
+                    id: img.id,
+                    x: img.x,
+                    y: img.y,
+                    width: img.width,
+                    height: img.height,
+                    src: img.src,
+                    img: null
+                })),
+                history: [],
+                redoStack: [],
+                toolState: b.toolState || {
+                    currentTool: 'pencil',
+                    currentColor: '#000000',
+                    lineWidth: 5,
+                    gridEnabled: true
+                }
+            }));
+
+            state.currentBoardId = saved.currentBoardId || (state.boards[0] && state.boards[0].id);
+            renderBoardsList();
+
+            // Restore images from serialized state
+            state.boards.forEach(board => {
+                (board.images || []).forEach(imgData => {
+                    if (!imgData.src) return;
+                    const img = new Image();
+                    img.onload = function() {
+                        imgData.img = img;
+                        drawAll();
+                    };
+                    img.src = imgData.src;
+                });
+            });
+
+            drawAll();
+        }
+
+        function loadBoardState() {
+
+
+            fetch(boardStateUrl, { credentials: 'same-origin' })
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data && data.state) {
+                        applyBoardState(data.state);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function saveBoardState(options = {}) {
+            const payload = { state: serializeBoardState() };
+            const requestOptions = {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(payload)
+            };
+            if (options.keepalive) {
+                requestOptions.keepalive = true;
+            }
+            return fetch(boardStateUrl, requestOptions).catch(() => {});
+        }
+
+        function enqueueSocketEvent(message) {
+            if (pendingSocketEvents.length >= MAX_PENDING_SOCKET_EVENTS) {
+                pendingSocketEvents.shift();
+            }
+            pendingSocketEvents.push(message);
+        }
+
+        function flushPendingSocketEvents() {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                return;
+            }
+            while (pendingSocketEvents.length > 0) {
+                const message = pendingSocketEvents.shift();
+                try {
+                    socket.send(JSON.stringify(message));
+                } catch (err) {
+                    pendingSocketEvents.unshift(message);
+                    console.error('WebSocket flush failed:', err);
+                    break;
+                }
+            }
+        }
+
+        // Инициализация элементов
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('clear');
+        const eraserBtn = document.getElementById('eraser');
+        const handToolBtn = document.getElementById('handTool');
+        const pencilBtn = document.getElementById('pencil');
+        const textToolBtn = document.getElementById('textTool');
+        const rectToolBtn = document.getElementById('rectTool');
+        const circleToolBtn = document.getElementById('circleTool');
+        const lineToolBtn = document.getElementById('lineTool');
+        const arrowToolBtn = document.getElementById('arrowTool');
+        const undoBtn = document.getElementById('undo');
+        const redoBtn = document.getElementById('redo');
+        const lineWidth = document.getElementById('lineWidth');
+        const colorSamples = document.querySelectorAll('.color-sample');
+        const gridToggle = document.getElementById('gridToggle');
+        const newBoardBtn = document.getElementById('newBoard');
+        const boardsList = document.getElementById('boards-list');
+        const boardsListTop = document.getElementById('boards-list-top');
+        const currentBoardNameEl = document.getElementById('currentBoardName');
+        const addImageBtn = document.getElementById('addImage');
+        const imageUpload = document.getElementById('image-upload');
+        const imagePreview = document.getElementById('image-preview');
+        const textInputContainer = document.getElementById('text-input-container');
+        const textInput = document.getElementById('text-input');
+        const textApplyBtn = document.getElementById('text-apply');
+        const textCancelBtn = document.getElementById('text-cancel');
+        const textSizeSelect = document.getElementById('text-size');
+        const jitsiContainer = document.querySelector('.jitsi-float');
+        const jitsiHeader = document.querySelector('.jitsi-header');
+        const jitsiCloseBtn = document.querySelector('.jitsi-close');
+        const jitsiSizeBtn = document.getElementById('jitsi-size-btn');
+        const toggleSidebarBtn = document.getElementById('toggleSidebar');
+        const toggleLessonPanelBtn = document.getElementById('toggleLessonPanel');
+        const newBoardTopBtn = document.getElementById('newBoardTop');
+        const prevBoardTopBtn = document.getElementById('prevBoardTop');
+        const nextBoardTopBtn = document.getElementById('nextBoardTop');
+        const sidebar = document.getElementById('sidebar');
+        const lessonPanel = document.getElementById('lesson-panel');
+        const mainContent = document.querySelector('.main-content');
+        const finishLessonBtn = document.getElementById('finishLessonBtn');
+        const finishModal = document.getElementById('finishModal');
+        const confirmFinishBtn = document.getElementById('confirmFinish');
+        const cancelFinishBtn = document.getElementById('cancelFinish');
+        
+        // Состояние приложения
+        const state = {
+            isDrawing: false,
+            lastX: 0,
+            lastY: 0,
+            currentColor: '#000000',
+            currentTool: 'pencil',
+            gridEnabled: true,
+            boards: [
+                { 
+                    id: 1, 
+                    name: 'Основная доска', 
+                    images: [],
+                    drawingData: [],
+                    shapes: [],
+                    texts: [],
+                    history: [],
+                    redoStack: [],
+                    toolState: {
+                        currentTool: 'pencil',
+                        currentColor: '#000000',
+                        lineWidth: 5,
+                        gridEnabled: true
+                    }
+                }
+            ],
+            currentBoardId: 1,
+            movingImage: null,
+            moveStartX: 0,
+            moveStartY: 0,
+            movingText: null,
+            currentLine: [],
+            tempShape: null,
+            drawingShape: false,
+            addingText: false,
+            textPosition: { x: 0, y: 0 },
+            fontSize: 16,
+            selectedImage: null,
+            resizingImage: null,
+            resizeHandle: null,
+            resizeStartX: 0,
+            resizeStartY: 0,
+            resizeStartW: 0,
+            resizeStartH: 0,
+            resizeStartMouseX: 0,
+            resizeStartMouseY: 0,
+            dragSnapshotTaken: false,
+            jitsiDragging: false,
+            jitsiOffsetX: 0,
+            jitsiOffsetY: 0,
+            jitsiMinimized: false
+        };
+        const clientSessionId = `client-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+        let localOpCounter = 0;
+        
+        // Функции для работы с WebSocket
+        function connectLessonSocket() {
+            if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+                return;
+            }
+
+            socket = new WebSocket(socketUrl);
+
+            socket.onopen = function() {
+                reconnectAttempts = 0;
+                if (reconnectTimeout) {
+                    clearTimeout(reconnectTimeout);
+                    reconnectTimeout = null;
+                }
+                const hadPendingEvents = pendingSocketEvents.length > 0;
+                flushPendingSocketEvents();
+                if (shouldResyncBoardStateOnOpen) {
+                    shouldResyncBoardStateOnOpen = false;
+                    if (!hadPendingEvents) {
+                        loadBoardState();
+                    } else {
+                        scheduleSaveBoardState(true);
+                    }
+                }
+            };
+
+            socket.onmessage = function(e) {
+                let data = null;
+                try {
+                    data = JSON.parse(e.data);
+                } catch (parseError) {
+                    console.error('Invalid WebSocket payload:', parseError);
+                    return;
+                }
+
+                if (!data || typeof data !== 'object') {
+                    return;
+                }
+
+                if (data.senderId && data.senderId === clientSessionId) {
+                    return;
+                }
+
+                if (data.type === 'create_board') {
+                    handleCreateBoard(data);
+                } else if (data.type === 'delete_board') {
+                    handleDeleteBoard(data);
+                } else {
+                    drawFromData(data);
+                }
+            };
+
+            socket.onclose = function() {
+                if (isPageUnloading) {
+                    return;
+                }
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    console.error('WebSocket reconnect limit reached');
+                    return;
+                }
+
+                reconnectAttempts += 1;
+                const retryDelay = Math.min(10000, reconnectAttempts * 1000);
+                shouldResyncBoardStateOnOpen = true;
+                reconnectTimeout = setTimeout(connectLessonSocket, retryDelay);
+                console.error('WebSocket closed unexpectedly, reconnect attempt:', reconnectAttempts);
+            };
+
+            socket.onerror = function(err) {
+                console.error('WebSocket error:', err);
+            };
+        }
+
+        function sendEvent(type, data = {}) {
+            const message = {
+                type,
+                boardId: state.currentBoardId,
+                senderId: clientSessionId,
+                opId: `${clientSessionId}:${++localOpCounter}`,
+                ...data
+            };
+            const shouldSave = ['draw_line', 'draw_shape', 'draw_text', 'draw_image', 'clear', 'create_board', 'delete_board', 'replace_board_state'].includes(type);
+            if (shouldSave) {
+                scheduleSaveBoardState();
+            }
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                enqueueSocketEvent(message);
+                connectLessonSocket();
+                return;
+            }
+            try {
+                socket.send(JSON.stringify(message));
+            } catch (err) {
+                enqueueSocketEvent(message);
+                connectLessonSocket();
+                console.error('WebSocket send failed:', err);
+            }
+        }
+
+        function drawFromData(data) {
+            const targetBoard = getBoardById(data.boardId);
+            if (!targetBoard) return;
+            const isCurrentBoard = String(targetBoard.id) === String(state.currentBoardId);
+            
+            switch (data.type) {
+                case 'draw_line':
+                    if (!targetBoard.drawingData) targetBoard.drawingData = [];
+                    targetBoard.drawingData.push(data.line);
+                    if (isCurrentBoard) drawAll();
+                    break;
+                    
+                case 'draw_shape':
+                    if (!targetBoard.shapes) targetBoard.shapes = [];
+                    targetBoard.shapes.push(data.shape);
+                    if (isCurrentBoard) drawAll();
+                    break;
+                    
+                case 'draw_text':
+                    if (!targetBoard.texts) targetBoard.texts = [];
+                    targetBoard.texts.push(data.text);
+                    if (isCurrentBoard) drawAll();
+                    break;
+                    
+                case 'draw_image':
+                    if (!targetBoard.images) targetBoard.images = [];
+                    const receivedImage = { ...data.image, img: null };
+                    if (!receivedImage.src) break;
+                    const img = new Image();
+                    img.onload = function() {
+                        receivedImage.img = img;
+                        targetBoard.images.push(receivedImage);
+                        if (isCurrentBoard) drawAll();
+                    };
+                    img.src = receivedImage.src;
+                    break;
+                    
+                case 'update_image':
+                    if (!targetBoard.images) break;
+                    const idx = targetBoard.images.findIndex(i => i.id === data.image.id);
+                    if (idx !== -1) {
+                        targetBoard.images[idx] = {
+                            ...targetBoard.images[idx],
+                            x: data.image.x,
+                            y: data.image.y,
+                            width: data.image.width,
+                            height: data.image.height
+                        };
+                        if (isCurrentBoard) drawAll();
+                    }
+                    break;
+                    
+                case 'clear':
+                    targetBoard.drawingData = [];
+                    targetBoard.shapes = [];
+                    targetBoard.texts = [];
+                    targetBoard.images = [];
+                    if (isCurrentBoard) drawAll();
+                    scheduleSaveBoardState();
+                    break;
+
+                case 'replace_board_state':
+                    if (!data.boardSnapshot || typeof data.boardSnapshot !== 'object') break;
+                    applyBoardSnapshot(targetBoard, data.boardSnapshot);
+                    if (isCurrentBoard) drawAll();
+                    scheduleSaveBoardState();
+                    break;
+                    
+                case 'tool_change':
+                    // Tool settings should remain local for each participant.
+                    break;
+            }
+        }
+        
+        // Настройка холста
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = Math.max(container.clientHeight + BOARD_EXTRA_SCROLL_HEIGHT, BOARD_MIN_HEIGHT);
+            
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            ctx.lineWidth = currentBoard.toolState?.lineWidth || 5;
+            ctx.strokeStyle = currentBoard.toolState?.currentColor || '#000000';
+            
+            drawGrid();
+            drawAll();
+        }
+        
+        // Отрисовка сетки
+        function drawGrid() {
+            if (!state.gridEnabled) return;
+            
+            const gridSize = 20;
+            ctx.beginPath();
+            
+            // Вертикальные линии
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+            }
+            
+            // Горизонтальные линии
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+            }
+            
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.strokeStyle = state.currentColor;
+            ctx.lineWidth = lineWidth.value;
+        }
+        
+        // Функции рисования
+        function startDrawing(e) {
+            if (state.movingImage || state.movingText || state.resizingImage) return;
+            if (state.currentTool === 'hand') return;
+            
+            // В режиме рисования разрешаем рисовать поверх изображений/текста
+            
+            state.isDrawing = true;
+            [state.lastX, state.lastY] = [e.offsetX, e.offsetY];
+            
+            if (state.currentTool === 'pencil' || state.currentTool === 'eraser') {
+                // Начинаем новую линию
+                state.currentLine = [];
+                state.currentLine.push({
+                    x: e.offsetX,
+                    y: e.offsetY,
+                    color: state.currentTool === 'eraser' ? '#ffffff' : state.currentColor,
+                    width: lineWidth.value
+                });
+            } else if (state.currentTool.startsWith('shape-')) {
+                // Начинаем рисовать фигуру
+                state.drawingShape = true;
+                state.tempShape = {
+                    type: state.currentTool.split('-')[1],
+                    startX: e.offsetX,
+                    startY: e.offsetY,
+                    endX: e.offsetX,
+                    endY: e.offsetY,
+                    color: state.currentColor,
+                    width: lineWidth.value
+                };
+            } else if (state.currentTool === 'text') {
+                // Начинаем добавлять текст
+                state.addingText = true;
+                state.textPosition = { x: e.offsetX, y: e.offsetY };
+                textInputContainer.style.display = 'block';
+                textInputContainer.style.left = e.offsetX + 'px';
+                textInputContainer.style.top = e.offsetY + 'px';
+                textInput.value = '';
+                textInput.focus();
+            }
+        }
+        
+        function draw(e) {
+            if (!state.isDrawing || state.movingImage || state.movingText) return;
+            
+            if (state.currentTool === 'pencil' || state.currentTool === 'eraser') {
+                ctx.beginPath();
+                ctx.moveTo(state.lastX, state.lastY);
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.strokeStyle = state.currentTool === 'eraser' ? '#ffffff' : state.currentColor;
+                ctx.lineWidth = lineWidth.value;
+                ctx.stroke();
+                
+                // Добавляем точку в текущую линию
+                state.currentLine.push({
+                    x: e.offsetX,
+                    y: e.offsetY,
+                    color: state.currentTool === 'eraser' ? '#ffffff' : state.currentColor,
+                    width: lineWidth.value
+                });
+                
+                [state.lastX, state.lastY] = [e.offsetX, e.offsetY];
+            } else if (state.currentTool.startsWith('shape-') && state.drawingShape) {
+                // Обновляем временную фигуру
+                state.tempShape.endX = e.offsetX;
+                state.tempShape.endY = e.offsetY;
+                
+                // Перерисовываем все
+                drawAll();
+                
+                // Рисуем временную фигуру
+                drawShape(state.tempShape);
+            }
+        }
+        
+        function drawShape(shape) {
+            ctx.beginPath();
+            ctx.strokeStyle = shape.color;
+            ctx.lineWidth = shape.width;
+            
+            switch(shape.type) {
+                case 'rectangle':
+                    const rectX = Math.min(shape.startX, shape.endX);
+                    const rectY = Math.min(shape.startY, shape.endY);
+                    const rectWidth = Math.abs(shape.endX - shape.startX);
+                    const rectHeight = Math.abs(shape.endY - shape.startY);
+                    
+                    ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+                    break;
+                    
+                case 'circle':
+                    const radius = Math.sqrt(
+                        Math.pow(shape.endX - shape.startX, 2) + 
+                        Math.pow(shape.endY - shape.startY, 2)
+                    );
+                    ctx.arc(shape.startX, shape.startY, radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    break;
+                    
+                case 'line':
+                    ctx.moveTo(shape.startX, shape.startY);
+                    ctx.lineTo(shape.endX, shape.endY);
+                    ctx.stroke();
+                    break;
+                    
+                case 'arrow':
+                    ctx.moveTo(shape.startX, shape.startY);
+                    ctx.lineTo(shape.endX, shape.endY);
+                    ctx.stroke();
+                    
+                    // Рисуем наконечник стрелки
+                    const angle = Math.atan2(shape.endY - shape.startY, shape.endX - shape.startX);
+                    const arrowLength = 15;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(shape.endX, shape.endY);
+                    ctx.lineTo(
+                        shape.endX - arrowLength * Math.cos(angle - Math.PI/6),
+                        shape.endY - arrowLength * Math.sin(angle - Math.PI/6)
+                    );
+                    ctx.lineTo(
+                        shape.endX - arrowLength * Math.cos(angle + Math.PI/6),
+                        shape.endY - arrowLength * Math.sin(angle + Math.PI/6)
+                    );
+                    ctx.closePath();
+                    ctx.fillStyle = shape.color;
+                    ctx.fill();
+                    break;
+            }
+        }
+        
+        function endDrawing() {
+            if (!state.isDrawing) return;
+            
+            state.isDrawing = false;
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            // Сохраняем действие в историю
+            saveStateToHistory();
+            
+            if (state.currentTool === 'pencil' || state.currentTool === 'eraser') {
+                // Сохраняем линию в состоянии доски
+                if (state.currentLine.length > 1) {
+                    if (!currentBoard.drawingData) {
+                        currentBoard.drawingData = [];
+                    }
+                    currentBoard.drawingData.push([...state.currentLine]);
+                    
+                    // Отправляем событие синхронизации
+                    sendEvent('draw_line', {
+                        line: [...state.currentLine]
+                    });
+                }
+            } else if (state.currentTool.startsWith('shape-') && state.drawingShape && state.tempShape) {
+                // Сохраняем фигуру
+                if (!currentBoard.shapes) {
+                    currentBoard.shapes = [];
+                }
+                const shapeCopy = {...state.tempShape};
+                currentBoard.shapes.push(shapeCopy);
+                
+                // Отправляем событие синхронизации
+                sendEvent('draw_shape', {
+                    shape: shapeCopy
+                });
+                
+                state.drawingShape = false;
+                state.tempShape = null;
+            }
+            scheduleSaveBoardState(true);
+        }
+        
+        // Получить текущую доску
+        function getCurrentBoard() {
+            return state.boards.find(board => board.id === state.currentBoardId);
+        }
+
+        function getBoardById(boardId) {
+            return state.boards.find(board => String(board.id) === String(boardId));
+        }
+
+        // Работа с досками
+        function updateCurrentBoardLabel() {
+            if (!currentBoardNameEl) return;
+            const currentBoard = getCurrentBoard();
+            currentBoardNameEl.textContent = `\u0414\u043e\u0441\u043a\u0430: ${currentBoard ? normalizeBoardName(currentBoard.name) : '\u2014'}`;
+        }
+
+        function renderBoardsListInto(listEl) {
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            state.boards.forEach(board => {
+                const boardItem = document.createElement('li');
+                boardItem.className = 'board-item';
+                if (state.currentBoardId === board.id) {
+                    boardItem.classList.add('active');
+                }
+                boardItem.dataset.id = board.id;
+                const iconEl = document.createElement('span');
+                iconEl.className = 'board-icon';
+                iconEl.textContent = '\uD83D\uDDD2\uFE0F';
+
+                const nameEl = document.createElement('span');
+                nameEl.className = 'board-name';
+                nameEl.textContent = normalizeBoardName(board.name || '\u0414\u043e\u0441\u043a\u0430');
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-board';
+                deleteBtn.type = 'button';
+                deleteBtn.textContent = '\u2715';
+
+                boardItem.appendChild(iconEl);
+                boardItem.appendChild(nameEl);
+                if (canManageBoards) {
+                    boardItem.appendChild(deleteBtn);
+                }
+                listEl.appendChild(boardItem);
+                if (canManageBoards) {
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        deleteBoard(board.id, boardItem);
+                    });
+                }
+            });
+        }
+
+        function renderBoardsList() {
+
+
+            renderBoardsListInto(boardsList);
+            renderBoardsListInto(boardsListTop);
+            updateCurrentBoardLabel();
+        }
+
+        function createNewBoard() {
+            if (!canManageBoards) return;
+            const boardId = Date.now();
+            const boardName = `Доска ${state.boards.length + 1}`;
+            const newBoard = {
+                id: boardId,
+                name: boardName,
+                images: [],
+                drawingData: [],
+                shapes: [],
+                texts: [],
+                history: [],
+                redoStack: [],
+                toolState: {
+                    currentTool: state.currentTool,
+                    currentColor: state.currentColor,
+                    lineWidth: parseInt(lineWidth.value, 10) || 5,
+                    gridEnabled: state.gridEnabled
+                }
+            };
+            state.boards.push(newBoard);
+            renderBoardsList();
+            switchBoard(boardId);
+            sendEvent('create_board', { boardId, boardName });
+        }
+
+        function getBoardIndexById(boardId) {
+            return state.boards.findIndex(board => String(board.id) === String(boardId));
+        }
+
+        function switchBoardByOffset(offset) {
+            if (!state.boards.length) return;
+            const currentIndex = getBoardIndexById(state.currentBoardId);
+            const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+            const nextIndex = (safeIndex + offset + state.boards.length) % state.boards.length;
+            switchBoard(state.boards[nextIndex].id);
+        }
+
+        function switchBoard(boardId) {
+            saveCurrentBoardState();
+            state.currentBoardId = boardId;
+            state.selectedImage = null;
+            renderBoardsList();
+            updateCurrentBoardLabel();
+            restoreBoardState();
+            drawAll();
+            updateUndoRedoButtons();
+        }
+
+        function saveCurrentBoardState() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            currentBoard.toolState = {
+                currentTool: state.currentTool,
+                currentColor: state.currentColor,
+                lineWidth: parseInt(lineWidth.value, 10) || 5,
+                gridEnabled: state.gridEnabled
+            };
+        }
+
+        function restoreBoardState() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard || !currentBoard.toolState) return;
+            state.currentTool = currentBoard.toolState.currentTool || 'pencil';
+            state.currentColor = currentBoard.toolState.currentColor || '#000000';
+            state.gridEnabled = currentBoard.toolState.gridEnabled !== false;
+            lineWidth.value = currentBoard.toolState.lineWidth || 5;
+            gridToggle.checked = state.gridEnabled;
+            updateToolUI();
+            updateColorUI();
+        }
+
+        function deleteBoard(boardId, boardItem) {
+            if (!canManageBoards) return;
+            state.boards = state.boards.filter(b => b.id !== boardId);
+            if (boardItem && boardItem.parentNode) {
+                boardItem.parentNode.removeChild(boardItem);
+            }
+            if (state.currentBoardId === boardId) {
+                if (state.boards.length > 0) {
+                    switchBoard(state.boards[0].id);
+                } else {
+                    state.currentBoardId = null;
+                }
+            } else {
+                renderBoardsList();
+            }
+            sendEvent('delete_board', { boardId });
+        }
+
+        function handleCreateBoard(data) {
+            if (state.boards.some(b => b.id === data.boardId)) return;
+            state.boards.push({
+                id: data.boardId,
+                name: normalizeBoardName(data.boardName || '\u0414\u043e\u0441\u043a\u0430'),
+                images: [],
+                drawingData: [],
+                shapes: [],
+                texts: [],
+                history: [],
+                redoStack: [],
+                toolState: {
+                    currentTool: 'pencil',
+                    currentColor: '#000000',
+                    lineWidth: 5,
+                    gridEnabled: true
+                }
+            });
+            if (!state.currentBoardId) {
+                state.currentBoardId = data.boardId;
+            }
+            renderBoardsList();
+        }
+
+        function handleDeleteBoard(data) {
+
+
+            const boardId = data.boardId;
+            state.boards = state.boards.filter(b => b.id !== boardId);
+            if (state.currentBoardId === boardId) {
+                if (state.boards.length > 0) {
+                    switchBoard(state.boards[0].id);
+                } else {
+                    state.currentBoardId = null;
+                    drawAll();
+                }
+            } else {
+                renderBoardsList();
+            }
+        }
+        
+        function snapshotBoardState(board) {
+            return {
+                drawingData: JSON.parse(JSON.stringify(board.drawingData || [])),
+                images: (board.images || []).map(img => ({
+                    id: img.id,
+                    x: img.x,
+                    y: img.y,
+                    width: img.width,
+                    height: img.height,
+                    src: img.src || '',
+                    img: null
+                })),
+                shapes: JSON.parse(JSON.stringify(board.shapes || [])),
+                texts: JSON.parse(JSON.stringify(board.texts || []))
+            };
+        }
+
+        function hydrateBoardImages(board) {
+            (board.images || []).forEach(imgData => {
+                imgData.img = null;
+                if (!imgData.src) return;
+                const img = new Image();
+                img.onload = function() {
+                    imgData.img = img;
+                    drawAll();
+                };
+                img.src = imgData.src;
+            });
+        }
+
+        function applyBoardSnapshot(board, snapshot) {
+            board.drawingData = snapshot.drawingData || [];
+            board.images = snapshot.images || [];
+            board.shapes = snapshot.shapes || [];
+            board.texts = snapshot.texts || [];
+            hydrateBoardImages(board);
+        }
+
+        // Сохранение состояния в историю
+        function saveStateToHistory() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            // Сохраняем текущее состояние
+            const stateCopy = snapshotBoardState(currentBoard);
+            
+            // Добавляем в историю
+            currentBoard.history.push(stateCopy);
+            
+            // Ограничиваем размер истории
+            if (currentBoard.history.length > 50) {
+                currentBoard.history.shift();
+            }
+            
+            // Очищаем стек повтора
+            currentBoard.redoStack = [];
+            
+            // Обновляем кнопки
+            updateUndoRedoButtons();
+
+            // Планируем сохранение состояния доски на сервер
+            scheduleSaveBoardState();
+        }
+        
+        // Отмена действия
+        function undo() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard || currentBoard.history.length === 0) return;
+            
+            // Сохраняем текущее состояние в стек повтора
+            const currentState = snapshotBoardState(currentBoard);
+            currentBoard.redoStack.push(currentState);
+            
+            // Восстанавливаем предыдущее состояние
+            const prevState = currentBoard.history.pop();
+            applyBoardSnapshot(currentBoard, prevState);
+            
+            // Перерисовываем
+            drawAll();
+            updateUndoRedoButtons();
+            sendEvent('replace_board_state', {
+                boardSnapshot: snapshotBoardState(currentBoard)
+            });
+            scheduleSaveBoardState();
+        }
+        
+        // Повтор действия
+        function redo() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard || currentBoard.redoStack.length === 0) return;
+            
+            // Сохраняем текущее состояние в историю
+            const currentState = snapshotBoardState(currentBoard);
+            currentBoard.history.push(currentState);
+            
+            // Восстанавливаем состояние из стека повтора
+            const nextState = currentBoard.redoStack.pop();
+            applyBoardSnapshot(currentBoard, nextState);
+            
+            // Перерисовываем
+            drawAll();
+            updateUndoRedoButtons();
+            sendEvent('replace_board_state', {
+                boardSnapshot: snapshotBoardState(currentBoard)
+            });
+            scheduleSaveBoardState();
+        }
+        
+        // Обновление состояния кнопок отмены/повтора
+        function updateUndoRedoButtons() {
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            undoBtn.disabled = currentBoard.history.length === 0;
+            redoBtn.disabled = currentBoard.redoStack.length === 0;
+        }
+        
+        // Работа с изображениями
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!file.type || !file.type.startsWith('image/')) {
+                alert('Only image files are supported.');
+                e.target.value = '';
+                return;
+            }
+            if (file.size > MAX_IMAGE_FILE_BYTES) {
+                alert('Image file is too large.');
+                e.target.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const source = event && event.target && typeof event.target.result === 'string' ? event.target.result : '';
+                if (!source) {
+                    return;
+                }
+                if (source.length > MAX_IMAGE_DATA_URL_LENGTH) {
+                    alert('Image is too large for board sync.');
+                    e.target.value = '';
+                    return;
+                }
+                const img = new Image();
+                img.onload = function() {
+                    // Добавляем изображение в состояние
+                    const maxW = canvas.width * 0.6;
+                    const maxH = canvas.height * 0.6;
+                    const scale = Math.min(1, maxW / img.width, maxH / img.height);
+                    const drawW = Math.round(img.width * scale);
+                    const drawH = Math.round(img.height * scale);
+                    
+                    const newImage = {
+                        id: Date.now(),
+                        img: img,
+                        x: canvas.width/2 - drawW/2,
+                        y: canvas.height/2 - drawH/2,
+                        width: drawW,
+                        height: drawH,
+                        src: source // сохраняем src для синхронизации
+                    };
+                    
+                    // Сохраняем изображение в текущей доске
+                    const currentBoard = getCurrentBoard();
+                    if (currentBoard) {
+                        saveStateToHistory();
+                        currentBoard.images.push(newImage);
+                    }
+                    
+                    // Отправляем событие синхронизации
+                    sendEvent('draw_image', {
+                        image: {
+                            ...newImage,
+                            img: null // не отправляем само изображение
+                        }
+                    });
+                    
+                    drawAll();
+                    e.target.value = '';
+                };
+                img.src = source;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function startMovingImage(e) {
+            if (state.isDrawing) return;
+            if (state.currentTool !== 'hand') return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Проверяем, на какое изображение кликнули
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            for (let i = currentBoard.images.length - 1; i >= 0; i--) {
+                const img = currentBoard.images[i];
+                if (x > img.x && x < img.x + img.width && 
+                    y > img.y && y < img.y + img.height) {
+                    const handle = getResizeHandle(img, x, y);
+                    state.selectedImage = img;
+                    drawAll();
+                    
+                    if (handle) {
+                        if (!state.dragSnapshotTaken) {
+                            saveStateToHistory();
+                            state.dragSnapshotTaken = true;
+                        }
+                        state.resizingImage = img;
+                        state.resizeHandle = handle;
+                        state.resizeStartX = img.x;
+                        state.resizeStartY = img.y;
+                        state.resizeStartW = img.width;
+                        state.resizeStartH = img.height;
+                        state.resizeStartMouseX = x;
+                        state.resizeStartMouseY = y;
+                    } else {
+                        if (!state.dragSnapshotTaken) {
+                            saveStateToHistory();
+                            state.dragSnapshotTaken = true;
+                        }
+                        state.movingImage = img;
+                        state.moveStartX = x - img.x;
+                        state.moveStartY = y - img.y;
+                    }
+                    
+                    return;
+                }
+            }
+            
+            state.selectedImage = null;
+            drawAll();
+            
+            // Проверяем, на какой текст кликнули
+            for (let i = currentBoard.texts.length - 1; i >= 0; i--) {
+                const text = currentBoard.texts[i];
+                ctx.font = `${text.fontSize}px Arial`;
+                const textWidth = ctx.measureText(text.text).width;
+                
+                if (x > text.x && x < text.x + textWidth && 
+                    y > text.y - text.fontSize && y < text.y) {
+                    
+                    if (!state.dragSnapshotTaken) {
+                        saveStateToHistory();
+                        state.dragSnapshotTaken = true;
+                    }
+                    state.movingText = text;
+                    state.moveStartX = x - text.x;
+                    state.moveStartY = y - text.y;
+                    return;
+                }
+            }
+            
+            // Проверяем, на какой график кликнули
+            
+        }
+        
+        function moveImage(e) {
+            if (!state.movingImage && !state.movingText && !state.resizingImage) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (state.resizingImage) {
+                const minSize = 30;
+                const dx = x - state.resizeStartMouseX;
+                const dy = y - state.resizeStartMouseY;
+                
+                let newX = state.resizeStartX;
+                let newY = state.resizeStartY;
+                let newW = state.resizeStartW;
+                let newH = state.resizeStartH;
+                
+                if (state.resizeHandle === 'nw') {
+                    newW = state.resizeStartW - dx;
+                    newH = state.resizeStartH - dy;
+                    newX = state.resizeStartX + dx;
+                    newY = state.resizeStartY + dy;
+                } else if (state.resizeHandle === 'ne') {
+                    newW = state.resizeStartW + dx;
+                    newH = state.resizeStartH - dy;
+                    newY = state.resizeStartY + dy;
+                } else if (state.resizeHandle === 'sw') {
+                    newW = state.resizeStartW - dx;
+                    newH = state.resizeStartH + dy;
+                    newX = state.resizeStartX + dx;
+                } else if (state.resizeHandle === 'se') {
+                    newW = state.resizeStartW + dx;
+                    newH = state.resizeStartH + dy;
+                }
+                
+                newW = Math.max(minSize, newW);
+                newH = Math.max(minSize, newH);
+                
+                state.resizingImage.width = newW;
+                state.resizingImage.height = newH;
+                state.resizingImage.x = newX;
+                state.resizingImage.y = newY;
+                
+                drawAll();
+                return;
+            }
+            
+            if (state.movingImage) {
+                state.movingImage.x = x - state.moveStartX;
+                state.movingImage.y = y - state.moveStartY;
+            }
+            
+            if (state.movingText) {
+                state.movingText.x = x - state.moveStartX;
+                state.movingText.y = y - state.moveStartY;
+            }
+            
+            drawAll();
+        }
+        
+        function stopMovingImage() {
+            const movedImage = state.movingImage || state.resizingImage;
+            const didMoveImage = !!movedImage;
+            
+            state.movingImage = null;
+            state.movingText = null;
+            state.resizingImage = null;
+            state.resizeHandle = null;
+            state.dragSnapshotTaken = false;
+            
+            if (didMoveImage) {
+                sendEvent('update_image', {
+                    image: {
+                        id: movedImage.id,
+                        x: movedImage.x,
+                        y: movedImage.y,
+                        width: movedImage.width,
+                        height: movedImage.height
+                    }
+                });
+            }
+        }
+
+        function getResizeHandle(img, x, y) {
+            const size = 16;
+            const handles = {
+                nw: { x: img.x, y: img.y },
+                ne: { x: img.x + img.width, y: img.y },
+                sw: { x: img.x, y: img.y + img.height },
+                se: { x: img.x + img.width, y: img.y + img.height }
+            };
+            
+            for (const key of Object.keys(handles)) {
+                const hx = handles[key].x;
+                const hy = handles[key].y;
+                if (x >= hx - size && x <= hx + size && y >= hy - size && y <= hy + size) {
+                    return key;
+                }
+            }
+            
+            return null;
+        }
+
+        function getCursorForHandle(handle) {
+            if (!handle) return 'move';
+            if (handle === 'nw' || handle === 'se') return 'nwse-resize';
+            return 'nesw-resize';
+        }
+
+        function updateCanvasCursor(e) {
+            if (state.resizingImage || state.movingImage) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) {
+                canvas.style.cursor = getCursorForTool();
+                return;
+            }
+            
+            for (let i = currentBoard.images.length - 1; i >= 0; i--) {
+                const img = currentBoard.images[i];
+                if (x > img.x && x < img.x + img.width && 
+                    y > img.y && y < img.y + img.height) {
+                    if (state.currentTool === 'hand') {
+                        const handle = getResizeHandle(img, x, y);
+                        canvas.style.cursor = getCursorForHandle(handle);
+                    } else {
+                        canvas.style.cursor = getCursorForTool();
+                    }
+                    return;
+                }
+            }
+            
+            canvas.style.cursor = getCursorForTool();
+        }
+        
+        // Работа с текстом
+        function addText() {
+            const text = textInput.value.trim();
+            if (!text) {
+                textInputContainer.style.display = 'none';
+                return;
+            }
+            
+            const currentBoard = getCurrentBoard();
+            if (currentBoard) {
+                if (!currentBoard.texts) currentBoard.texts = [];
+                const textObj = {
+                    id: Date.now(),
+                    x: state.textPosition.x,
+                    y: state.textPosition.y,
+                    text: text,
+                    color: state.currentColor,
+                    fontSize: parseInt(textSizeSelect.value)
+                };
+                saveStateToHistory();
+                currentBoard.texts.push(textObj);
+                
+                // Отправляем событие синхронизации
+                sendEvent('draw_text', {
+                    text: textObj
+                });
+                
+                drawAll();
+            }
+            
+            textInputContainer.style.display = 'none';
+            textInput.value = '';
+        }
+        
+        // Работа с графиками
+        function drawAll() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return;
+            
+            // Восстанавливаем рисунки
+            if (currentBoard.drawingData && currentBoard.drawingData.length > 0) {
+                currentBoard.drawingData.forEach(line => {
+                    if (line.length < 2) return;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(line[0].x, line[0].y);
+                    
+                    for (let i = 1; i < line.length; i++) {
+                        ctx.strokeStyle = line[i].color;
+                        ctx.lineWidth = line[i].width;
+                        ctx.lineTo(line[i].x, line[i].y);
+                        ctx.stroke();
+                        
+                        // Перемещаем контекст для следующего сегмента
+                        ctx.beginPath();
+                        ctx.moveTo(line[i].x, line[i].y);
+                    }
+                });
+            }
+            
+            // Восстанавливаем фигуры
+            if (currentBoard.shapes && currentBoard.shapes.length > 0) {
+                currentBoard.shapes.forEach(shape => {
+                    drawShape(shape);
+                });
+            }
+            
+            // Восстанавливаем изображения
+            currentBoard.images.forEach(img => {
+                if (img.img) {
+                    ctx.drawImage(img.img, img.x, img.y, img.width, img.height);
+                }
+            });
+            
+            if (state.selectedImage) {
+                drawImageSelection(state.selectedImage);
+            }
+            
+            // Восстанавливаем тексты
+            if (currentBoard.texts && currentBoard.texts.length > 0) {
+                currentBoard.texts.forEach(text => {
+                    ctx.fillStyle = text.color;
+                    ctx.font = `${text.fontSize}px Arial`;
+                    ctx.fillText(text.text, text.x, text.y);
+                });
+            }
+            
+            // Восстанавливаем графики
+            
+            // Рисуем временную фигуру, если она есть
+            if (state.drawingShape && state.tempShape) {
+                drawShape(state.tempShape);
+            }
+        }
+
+        function drawImageSelection(img) {
+            ctx.save();
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
+            ctx.strokeRect(img.x, img.y, img.width, img.height);
+            ctx.setLineDash([]);
+            
+            const size = 8;
+            const points = [
+                { x: img.x, y: img.y },
+                { x: img.x + img.width, y: img.y },
+                { x: img.x, y: img.y + img.height },
+                { x: img.x + img.width, y: img.y + img.height }
+            ];
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#3b82f6';
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.rect(p.x - size/2, p.y - size/2, size, size);
+                ctx.fill();
+                ctx.stroke();
+            });
+            ctx.restore();
+        }
+
+        function updateToolUI() {
+            if (handToolBtn) handToolBtn.classList.toggle('active', state.currentTool === 'hand');
+            if (pencilBtn) pencilBtn.classList.toggle('active', state.currentTool === 'pencil');
+            if (eraserBtn) eraserBtn.classList.toggle('active', state.currentTool === 'eraser');
+            if (textToolBtn) textToolBtn.classList.toggle('active', state.currentTool === 'text');
+            if (rectToolBtn) rectToolBtn.classList.toggle('active', state.currentTool === 'rect');
+            if (circleToolBtn) circleToolBtn.classList.toggle('active', state.currentTool === 'circle');
+            if (lineToolBtn) lineToolBtn.classList.toggle('active', state.currentTool === 'line');
+            if (arrowToolBtn) arrowToolBtn.classList.toggle('active', state.currentTool === 'arrow');
+        }
+
+        function updateColorUI() {
+            colorSamples.forEach(sample => {
+                sample.classList.toggle('active', sample.dataset.color === state.currentColor);
+            });
+            ctx.strokeStyle = state.currentColor;
+        }
+
+        const PEN_CURSOR = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='black' d='M3%2017.25V21h3.75L17.81%209.94l-3.75-3.75L3%2017.25z'/><path fill='black' d='M20.71%207.04a1%201%200%200%200-1.41%200l-2.34-2.34a1%201%200%200%200-1.41%200l-1.83%201.83%203.75%203.75%201.83-1.83z'/></svg>\") 2 22, crosshair";
+
+        function getCursorForTool() {
+            if (state.currentTool === 'hand') return 'grab';
+            if (state.currentTool === 'text') return 'text';
+            if (state.currentTool === 'pencil') return PEN_CURSOR;
+            if (state.currentTool === 'eraser') return 'cell';
+            return 'crosshair';
+        }
+
+        // Установка активного инструмента
+        function setActiveTool(tool) {
+            state.currentTool = tool;
+            
+            // Обновляем UI
+            updateToolUI();
+            
+            // Сбрасываем временную фигуру
+            state.drawingShape = false;
+            state.tempShape = null;
+
+            if (canvas) {
+                canvas.style.cursor = getCursorForTool();
+            }
+            
+            // Отправляем изменение инструмента
+        }
+        
+        // Установка инструмента фигуры
+        function setShapeTool(shapeType) {
+            state.currentTool = `shape-${shapeType}`;
+            
+            // Обновляем UI
+            rectToolBtn.classList.toggle('active', shapeType === 'rectangle');
+            circleToolBtn.classList.toggle('active', shapeType === 'circle');
+            lineToolBtn.classList.toggle('active', shapeType === 'line');
+            arrowToolBtn.classList.toggle('active', shapeType === 'arrow');
+            
+            // Сбрасываем другие инструменты
+            pencilBtn.classList.remove('active');
+            eraserBtn.classList.remove('active');
+            textToolBtn.classList.remove('active');
+            
+            // Отправляем изменение инструмента
+        }
+        
+        // Инициализация Jitsi
+        function initJitsi() {
+            const domain = "{{ jitsi_domain|escapejs }}";
+            const roomName = "{{ jitsi_room|escapejs }}";
+            const jwtToken = "{{ jitsi_jwt|default:''|escapejs }}";
+            const options = {
+                roomName: roomName,
+                width: "100%",
+                height: "100%",
+                parentNode: document.querySelector('#jitsi-container'),
+                userInfo: {
+                    displayName: "{{ user_name|escapejs }}"
+                },
+                configOverwrite: {
+                    prejoinPageEnabled: false,
+                    startWithAudioMuted: false,
+                    startWithVideoMuted: false,
+                    startWithTileView: true,
+                    disableSelfView: false,
+                    disableModeratorIndicator: true,
+                    p2p: { enabled: true },
+                },
+                interfaceConfigOverwrite: {
+                    TOOLBAR_BUTTONS: ['microphone', 'camera', 'tileview', 'hangup', 'fullscreen'],
+                    SHOW_JITSI_WATERMARK: false,
+                    DEFAULT_REMOTE_DISPLAY_NAME: 'Участник',
+                    VERTICAL_FILMSTRIP: false,
+                    TILE_VIEW_MAX_COLUMNS: 2
+                }
+            };
+            if (jwtToken) {
+                options.jwt = jwtToken;
+            }
+            const container = document.getElementById('jitsi-container');
+
+            function ensureFallbackUI() {
+                if (!container) return null;
+                let box = document.getElementById('jitsi-fallback');
+                if (!box) {
+                    box = document.createElement('div');
+                    box.id = 'jitsi-fallback';
+                    box.style.cssText = 'position:absolute; inset:0; display:none; align-items:center; justify-content:center; padding:16px; background:rgba(0,0,0,0.55); color:#fff; text-align:center; font-size:12px; z-index:2;';
+                    box.innerHTML = `
+                        <div>
+                            <div style="font-weight:600; margin-bottom:6px;">Видео не загрузилось</div>
+                            <div style="opacity:0.9; margin-bottom:10px;">Проверьте блокировщики, доступ к камере/микрофону и сеть. Если не помогло — откройте в новой вкладке.</div>
+                            <button id="jitsi-retry" style="background:#FF6B35; border:none; color:#fff; padding:6px 10px; border-radius:8px; font-weight:600; cursor:pointer;">Перезапустить</button>
+                        </div>
+                    `;
+                    container.appendChild(box);
+                }
+                return box;
+            }
+
+            function attachFallback(iframe) {
+                const box = ensureFallbackUI();
+                if (!iframe || !box) return;
+                let loaded = false;
+                iframe.addEventListener('load', () => {
+                    loaded = true;
+                    box.style.display = 'none';
+                });
+                setTimeout(() => {
+                    if (!loaded) {
+                        box.style.display = 'flex';
+                    }
+                }, 4000);
+
+                const retryBtn = document.getElementById('jitsi-retry');
+                if (retryBtn) {
+                    retryBtn.onclick = () => {
+                        box.style.display = 'none';
+                        if (iframe.src) {
+                            const sep = iframe.src.includes('?') ? '&' : '?';
+                            iframe.src = iframe.src + sep + 'reload=' + Date.now();
+                        }
+                    };
+                }
+            }
+            function forceIframe() {
+                if (!container) return;
+                const baseSrc = jwtToken
+                    ? `https://${domain}/${roomName}?jwt=${encodeURIComponent(jwtToken)}`
+                    : `https://${domain}/${roomName}`;
+                const configHash = '#config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.startWithTileView=true&config.disableSelfView=false&interfaceConfig.VERTICAL_FILMSTRIP=false&interfaceConfig.TILE_VIEW_MAX_COLUMNS=2';
+                const src = `${baseSrc}${configHash}`;
+                container.innerHTML = `
+                    <iframe
+                        src="${src}"
+                        style="width:100%; height:100%; border:0;"
+                        allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write"
+                        allowfullscreen
+                    ></iframe>
+                `;
+                const iframe = container.querySelector('iframe');
+                if (iframe) {
+                    attachFallback(iframe);
+                }
+            }
+
+            const iframeBtn = document.getElementById('jitsi-iframe-btn');
+            if (iframeBtn) {
+                iframeBtn.addEventListener('click', () => {
+                    forceIframe();
+                });
+            }
+
+            try {
+                if (!window.JitsiMeetExternalAPI) {
+                    throw new Error('Jitsi API not loaded');
+                }
+                const api = new JitsiMeetExternalAPI(domain, options);
+                const iframe = api.getIFrame && api.getIFrame();
+                if (iframe) {
+                    iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; autoplay; clipboard-write');
+                    attachFallback(iframe);
+                }
+                let tileViewForced = false;
+                const enforceTwoVideoLayout = () => {
+                    if (tileViewForced) return;
+                    try {
+                        api.executeCommand('setTileView', true);
+                        tileViewForced = true;
+                    } catch (err) {
+                        try {
+                            api.executeCommand('toggleTileView');
+                            tileViewForced = true;
+                        } catch (noopErr) {
+                        }
+                    }
+                };
+                api.addEventListener('videoConferenceJoined', enforceTwoVideoLayout);
+                api.addEventListener('participantJoined', enforceTwoVideoLayout);
+            } catch (e) {
+                forceIframe();
+            }
+        }
+
+        function getDragTargetAtEvent(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const currentBoard = getCurrentBoard();
+            if (!currentBoard) return null;
+            
+            for (let i = currentBoard.images.length - 1; i >= 0; i--) {
+                const img = currentBoard.images[i];
+                if (x > img.x && x < img.x + img.width && 
+                    y > img.y && y < img.y + img.height) {
+                    return { type: 'image', target: img };
+                }
+            }
+            
+            for (let i = currentBoard.texts.length - 1; i >= 0; i--) {
+                const text = currentBoard.texts[i];
+                ctx.font = `${text.fontSize}px Arial`;
+                const textWidth = ctx.measureText(text.text).width;
+                
+                if (x > text.x && x < text.x + textWidth && 
+                    y > text.y - text.fontSize && y < text.y) {
+                    return { type: 'text', target: text };
+                }
+            }
+            
+            return null;
+        }
+        
+        // Перетаскивание контейнера Jitsi
+        function startJitsiDrag(e) {
+            if (!jitsiContainer) return;
+            if (e.target.closest('button, a')) return;
+            state.jitsiDragging = true;
+            const rect = jitsiContainer.getBoundingClientRect();
+            state.jitsiOffsetX = e.clientX - rect.left;
+            state.jitsiOffsetY = e.clientY - rect.top;
+            
+            // Запрещаем выделение текста при перетаскивании
+            e.preventDefault();
+        }
+
+        function toggleJitsiSize() {
+            if (!jitsiContainer) return;
+            state.jitsiMinimized = !state.jitsiMinimized;
+            jitsiContainer.classList.toggle('minimized', state.jitsiMinimized);
+            if (jitsiSizeBtn) {
+                jitsiSizeBtn.textContent = state.jitsiMinimized ? 'Увеличить' : 'Уменьшить';
+            }
+        }
+        
+        function moveJitsi(e) {
+            if (!state.jitsiDragging) return;
+            
+            const wrapper = document.getElementById('whiteboard-wrapper');
+            const rect = wrapper.getBoundingClientRect();
+            
+            let x = e.clientX - state.jitsiOffsetX - rect.left;
+            let y = e.clientY - state.jitsiOffsetY - rect.top;
+            
+            // Ограничение перемещения внутри области доски
+            x = Math.max(0, Math.min(wrapper.clientWidth - jitsiContainer.offsetWidth, x));
+            y = Math.max(0, Math.min(wrapper.clientHeight - jitsiContainer.offsetHeight, y));
+            
+            jitsiContainer.style.left = x + 'px';
+            jitsiContainer.style.top = y + 'px';
+        }
+        
+        function stopJitsiDrag() {
+            state.jitsiDragging = false;
+        }
+        
+        // Функция завершения урока
+        function finishLesson() {
+            // Определяем URL для перенаправления на основе роли пользователя
+            let redirectUrl;
+            
+            // Используем переменную из Django контекста
+            {% if is_teacher %}
+                // Перенаправление в кабинет учителя
+                redirectUrl = "{% url 'teacher_dashboard' %}";
+            {% else %}
+                // Перенаправление в кабинет ученика
+                redirectUrl = "{% url 'student_dashboard' %}";
+            {% endif %}
+            
+            // Перенаправляем в личный кабинет
+            window.location.href = redirectUrl;
+        }
+        
+        // Инициализация
+        function init() {
+            setupCanvas();
+            loadBoardState();
+            connectLessonSocket();
+            window.addEventListener('resize', setupCanvas);
+            
+            if (toggleSidebarBtn) {
+                toggleSidebarBtn.addEventListener('click', () => {
+                    if (sidebar.classList.contains('hidden')) {
+                        sidebar.classList.remove('hidden');
+                        sidebar.classList.add('compact');
+                    } else {
+                        sidebar.classList.add('hidden');
+                    }
+                });
+            }
+            
+            if (toggleLessonPanelBtn) {
+                toggleLessonPanelBtn.addEventListener('click', () => {
+                    lessonPanel.classList.toggle('hidden');
+                    if (mainContent) {
+                        mainContent.classList.toggle('materials-collapsed');
+                    }
+                    requestAnimationFrame(() => {
+                        setupCanvas();
+                        drawAll();
+                    });
+                });
+            }
+            
+            if (newBoardTopBtn) {
+                newBoardTopBtn.addEventListener('click', () => {
+                    if (canManageBoards) createNewBoard();
+                });
+            }
+
+            if (prevBoardTopBtn) {
+                prevBoardTopBtn.addEventListener('click', () => switchBoardByOffset(-1));
+            }
+
+            if (nextBoardTopBtn) {
+                nextBoardTopBtn.addEventListener('click', () => switchBoardByOffset(1));
+            }
+
+            // Dropdowns работают через CSS (details/summary)
+            
+            // Обработчики событий
+            canvas.addEventListener('mousedown', startMovingImage);
+            canvas.addEventListener('mousemove', moveImage);
+            canvas.addEventListener('mouseup', stopMovingImage);
+            canvas.addEventListener('mouseout', stopMovingImage);
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', endDrawing);
+            canvas.addEventListener('mouseout', endDrawing);
+            
+            canvas.addEventListener('mousemove', updateCanvasCursor);
+            
+            // Инструменты
+            handToolBtn.addEventListener('click', () => setActiveTool('hand'));
+            pencilBtn.addEventListener('click', () => setActiveTool('pencil'));
+            eraserBtn.addEventListener('click', () => setActiveTool('eraser'));
+            textToolBtn.addEventListener('click', () => setActiveTool('text'));
+            
+            // Фигуры
+            rectToolBtn.addEventListener('click', () => setShapeTool('rectangle'));
+            circleToolBtn.addEventListener('click', () => setShapeTool('circle'));
+            lineToolBtn.addEventListener('click', () => setShapeTool('line'));
+            arrowToolBtn.addEventListener('click', () => setShapeTool('arrow'));
+            
+            // Действия
+            clearBtn.addEventListener('click', () => {
+                const currentBoard = getCurrentBoard();
+                if (currentBoard) {
+                    saveStateToHistory();
+                    currentBoard.drawingData = [];
+                    currentBoard.images = [];
+                    currentBoard.shapes = [];
+                    currentBoard.texts = [];
+                }
+                drawAll();
+                sendEvent('clear');
+            });
+            
+            undoBtn.addEventListener('click', undo);
+            redoBtn.addEventListener('click', redo);
+            
+            // Цвета
+            colorSamples.forEach(sample => {
+                sample.addEventListener('click', () => {
+                    state.currentColor = sample.dataset.color;
+                    
+                    // Обновляем активный цвет
+                    colorSamples.forEach(s => s.classList.remove('active'));
+                    sample.classList.add('active');
+                    
+                    state.currentTool = 'pencil';
+                    setActiveTool('pencil');
+                });
+            });
+            
+            lineWidth.addEventListener('input', () => {
+                ctx.lineWidth = lineWidth.value;
+            });
+            
+            gridToggle.addEventListener('change', () => {
+                state.gridEnabled = gridToggle.checked;
+                drawAll();
+            });
+            
+            // Доски
+            if (!canManageBoards) {
+                if (newBoardBtn) newBoardBtn.style.display = 'none';
+                if (newBoardTopBtn) newBoardTopBtn.style.display = 'none';
+                document.querySelectorAll('.delete-board').forEach((btn) => {
+                    btn.style.display = 'none';
+                });
+            }
+            newBoardBtn.addEventListener('click', () => {
+                if (canManageBoards) createNewBoard();
+            });
+            
+            addImageBtn.addEventListener('click', () => {
+                imageUpload.click();
+            });
+            
+            imageUpload.addEventListener('change', handleImageUpload);
+            
+            // Обработчики для переключения досок
+            boardsList.addEventListener('click', (e) => {
+                // Обработка текстовых узлов
+                let target = e.target;
+                if (target.nodeType === 3) target = target.parentNode;
+                
+                const boardItem = target.closest('.board-item');
+                if (boardItem) {
+                    switchBoard(parseInt(boardItem.dataset.id));
+                }
+            });
+
+            if (boardsListTop) {
+                boardsListTop.addEventListener('click', (e) => {
+                    let target = e.target;
+                    if (target.nodeType === 3) target = target.parentNode;
+                    
+                    const boardItem = target.closest('.board-item');
+                    if (boardItem) {
+                        switchBoard(parseInt(boardItem.dataset.id));
+                    }
+                });
+            }
+            
+            // Текст
+            textApplyBtn.addEventListener('click', addText);
+            textCancelBtn.addEventListener('click', () => {
+                textInputContainer.style.display = 'none';
+            });
+            
+            textSizeSelect.addEventListener('change', (e) => {
+                state.fontSize = parseInt(e.target.value);
+            });
+            
+            // Графики
+            
+            // Обработчики для сенсорных устройств
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                const mouseEvent = new MouseEvent('mouseup');
+                canvas.dispatchEvent(mouseEvent);
+            });
+            
+            // Инициализация Jitsi
+            if (typeof initJitsi === 'function') {
+                initJitsi();
+            }
+            
+            // Перетаскивание контейнера Jitsi
+            if (jitsiContainer) {
+                if (jitsiHeader) {
+                    jitsiHeader.addEventListener('mousedown', startJitsiDrag);
+                }
+                document.addEventListener('mousemove', moveJitsi);
+                document.addEventListener('mouseup', stopJitsiDrag);
+
+                if (jitsiSizeBtn) {
+                    jitsiSizeBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleJitsiSize();
+                    });
+                }
+                
+                if (jitsiCloseBtn) {
+                    jitsiCloseBtn.addEventListener('click', () => {
+                        jitsiContainer.style.display = 'none';
+                    });
+                }
+            }
+            
+            // Обработчики завершения урока
+            if (finishLessonBtn) {
+                if (finishModal && confirmFinishBtn && cancelFinishBtn) {
+                    finishLessonBtn.addEventListener('click', () => {
+                        finishModal.style.display = 'flex';
+                    });
+                    
+                    confirmFinishBtn.addEventListener('click', finishLesson);
+                    
+                    cancelFinishBtn.addEventListener('click', () => {
+                        finishModal.style.display = 'none';
+                    });
+                    
+                    // Закрытие модального окна при клике вне его
+                    finishModal.addEventListener('click', (e) => {
+                        if (e.target === finishModal) {
+                            finishModal.style.display = 'none';
+                        }
+                    });
+                } else {
+                    // Фолбек: если модалка не найдена, завершаем урок сразу
+                    finishLessonBtn.addEventListener('click', finishLesson);
+                }
+            }
+            
+            // Инициализация кнопок
+            updateUndoRedoButtons();
+        }
+        
+        // Запуск приложения
+        window.addEventListener('beforeunload', () => {
+            isPageUnloading = true;
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = null;
+            }
+            if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+                try { socket.close(); } catch (e) {}
+            }
+            try { saveBoardState({ keepalive: true }); } catch (e) {}
+        });
+        init();
+    </script>
+</body>
+</html>

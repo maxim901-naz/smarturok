@@ -1,0 +1,165 @@
+{% comment %} <h2>Вы успешно записались на урок!</h2>
+<p>{{ booking.subject }} с преподавателем {{ booking.teacher }} в {{ booking.date }} в {{ booking.time }}</p> {% endcomment %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Запись подтверждена — MaxSchool</title>
+    
+    <!-- Подключение шрифтов и библиотек -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo2.PNG' %}">
+
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e6eeff 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        @keyframes scaleIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .booking-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .booking-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .info-item {
+            border-left: 3px solid #FF6B35;
+            padding-left: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            border-left: 3px solid #004E89;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased flex items-center justify-center py-12 px-4">
+    <div class="max-w-md w-full">
+        <!-- Логотип -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-4 rounded-full bg-white shadow-lg">
+                <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-16 w-auto mx-auto">
+            </div>
+        </div>
+        
+        <!-- Основной контент -->
+        <div class="booking-card p-8 text-center">
+            <!-- Иконка успеха -->
+            <div class="success-checkmark mb-6">
+                <i class="fas fa-check text-white text-4xl"></i>
+            </div>
+            
+            <!-- Заголовок -->
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Вы успешно записались на урок!</h2>
+            <p class="text-gray-600 mb-8">Ваша заявка принята и ожидает подтверждения</p>
+            
+            <!-- Информация о записи -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left">
+                <div class="info-item mb-4">
+                    <p class="text-sm text-gray-500">Предмет</p>
+                    <p class="text-lg font-semibold text-gray-800">{{ booking.subject }}</p>
+                </div>
+                
+                <div class="info-item mb-4">
+                    <p class="text-sm text-gray-500">Преподаватель</p>
+                    <p class="text-lg font-semibold text-gray-800">{{ booking.teacher }}</p>
+                </div>
+                
+                <div class="info-item">
+                    <p class="text-sm text-gray-500">Дата и время</p>
+                    <p class="text-lg font-semibold text-gray-800">{{ booking.date }} в {{ booking.time }}</p>
+                </div>
+            </div>
+            
+            <!-- Дополнительная информация -->
+            <div class="bg-blue-50 rounded-xl p-4 mb-8 flex items-start">
+                <div class="bg-blue-100 p-3 rounded-full mr-4">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <p class="text-sm text-blue-700">
+                    Подробная информация о уроке будет отправлена на вашу электронную почту. 
+                    Вы также можете посмотреть детали в личном кабинете.
+                </p>
+            </div>
+            
+            <!-- Кнопки действий -->
+            <div class="flex flex-col space-y-4">
+                <a href="{% url 'student_dashboard' %}" class="btn-primary text-white py-3 px-6 rounded-lg font-semibold">
+                    Перейти в личный кабинет
+                </a>
+                <a href="#" class="py-3 px-6 rounded-lg font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                    Посмотреть все записи
+                </a>
+            </div>
+        </div>
+        
+        <!-- Футер -->
+        <div class="text-center mt-8">
+            <p class="text-sm text-gray-500">© 2025 MaxSchool. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

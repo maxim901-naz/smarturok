@@ -1,0 +1,1759 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет преподавателя — SmartUrok</title>
+    
+    <!-- Подключение шрифтов и библиотек -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.PNG' %}">
+
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Глобальные стили */
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Анимации */
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Градиентный текст */
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* Кастомные кнопки */
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Навигационные ссылки */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        .mobile-menu-link {
+            transition: all 0.3s ease;
+        }
+        .mobile-menu-link:hover {
+            background-color: #f3f4f6;
+            padding-left: 1.5rem;
+        }
+        
+        .logo-animate {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .section-header {
+            position: relative;
+            display: inline-block;
+        }
+        .section-header:after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+        }
+        
+        /* Специфичные стили для страницы преподавателя */
+        .teacher-dashboard-header {
+            background: linear-gradient(to right, #004E89, #00A6FB);
+            color: white;
+            padding-top: 100px;
+            padding-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .teacher-dashboard-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+            border-radius: 50%;
+        }
+        
+        .teacher-profile-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .teacher-profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .teacher-stats-card {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .teacher-stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .lesson-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #FF6B35;
+        }
+        
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 4px solid #00A6FB;
+        }
+        
+        .teacher-nav-btn {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-width: 180px;
+        }
+        
+        .teacher-nav-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(255, 107, 53, 0.3);
+        }
+        
+        .teacher-nav-btn i {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
+        .teacher-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        
+        .teacher-stat-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .teacher-stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .teacher-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #004E89 0%, #00A6FB 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .teacher-stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .chat-btn {
+            background: linear-gradient(90deg, #00A6FB 0%, #004E89 100%);
+            transition: all 0.3s ease;
+        }
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 166, 251, 0.3);
+        }
+
+        /* Стили для календаря */
+        .fc-event {
+            cursor: pointer;
+            border-radius: 6px;
+            padding: 3px 6px;
+            margin: 2px 0;
+        }
+        
+        .fc-event.free-slot {
+            background-color: #34D399 !important;
+            border-color: #059669 !important;
+        }
+        
+        .fc-event.lesson {
+            background-color: #F87171 !important;
+            border-color: #DC2626 !important;
+        }
+        
+        .fc-event.recurring-lesson {
+            background-color: #FBBF24 !important;
+            border-color: #D97706 !important;
+        }
+
+        .fc-event.past-slot {
+            opacity: 0.45;
+            cursor: not-allowed !important;
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            animation: modalFadeIn 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        
+
+        .toast-container {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 1200;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 360px;
+        }
+
+        .toast-item {
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #fff;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+            animation: toastFadeIn 0.2s ease-out;
+        }
+
+        .toast-item.success { background: #10B981; }
+        .toast-item.error { background: #EF4444; }
+        .toast-item.warning { background: #F59E0B; }
+        .toast-item.info { background: #2563EB; }
+
+        @keyframes toastFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .teacher-dashboard-header {
+                padding-top: 120px;
+                padding-bottom: 40px;
+                text-align: center;
+            }
+            
+            .teacher-nav-btn {
+                min-width: auto;
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            .teacher-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            
+            .teacher-stat-value {
+                font-size: 1.8rem;
+            }
+            
+            .fc-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .fc-toolbar-title {
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+            
+            .fc .fc-toolbar-chunk {
+                margin-bottom: 10px;
+            }
+            
+            .fc .fc-button {
+                padding: 0.3em 0.4em;
+                font-size: 0.8em;
+            }
+            
+            .fc-timeGridWeek-view .fc-scrollgrid {
+                font-size: 0.7em;
+            }
+            
+            .modal-content {
+                margin: 1rem;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .teacher-stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .fc-header-toolbar {
+                flex-direction: column;
+            }
+            
+            .fc-toolbar-chunk:not(:last-child) {
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Стили для календаря на мобильных */
+        .fc .fc-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .fc .fc-toolbar-title {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        
+        .fc .fc-button {
+            font-size: 0.8em;
+            padding: 0.4em 0.65em;
+        }
+        
+        .fc .fc-col-header-cell-cushion {
+            font-size: 0.8em;
+            padding: 4px 2px;
+        }
+        
+        .fc .fc-timegrid-slot-label-cushion {
+            font-size: 0.7em;
+        }
+        
+        .fc .fc-event-time {
+            font-size: 0.8em;
+            padding: 0 2px;
+        }
+        
+        .fc .fc-event-title {
+            font-size: 0.8em;
+            padding: 0 2px;
+        }
+    </style>
+    
+    <!-- FullCalendar -->
+    <script src="{% static 'fullcalendar/index.global.min.js' %}"></script>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+
+    <!-- CSRF токен для AJAX запросов -->
+    {% csrf_token %}
+    <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
+    <!-- Фиксированная шапка -->
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <!-- Логотип -->
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-12 w-auto logo-animate">
+                <h1 class="text-2xl font-bold gradient-text">SmartUrok</h1>
+            </div>
+
+            <!-- Навигация для преподавателя -->
+            <nav class="hidden lg:flex space-x-6 items-center">
+                <a href="{% url 'teacher_bookings' %}" class="text-dark font-medium transition nav-link">Заявки на уроки</a>
+                <a href="{% url 'teacher_lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
+                <a href="{% url 'teacher_homework_submissions' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
+                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
+            </nav>
+            
+            <!-- Профиль преподавателя -->
+            <div class="hidden lg:flex items-center space-x-4">
+                <div class="px-3 py-1 rounded-lg bg-gray-100 text-sm text-gray-700">
+                    <span id="header-local-time" data-timezone="{{ teacher_time_zone|default:'Europe/Moscow' }}"></span>
+                </div>
+                <!-- Уведомления -->
+                <div class="relative">
+                    <button id="notification-btn" class="relative w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 transition flex items-center justify-center">
+                        <i class="fas fa-bell text-gray-700"></i>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full px-1.5 py-0.5 {% if not unread_count %}hidden{% endif %}">
+                            {{ unread_count|default:0 }}
+                        </span>
+                    </button>
+                    <div id="notification-menu" class="hidden absolute right-0 mt-3 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+                        <div class="px-4 py-3 border-b border-gray-100 font-semibold">Уведомления</div>
+                        <div class="max-h-80 overflow-y-auto px-4 py-3 space-y-2 text-sm">
+                            {% if notifications %}
+                                {% for n in notifications %}
+                                    <div class="text-gray-700">{{ n.message }}</div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-gray-500">Нет новых уведомлений</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+                        {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="Преподаватель {{ user.username|default:user.username }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <img src="{% static 'images/default-teacher.jpg' %}" alt="Преподаватель" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <span class="ml-3 font-medium">{{ user.first_name|default:user.username }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Выйти</a>
+            </div>
+            
+            <!-- Кнопка бургера -->
+            <button id="burger-btn" class="lg:hidden text-2xl text-dark focus:outline-none">
+                ☰
+            </button>
+        </div>
+
+        <!-- Мобильное меню -->
+        <nav id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg absolute top-full left-0 right-0 mx-4 rounded-lg p-4">
+            <ul class="flex flex-col space-y-3">
+                <li><a href="{% url 'teacher_bookings' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Заявки на уроки</a></li>
+                <li><a href="{% url 'teacher_lesson_history' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">История уроков</a></li>
+                <li><a href="{% url 'teacher_homework_submissions' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Домашние задания</a></li>
+                <li><a href="{% url 'chat:list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои чаты</a></li>
+                <li class="pt-2 border-t border-gray-200">
+                    <a href="{% url 'logout' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Выйти</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Шапка личного кабинета -->
+    <section class="teacher-dashboard-header">
+        <div class="content-container px-6 lg:px-8 relative z-10">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-10 md:mb-0 animate__animated animate__fadeInLeft" data-aos="fade-right">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">Личный кабинет преподавателя</h2>
+                    <p class="text-xl mb-6 opacity-90">Здравствуйте, <span class="font-bold">{{ user.first_name|default:user.username }}</span>! Здесь вы можете управлять своим расписанием и уроками.</p>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <a href="{% url 'teacher_bookings' %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-calendar-plus"></i> Заявки на уроки
+                        </a>
+                        <a href="{% url 'teacher_lesson_history' %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-history"></i> История уроков
+                        </a>
+                        <a href="{% url 'teacher_homework_submissions' %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-tasks"></i> Ответы на ДЗ
+                        </a>
+                        <a href="{% url 'chat:list' %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-comments"></i> Мои чаты
+                        </a>
+                        <a href="{% url 'my_students' %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-users"></i> Мои ученики
+                        </a>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center animate__animated animate__fadeInRight" data-aos="fade-left">
+                    <div class="w-64 h-64 rounded-full overflow-hidden border-4 border-white border-opacity-30">
+                        {% if user.photo %}
+                        <img src="{{ user.photo.url }}" alt="Преподаватель {{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <img src="{% static 'images/default-teacher.jpg' %}" alt="Преподаватель" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Статистика преподавателя -->
+    <section class="py-12 bg-white">
+        <div class="content-container px-6 lg:px-8">
+            <div class="teacher-stats-grid">
+                <div class="teacher-stat-item" data-aos="fade-up" data-aos-delay="100">
+                    <div class="teacher-stat-value">{{ lessons|length }}</div>
+                    <div class="teacher-stat-label">Предстоящих уроков</div>
+                </div>
+                <div class="teacher-stat-item" data-aos="fade-up" data-aos-delay="200">
+                    <div class="teacher-stat-value">{{ completed_lessons|default:"0" }}</div>
+                    <div class="teacher-stat-label">Проведено уроков</div>
+                </div>
+                <div class="teacher-stat-item" data-aos="fade-up" data-aos-delay="300">
+                    <div class="teacher-stat-value">{{ average_rating|default:"5.0" }}</div>
+                    <div class="teacher-stat-label">Средний рейтинг</div>
+                </div>
+                <div class="teacher-stat-item" data-aos="fade-up" data-aos-delay="400">
+                    <div class="teacher-stat-value">{{ pending_homeworks|default:"0" }}</div>
+                    <div class="teacher-stat-label">Ожидает проверки ДЗ</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент -->
+    <main class="content-container py-10 px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Календарь расписания -->
+            <div class="lg:col-span-2" data-aos="fade-right">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold section-header">Ваше расписание</h2>
+                    <div class="flex space-x-2">
+                        <button class="px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition" onclick="window.calendar && window.calendar.today()">
+                            Сегодня
+                        </button>
+                        <button class="px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition" onclick="exportCalendar()">
+                            Экспорт
+                        </button>
+                        <button class="px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition" onclick="refreshCalendar()">
+                            Обновить
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-4 rounded-xl shadow-lg mb-8" id="calendar"></div>
+                
+                <!-- Легенда календаря -->
+                <div class="flex flex-wrap gap-4 mt-4">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                        <span class="text-sm">Свободные слоты</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                        <span class="text-sm">Запланированные уроки</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                        <span class="text-sm">Регулярные уроки</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Предстоящие уроки -->
+            <div data-aos="fade-left">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold section-header">Предстоящие уроки</h2>
+                    <span class="text-primary font-medium">{{ lessons|length }} уроков</span>
+                </div>
+                
+                {% if lessons %}
+                    <div class="space-y-6">
+                        {% for lesson in lessons %}
+                        <div class="lesson-card bg-white p-5 hover-scale">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="text-xl font-semibold">{{ lesson.subject.name }}</h4>
+                                <div class="flex flex-col items-end">
+                                    <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium mb-1">
+                                        {{ lesson.duration_minutes }} мин
+                                    </span>
+                                    {% if lesson.is_recurring %}
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                                        Регулярный
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <p class="mb-3 flex items-center">
+                                <i class="fas fa-user-graduate text-secondary mr-2"></i>
+                                <span>Ученик: <strong>{{ lesson.student.get_full_name|default:lesson.student.username }}</strong></span>
+                            </p>
+                            
+                            <p class="mb-4 flex items-center">
+                                <i class="fas fa-calendar-alt text-secondary mr-2"></i>
+                                <span>{{ lesson.date }} в {{ lesson.time }}</span>
+                            </p>
+                            
+                            <div class="flex flex-col space-y-2">
+                                {% if lesson.show_video %}
+                                    <a href="{% url 'lesson_session' lesson.id %}" 
+                                       class="w-full text-center px-4 py-2 btn-primary text-white rounded-lg font-semibold hover-scale">
+                                        <i class="fas fa-video mr-2"></i> Перейти в урок
+                                    </a>
+                                {% else %}
+                                    <div class="bg-gray-100 rounded-lg p-3 text-center">
+                                        <p class="text-sm text-gray-600">
+                                            {% if lesson.is_recurring %}
+                                            Регулярный урок<br>
+                                            {% endif %}
+                                            Ссылка появится за 5 минут до урока<br>
+                                            Начало: {{ lesson.date }} в {{ lesson.time }}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                                
+                                <a href="{% url 'chat:list' %}" 
+                                   class="w-full text-center px-4 py-2 chat-btn text-white rounded-lg font-semibold hover-scale">
+                                    <i class="fas fa-comment-dots mr-2"></i> Написать ученику
+                                </a>
+                                <a href="{% url 'reschedule_lesson' lesson.id %}"
+                                   class="w-full text-center px-4 py-2 bg-white border border-primary text-primary rounded-lg font-semibold hover-scale">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Перенести урок
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-white p-8 rounded-xl shadow-lg text-center">
+                        <div class="text-5xl mb-4">📅</div>
+                        <h3 class="text-xl font-semibold mb-2">Пока нет предстоящих уроков</h3>
+                        <p class="text-gray-600 mb-4">Ваши запланированные уроки появятся здесь</p>
+                        <a href="{% url 'teacher_bookings' %}" class="inline-block px-6 py-3 btn-primary text-white rounded-lg font-semibold hover-scale">
+                            Посмотреть заявки
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        
+        <!-- Уроки для отметки -->
+        <div class="mt-10" data-aos="fade-up">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold section-header">Отметить уроки</h2>
+                <span class="text-primary font-medium">{{ lessons_needing_status|length }} уроков</span>
+            </div>
+
+            {% if lessons_needing_status %}
+                <div class="space-y-4">
+                    {% for lesson in lessons_needing_status %}
+                    <div class="bg-white p-5 rounded-xl shadow-lg">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="text-lg font-semibold">{{ lesson.subject.name }}</h4>
+                                <p class="text-sm text-gray-600">{{ lesson.date }} в {{ lesson.time }}</p>
+                                <p class="text-sm text-gray-600">Ученик: {{ lesson.student.get_full_name|default:lesson.student.username }}</p>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Ожидает отметки</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <form method="post" action="{% url 'update_lesson_status' lesson.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="conducted">
+                                <button class="px-4 py-2 bg-green-600 text-white rounded-lg">Проведён</button>
+                            </form>
+                            <form method="post" action="{% url 'update_lesson_status' lesson.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="missed_teacher">
+                                <button class="px-4 py-2 bg-red-600 text-white rounded-lg">Пропущен преподавателем</button>
+                            </form>
+                            <form method="post" action="{% url 'update_lesson_status' lesson.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="missed_student">
+                                <button class="px-4 py-2 bg-orange-500 text-white rounded-lg">Пропущен учеником</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white p-6 rounded-xl shadow-lg text-center text-gray-600">Нет уроков для отметки</div>
+            {% endif %}
+        </div>
+
+</div>
+        
+        
+        <!-- Дополнительные разделы -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+            <!-- Быстрые действия -->
+            <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-bolt text-primary mr-2"></i>
+                    Быстрые действия
+                </h3>
+                
+                <div class="space-y-3">
+                    <a href="{% url 'teacher_homework_submissions' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <i class="fas fa-check-circle text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Проверить домашние задания</h4>
+                            <p class="text-sm text-gray-600">{{ pending_homeworks|default:"0" }} на проверку</p>
+                        </div>
+                    </a>
+                    
+                    <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <i class="fas fa-edit text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Редактировать профиль</h4>
+                            <p class="text-sm text-gray-600">Обновите вашу информацию</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'teacher_availability' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <i class="fas fa-clock text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Управление расписанием</h4>
+                            <p class="text-sm text-gray-600">Настройте свободные часы</p>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'teacher_finance' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
+                            <i class="fas fa-wallet text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-medium">Финансы</h4>
+                            <p class="text-sm text-gray-600">История начислений</p>
+                        </div>
+                    </a>
+
+                </div>
+            </div>
+            
+            <!-- Последние отзывы -->
+            <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up" data-aos-delay="100">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-star text-primary mr-2"></i>
+                    Последние отзывы
+                </h3>
+                
+                <div class="space-y-4">
+                    {% for review in latest_reviews|default:"" %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-start mb-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden mr-3">
+                                <img src="{% static 'images/default-avatar.png' %}" alt="{{ review.student_name }}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <h4 class="font-bold">{{ review.student_name }}</h4>
+                                <div class="flex">
+                                    {% for _ in review.stars %}
+                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm">{{ review.comment }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-4">Пока нет отзывов</p>
+                    {% endfor %}
+                    
+                    <a href="#" class="block mt-4 text-center text-primary font-medium hover:text-primary-dark transition">
+                        Посмотреть все отзывы →
+                    </a>
+                </div>
+            </div>
+            
+            <!-- График загруженности -->
+            <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up" data-aos-delay="200">
+                <h3 class="text-xl font-bold mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-primary mr-2"></i>
+                    Ваша загруженность
+                </h3>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between mb-4">
+                        <div>
+                            <p class="text-gray-600">Текущая неделя</p>
+                            <p class="text-2xl font-bold">{{ current_hours|default:"18" }} часов</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-gray-600">Максимум</p>
+                            <p class="text-2xl font-bold">{{ max_hours|default:"25" }} часов</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
+                        <div class="bg-primary h-4 rounded-full" style="width: {{ workload_percent|default:"72" }}%"></div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>Понедельник</span>
+                            <span class="font-medium">{{ mon_hours|default:"3" }} ч</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Вторник</span>
+                            <span class="font-medium">{{ tue_hours|default:"4" }} ч</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Среда</span>
+                            <span class="font-medium">{{ wed_hours|default:"2" }} ч</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Четверг</span>
+                            <span class="font-medium">{{ thu_hours|default:"5" }} ч</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Пятница</span>
+                            <span class="font-medium">{{ fri_hours|default:"4" }} ч</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <a href="{% url 'teacher_availability' %}" class="inline-block px-4 py-2 bg-gray-100 rounded-lg font-medium hover:bg-gray-200 transition">
+                            Настроить доступность
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="content-container px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <img src="{% static 'images/logo4-round.PNG' %}" alt="Логотип SmartUrok" class="h-10 w-auto mr-3">
+                    <h3 class="text-xl font-bold">SmartUrok</h3>
+                </div>
+                
+                <div class="flex flex-col items-center md:items-end">
+                    <p class="text-gray-400 text-sm mb-2">© 2025 SmartUrok. Все права защищены.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Подключение скриптов -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.2/imask.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    
+    <script>
+        // Глобальные переменные
+        let calendar;
+        let currentSlotId = null;
+        let currentSlotDate = null;
+        let currentSlotIsRecurring = false;
+        
+        // Основная функция инициализации
+        document.addEventListener('DOMContentLoaded', function () {
+            const csrfToken = document.getElementById('csrf-token').value;
+            
+            // Инициализация AOS
+            if (typeof AOS !== 'undefined') {
+                AOS.init({ duration: 800, once: true, offset: 100 });
+            }
+            
+            // Инициализация меню
+            initMobileMenu();
+            
+            // Инициализация календаря
+            initCalendar();
+        });
+        
+        // Инициализация мобильного меню
+        function initMobileMenu() {
+            const burgerBtn = document.getElementById('burger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (!burgerBtn || !mobileMenu) return;
+            
+            burgerBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            document.querySelectorAll('.mobile-menu-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+            
+            document.addEventListener('click', (e) => {
+                if (!mobileMenu.classList.contains('hidden') && 
+                    !e.target.closest('#mobile-menu') && 
+                    !e.target.closest('#burger-btn')) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Инициализация календаря
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+            
+            const teacherTimeZone = "{{ teacher_time_zone|default:'Europe/Moscow'|escapejs }}";
+            function getNowIsoForTimeZone(timeZone) {
+                const now = new Date();
+                const dtf = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: timeZone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hourCycle: 'h23',
+                    timeZoneName: 'shortOffset'
+                });
+                const parts = dtf.formatToParts(now);
+                const map = {};
+                parts.forEach(p => { map[p.type] = p.value; });
+                const tzName = map.timeZoneName || 'GMT+00';
+                const tzMatch = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/);
+                const sign = tzMatch ? tzMatch[1] : '+';
+                const hh = tzMatch ? String(parseInt(tzMatch[2], 10)).padStart(2, '0') : '00';
+                const mm = tzMatch && tzMatch[3] ? tzMatch[3] : '00';
+                return `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}${sign}${hh}:${mm}`;
+            }
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                timeZone: teacherTimeZone,
+                now: getNowIsoForTimeZone(teacherTimeZone),
+                initialView: 'timeGridWeek',
+                locale: 'ru',
+                height: 'auto',
+                selectable: true,
+                editable: false,
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    fetch("/lessons/calendar/events/")
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('События календаря загружены:', data.length);
+                            successCallback(data);
+                        })
+                        .catch(error => {
+                            console.error('Ошибка загрузки календаря:', error);
+                            failureCallback(error);
+                        });
+                },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                views: {
+                    timeGridWeek: {
+                        dayHeaderFormat: { weekday: 'short', day: 'numeric' }
+                    },
+                    timeGridDay: {
+                        titleFormat: { year: 'numeric', month: 'short', day: 'numeric' }
+                    }
+                },
+                slotMinTime: '00:00:00',
+                slotMaxTime: '24:00:00',
+                allDaySlot: false,
+                nowIndicator: true,
+                
+                // Создание свободных слотов
+                select: function (info) {
+                    showSlotCreationModal(info.startStr, info.endStr);
+                },
+                
+                // Клик по событию
+                eventClick: function (info) {
+                    const event = info.event;
+                    const type = event.extendedProps.type;
+                    const isPastSlot = type === "slot" && (
+                        event.extendedProps.is_past ||
+                        (event.end ? event.end < new Date() : event.start < new Date())
+                    );
+
+                    if (isPastSlot) {
+                        return;
+                    }
+                    
+                    if (type === "slot") {
+                        showStudentSelectionModal(event);
+                    } else if (type === "lesson") {
+                        showLessonActionsModal(event);
+                    }
+                },
+                
+                // Эффекты при наведении
+                eventMouseEnter: function(info) {
+                    if (info.event.extendedProps?.is_past) return;
+                    info.el.style.transform = 'translateY(-2px)';
+                    info.el.style.boxShadow = '0 4px 8px rgba(0, 78, 137, 0.3)';
+                },
+                eventMouseLeave: function(info) {
+                    info.el.style.transform = '';
+                    info.el.style.boxShadow = '';
+                }
+            });
+            
+            calendar.render();
+            window.calendar = calendar;
+            setInterval(() => {
+                if (calendar) {
+                    calendar.setOption('now', getNowIsoForTimeZone(teacherTimeZone));
+                }
+            }, 30000);
+            
+            // Адаптация для мобильных
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    calendar.changeView('timeGridDay');
+                } else {
+                    calendar.changeView('timeGridWeek');
+                }
+            }
+            
+            handleResize();
+            window.addEventListener('resize', handleResize);
+        }
+        
+        // Модальное окно создания слотов
+        function showSlotCreationModal(startStr, endStr) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-overlay';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl p-6 w-full max-w-md modal-content">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">Создать свободные слоты</h3>
+                        <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeModal(this)">&times;</button>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-gray-600 mb-3">
+                            <strong>Время:</strong> ${formatDateTime(null, startStr)} - ${formatDateTime(null, endStr)}
+                        </p>
+                        <label class="block text-gray-700 mb-2">Длительность каждого слота:</label>
+                        <select id="slot-duration" class="w-full p-2 border border-gray-300 rounded-lg">
+                            <option value="30">30 минут</option>
+                            <option value="45">45 минут</option>
+                            <option value="60" selected>1 час</option>
+                            <option value="90">1.5 часа</option>
+                            <option value="120">2 часа</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="make-recurring" class="mr-2 w-5 h-5">
+                            <span class="font-medium">Сделать регулярными</span>
+                        </label>
+                        
+                        <div id="recurring-details" class="mt-3 ml-7 hidden space-y-3">
+                            <div class="text-sm text-gray-600">
+                                День недели берётся автоматически из выбранного слота.
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                                onclick="closeModal(this)">
+                            Отмена
+                        </button>
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition"
+                                onclick="createSlots('${startStr}', '${endStr}')">
+                            Создать слоты
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Показать/скрыть опции регулярности
+            document.getElementById('make-recurring').addEventListener('change', function(e) {
+                document.getElementById('recurring-details').classList.toggle('hidden', !e.target.checked);
+            });
+            
+            // Закрытие по клику вне модального окна
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal(modal);
+                }
+            });
+        }
+        // Создание слотов
+        function parseCalendarWallDate(isoString) {
+            const match = String(isoString || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+            if (!match) return null;
+            const year = Number(match[1]);
+            const month = Number(match[2]) - 1;
+            const day = Number(match[3]);
+            const hour = Number(match[4]);
+            const minute = Number(match[5]);
+            const second = Number(match[6] || '0');
+            return new Date(Date.UTC(year, month, day, hour, minute, second));
+        }
+
+        function toCalendarWallIso(dateObj) {
+            const y = dateObj.getUTCFullYear();
+            const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getUTCDate()).padStart(2, '0');
+            const hh = String(dateObj.getUTCHours()).padStart(2, '0');
+            const mm = String(dateObj.getUTCMinutes()).padStart(2, '0');
+            const ss = String(dateObj.getUTCSeconds()).padStart(2, '0');
+            return `${y}-${m}-${d}T${hh}:${mm}:${ss}`;
+        }
+
+        function createSlots(startStr, endStr) {
+            const start = parseCalendarWallDate(startStr);
+            const end = parseCalendarWallDate(endStr);
+            if (!start || !end) {
+                showToast('Ошибка выбора времени. Обновите страницу и попробуйте снова.', 'error');
+                return;
+            }
+            const duration = parseInt(document.getElementById('slot-duration').value);
+            const makeRecurring = document.getElementById('make-recurring').checked;
+            // JS getDay(): 0=Sunday ... 6=Saturday, our backend expects 0=Monday ... 6=Sunday
+            const weekday = makeRecurring ? (start.getUTCDay() + 6) % 7 : null;
+            const weeks = null;
+            
+            const slots = [];
+            let current = new Date(start);
+            
+            // Создаем слоты в выбранном диапазоне
+            while (current < end) {
+                const slotEnd = new Date(current);
+                slotEnd.setUTCMinutes(slotEnd.getUTCMinutes() + duration);
+                
+                if (slotEnd > end) break;
+                
+                slots.push({
+                    start: toCalendarWallIso(current),
+                    end: toCalendarWallIso(slotEnd)
+                });
+                
+                current = slotEnd;
+            }
+            
+            if (slots.length === 0) {
+                showToast('Не удалось создать слоты. Убедитесь, что длительность слота меньше выбранного диапазона.', 'warning');
+                return;
+            }
+            
+            const csrfToken = document.getElementById('csrf-token').value;
+            
+            fetch("/lessons/calendar/create-slot/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({ 
+                    slots: slots,
+                    slot_type: makeRecurring ? "recurring" : "once",
+                    weekday: weekday,
+                    duration: duration,
+                    weeks: weeks
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeAllModals();
+                
+                if (data.success) {
+                    // Обновляем календарь
+                    calendar.refetchEvents();
+                    showToast(`Создано ${data.count || data.slots.length} слотов!`, 'success');
+                } else {
+                    showToast(data.error || "Ошибка при создании слотов", 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка создания слотов:', error);
+                showToast('Ошибка при создании слотов', 'error');
+            });
+        }
+        
+        // Модальное окно выбора ученика
+        function showStudentSelectionModal(event) {
+            const slotId = event.extendedProps.slot_id;
+            const isRecurring = event.extendedProps.is_recurring;
+            currentSlotId = slotId;
+            currentSlotDate = event.extendedProps.slot_date || (event.start ? event.start.toISOString().split('T')[0] : null);
+            currentSlotIsRecurring = !!isRecurring;
+            
+            fetch("/lessons/calendar/get-students/")
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success || !data.students.length) {
+                    showToast("Нет доступных учеников", 'warning');
+                    return;
+                }
+
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-overlay';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-xl p-6 w-full max-w-md modal-content">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">Назначить урок</h3>
+                            <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeModal(this)">&times;</button>
+                        </div>
+                        
+                        ${isRecurring ? '<div class="mb-4 p-3 bg-yellow-50 rounded-lg"><p class="text-yellow-700">⚠️ Это регулярный слот. Будет создана серия уроков.</p></div>' : ''}
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Выберите ученика:</label>
+                            <select id="student-select" class="w-full p-2 border border-gray-300 rounded-lg">
+                                <option value="">Выберите ученика</option>
+                                ${data.students.map(student => 
+                                    `<option value="${student.id}">${student.name} (${student.lesson_count || 0} уроков)</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Выберите предмет:</label>
+                            <select id="subject-select" class="w-full p-2 border border-gray-300 rounded-lg">
+                                <option value="">Сначала выберите ученика</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" id="make-lesson-recurring" class="mr-2 w-5 h-5" ${isRecurring ? 'checked' : ''}>
+                                <span class="font-medium">Сделать регулярным уроком</span>
+                                ${isRecurring ? '<span class="ml-2 text-sm text-gray-500">(можно снять, чтобы сделать разовый)</span>' : ''}
+                            </label>
+                            
+                            <div id="lesson-recurring-options" class="mt-3 ml-7 ${isRecurring ? '' : 'hidden'} space-y-3">
+                                <div>
+                                    <label class="block text-gray-700 mb-1">Количество уроков:</label>
+                                    <select id="lesson-count" class="w-full p-2 border border-gray-300 rounded-lg">
+                                        <option value="4">4 урока</option>
+                                        <option value="8" selected>8 уроков</option>
+                                        <option value="12">12 уроков</option>
+                                        <option value="16">16 уроков</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between gap-3 mt-6">
+                            <button class="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
+                                    onclick="deleteSlot(${slotId})">
+                                Удалить слот
+                            </button>
+                            <div class="flex gap-2">
+                                <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+                                        onclick="closeModal(this)">
+                                    Отмена
+                                </button>
+                                <button class="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition"
+                                        onclick="assignStudentToSlot(event)">
+                                    Назначить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                                function populateSubjectSelect(studentId, students) {
+                    const subjectSelect = document.getElementById('subject-select');
+                    if (!subjectSelect) return;
+                    subjectSelect.innerHTML = '';
+
+                    const student = students.find(s => String(s.id) === String(studentId));
+                    if (!student || !student.subjects || student.subjects.length === 0) {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'Нет предметов для этого ученика';
+                        subjectSelect.appendChild(opt);
+                        return;
+                    }
+
+                    const placeholder = document.createElement('option');
+                    placeholder.value = '';
+                    placeholder.textContent = 'Выберите предмет';
+                    subjectSelect.appendChild(placeholder);
+
+                    student.subjects.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        subjectSelect.appendChild(opt);
+                    });
+                }
+
+                document.body.appendChild(modal);
+
+                const studentSelectEl = document.getElementById('student-select');
+                if (studentSelectEl) {
+                    populateSubjectSelect(studentSelectEl.value, data.students || []);
+                    studentSelectEl.addEventListener('change', function(e) {
+                        populateSubjectSelect(e.target.value, data.students || []);
+                    });
+                }
+
+                
+                // Показать/скрыть опции регулярности для уроков
+                if (!isRecurring) {
+                    document.getElementById('make-lesson-recurring').addEventListener('change', function(e) {
+                        document.getElementById('lesson-recurring-options').classList.toggle('hidden', !e.target.checked);
+                    });
+                }
+                
+                // Закрытие по клику вне модального окна
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeModal(modal);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки учеников:', error);
+                showToast('Ошибка загрузки списка учеников', 'error');
+            });
+        }
+        
+        // Назначение ученика слоту
+        function assignStudentToSlot(event) {
+            const studentSelect = document.getElementById('student-select');
+            const studentId = studentSelect?.value;
+            const subjectId = document.getElementById('subject-select')?.value;
+            
+            if (!studentId) {
+                showToast("Пожалуйста, выберите ученика", 'warning');
+                return;
+            }
+            if (!subjectId) {
+                showToast("Пожалуйста, выберите предмет", 'warning');
+                return;
+            }
+            
+            const recurringCheckbox = document.getElementById('make-lesson-recurring');
+            const isRecurring = recurringCheckbox ? recurringCheckbox.checked : currentSlotIsRecurring;
+            const lessonCount = document.getElementById('lesson-count')?.value || '8';
+            
+            const csrfToken = document.getElementById('csrf-token').value;
+            
+            fetch("/lessons/calendar/assign-student/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({ 
+                    slot_id: currentSlotId,
+                    student_id: studentId,
+                    subject_id: subjectId,
+                    is_recurring: isRecurring,
+                    recurrence_count: lessonCount,
+                    slot_date: currentSlotDate
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeAllModals();
+                
+                if (data.success) {
+                    // Обновляем календарь
+                    calendar.refetchEvents();
+                    
+                    const count = data.lessons ? data.lessons.length : 1;
+                    showToast(`Успешно создано ${count} уроков!`, 'success');
+                } else {
+                    showToast(data.error || "Ошибка назначения ученика", 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка назначения:', error);
+                showToast('Ошибка при назначении ученика', 'error');
+            });
+        }
+        
+        // Удаление слота
+        function deleteSlot(slotId) {
+            if (!confirm("Удалить этот слот?")) return;
+            
+            const csrfToken = document.getElementById('csrf-token').value;
+            
+            fetch("/lessons/calendar/delete-slot/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({ slot_id: slotId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeAllModals();
+                
+                if (data.success) {
+                    // Обновляем календарь
+                    calendar.refetchEvents();
+                    showToast("Слот удален!", 'success');
+                } else {
+                    showToast(data.error || "Ошибка при удалении слота", 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка удаления:', error);
+                showToast('Ошибка при удалении слота', 'error');
+            });
+        }
+        
+        // Модальное окно действий с уроком
+        function showLessonActionsModal(event) {
+            const extendedProps = event.extendedProps;
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 modal-overlay';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl p-6 w-full max-w-md modal-content">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">${extendedProps.is_recurring ? '📅 Регулярный урок' : '🎯 Разовый урок'}</h3>
+                        <button class="text-gray-500 hover:text-gray-700 text-2xl" onclick="closeModal(this)">&times;</button>
+                    </div>
+                    
+                    <div class="mb-6 space-y-2">
+                        <p><strong>Предмет:</strong> ${extendedProps.subject_name || ''}</p>
+                        <p><strong>Ученик:</strong> ${extendedProps.student_name}</p>
+                        <p><strong>Дата:</strong> ${formatDate(event.start)}</p>
+                        <p><strong>Время:</strong> ${formatTime(event.start)} - ${formatTime(event.end)}</p>
+                        ${extendedProps.is_recurring ? '<p class="text-yellow-600 font-medium">✓ Регулярный урок</p>' : ''}
+                    </div>
+                    
+                    <div class="space-y-3">
+                        ${new Date(event.start) > new Date() ? `
+                            <button class="w-full text-center px-4 py-3 bg-primary text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center"
+                                    onclick="window.location.href='/lessons/lesson/${extendedProps.lesson_id}/session/'">
+                                <i class="fas fa-video mr-2"></i> Перейти к уроку
+                            </button>
+                            <button class="w-full text-center px-4 py-3 bg-white border border-primary text-primary rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center"
+                                    onclick="window.location.href='/lessons/lesson/${extendedProps.lesson_id}/reschedule/'">
+                                <i class="fas fa-calendar-alt mr-2"></i> Перенести урок
+                            </button>
+                        ` : `
+                            <div class="bg-gray-100 p-3 rounded-lg text-center">
+                                <p class="text-gray-600">Урок завершен</p>
+                            </div>
+                        `}
+                        
+                        <button class="w-full text-center px-4 py-3 bg-secondary text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center"
+                                onclick="window.location.href='/chats/'">
+                            <i class="fas fa-comment-dots mr-2"></i> Написать ученику
+                        </button>
+                        
+                        ${extendedProps.is_recurring ? `
+                            <div class="border-t pt-4 mt-4">
+                                <p class="text-sm text-gray-600 mb-3">Удалить регулярный урок:</p>
+                                <button class="w-full text-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg mb-2 hover:bg-yellow-200 transition"
+                                        onclick="deleteLesson(${extendedProps.lesson_id}, 'single')">
+                                    Только этот урок
+                                </button>
+                                <button class="w-full text-center px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition"
+                                        onclick="deleteLesson(${extendedProps.lesson_id}, 'all')">
+                                    Все уроки в серии
+                                </button>
+                            </div>
+                        ` : `
+                            <button class="w-full text-center px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:opacity-90 transition flex items-center justify-center"
+                                    onclick="deleteLesson(${extendedProps.lesson_id}, 'single')">
+                                <i class="fas fa-trash mr-2"></i> Удалить урок
+                            </button>
+                        `}
+                        
+                        <button class="w-full text-center px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition"
+                                onclick="closeModal(this)">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeModal(modal);
+                }
+            });
+        }
+        
+        // Удаление урока
+        function deleteLesson(lessonId, deleteType = 'single') {
+            const message = deleteType === 'all' 
+                ? "Вы уверены, что хотите удалить ВСЕ уроки в этой регулярной серии?"
+                : "Вы уверены, что хотите удалить этот урок?";
+                
+            if (!confirm(message)) return;
+            
+            const csrfToken = document.getElementById('csrf-token').value;
+            
+            fetch("/lessons/calendar/delete-lesson/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({ 
+                    lesson_id: lessonId,
+                    delete_type: deleteType
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeAllModals();
+                
+                if (data.success) {
+                    // Обновляем календарь
+                    calendar.refetchEvents();
+                    
+                    const message = deleteType === 'all' 
+                        ? "Все уроки удалены!" 
+                        : "Урок удален!";
+                    showToast(message, 'success');
+                } else {
+                    showToast(data.error || "Ошибка при удалении урока", 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка удаления:', error);
+                showToast('Ошибка при удалении урока', 'error');
+            });
+        }
+        
+        // Вспомогательные функции
+        const DASHBOARD_TZ = "{{ teacher_time_zone|default:'Europe/Moscow'|escapejs }}";
+        let toastContainer = null;
+
+        function getToastContainer() {
+            if (toastContainer && document.body.contains(toastContainer)) {
+                return toastContainer;
+            }
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+            return toastContainer;
+        }
+
+        function showToast(message, type = 'info', duration = 2800) {
+            if (!message) return;
+            const container = getToastContainer();
+            const item = document.createElement('div');
+            item.className = `toast-item ${type}`;
+            item.textContent = String(message);
+            container.appendChild(item);
+
+            window.setTimeout(() => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(6px)';
+                item.style.transition = 'all 0.18s ease';
+                window.setTimeout(() => item.remove(), 180);
+            }, duration);
+        }
+
+        function formatDateTime(date, originalStr = null) {
+            if (originalStr) {
+                const wallDate = parseCalendarWallDate(originalStr);
+                if (wallDate) {
+                    return wallDate.toLocaleString('ru-RU', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZone: 'UTC'
+                    });
+                }
+            }
+            return date.toLocaleString('ru-RU', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: DASHBOARD_TZ
+            });
+        }
+        
+        function formatDate(date) {
+            return date.toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                weekday: 'long',
+                timeZone: DASHBOARD_TZ
+            });
+        }
+        
+        function formatTime(date) {
+            return date.toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: DASHBOARD_TZ
+            });
+        }
+        
+        function closeModal(element) {
+            const modal = element.closest('.fixed.inset-0') || element;
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }
+        
+        function closeAllModals() {
+            document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+                if (modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
+            });
+        }
+        
+        // Уведомления (колокольчик)
+        const notificationBtn = document.getElementById('notification-btn');
+        const notificationMenu = document.getElementById('notification-menu');
+        const notificationBadge = document.getElementById('notification-badge');
+        const csrfToken = document.getElementById('csrf-token')?.value;
+        if (notificationBtn && notificationMenu) {
+            let marked = false;
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notificationMenu.classList.toggle('hidden');
+                if (!marked && !notificationMenu.classList.contains('hidden')) {
+                    fetch("{% url 'teacher_notifications_read' %}", {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'X-CSRFToken': csrfToken }
+                    }).then((res) => {
+                        if (res.ok) {
+                            marked = true;
+                            if (notificationBadge) {
+                                notificationBadge.textContent = '0';
+                                notificationBadge.classList.add('hidden');
+                            }
+                        } else {
+                            marked = false;
+                        }
+                    }).catch(() => {
+                        marked = false;
+                    });
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!notificationMenu.contains(e.target)) {
+                    notificationMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        // Время пользователя в шапке
+        const headerLocalTime = document.getElementById('header-local-time');
+        if (headerLocalTime) {
+            const tz = headerLocalTime.dataset.timezone || 'Europe/Moscow';
+            const formatter = new Intl.DateTimeFormat('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: tz
+            });
+            const tzLabel = tz.replace('_', ' ');
+            const updateHeaderTime = () => {
+                headerLocalTime.textContent = `${formatter.format(new Date())} (${tzLabel})`;
+            };
+            updateHeaderTime();
+            setInterval(updateHeaderTime, 30000);
+        }
+
+        // Глобальные функции
+        window.exportCalendar = function() {
+            showToast('Функция экспорта календаря будет реализована позже', 'info');
+        };
+        
+        window.refreshCalendar = function() {
+            if (calendar) {
+                calendar.refetchEvents();
+                showToast('Календарь обновлен', 'success');
+            }
+        };
+        
+        // Экспорт функций для глобального использования
+        window.showStudentSelectionModal = showStudentSelectionModal;
+        window.assignStudentToSlot = assignStudentToSlot;
+        window.deleteSlot = deleteSlot;
+        window.showLessonActionsModal = showLessonActionsModal;
+        window.deleteLesson = deleteLesson;
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>

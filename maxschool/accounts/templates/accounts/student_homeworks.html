@@ -1,0 +1,216 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои домашние задания — SmartUrok</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/logo3.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .content-container {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        .logo-animate {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .lesson-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #00A6FB;
+            background: white;
+        }
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 4px solid #FF6B35;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo3.png' %}" alt="Логотип SmartUrok" class="h-12 w-auto logo-animate">
+                <h1 class="text-2xl font-bold gradient-text">SmartUrok</h1>
+            </div>
+            <nav class="hidden lg:flex space-x-6 items-center">
+                <a href="{% url 'lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
+                <a href="{% url 'my_homeworks' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
+                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
+            </nav>
+            <div class="hidden lg:flex items-center space-x-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+                        {% if user.photo %}
+                            <img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <img src="{% static 'images/logo4-round.png' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <span class="ml-3 font-medium">{{ user.first_name|default:user.username }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Выйти</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="pt-28 pb-10 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div class="content-container px-6 lg:px-8">
+            <a href="{% url 'student_dashboard' %}" class="text-secondary font-medium hover:text-primary transition">
+                <i class="fas fa-arrow-left mr-2"></i> Назад в кабинет
+            </a>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3">Выданные домашние задания</h2>
+            <p class="text-gray-600 mt-2">Список всех заданий и материалов</p>
+        </div>
+    </section>
+
+    <main class="content-container py-8 px-6 lg:px-8">
+        <form method="get" class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col md:flex-row gap-3 md:items-center">
+            <div class="flex-1">
+                <label class="block text-sm text-gray-600 mb-1">Предмет</label>
+                <select name="subject" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                    <option value="">Все предметы</option>
+                    {% for subj in subjects %}
+                        <option value="{{ subj.id }}" {% if selected_subject == subj.id|stringformat:'s' %}selected{% endif %}>
+                            {{ subj.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="pt-5 md:pt-0">
+                <button type="submit" class="btn-primary">Показать</button>
+            </div>
+        </form>
+
+        {% if lessons %}
+            <div class="grid md:grid-cols-2 gap-6">
+                {% for lesson in lessons %}
+                    <div class="lesson-card p-6">
+                        <h3 class="text-xl font-semibold mb-2">{{ lesson.subject.name }}</h3>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><strong>Преподаватель:</strong> {{ lesson.teacher.get_full_name|default:lesson.teacher.username }}</p>
+                            <p><strong>Дата:</strong> {{ lesson.display_date|default:lesson.date }} &nbsp; <strong>Время:</strong> {{ lesson.display_time|default:lesson.time }} (ваше)</p>
+                            <p><strong>По МСК:</strong> {{ lesson.teacher_display_date|default:lesson.date }} в {{ lesson.teacher_display_time|default:lesson.time }}</p>
+                        </div>
+
+                        {% if lesson.homework %}
+                            <div class="mt-3 bg-orange-50 border border-orange-100 rounded-lg p-3">
+                                <p class="text-sm text-orange-900"><strong>ДЗ:</strong> {{ lesson.homework }}</p>
+                            </div>
+                        {% endif %}
+
+                        {% if lesson.homework_file %}
+                            <p class="mt-2">
+                                <i class="fas fa-paperclip mr-2 text-primary"></i>
+                                <a href="{{ lesson.homework_file.url }}" target="_blank" class="text-blue-600 underline">Скачать файл</a>
+                            </p>
+                        {% endif %}
+
+                        <a href="{% url 'submit_homework' lesson.id %}"
+                           class="mt-4 btn-primary">
+                            Отправить выполненное ДЗ
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+                <div class="text-5xl text-primary mb-4">
+                    <i class="far fa-folder-open"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Пока нет выданных домашних заданий</h3>
+                <p class="text-gray-600">Как только задания появятся — они будут здесь.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="content-container flex flex-col md:flex-row justify-between items-center px-6 lg:px-8">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="{% static 'images/logo3.png' %}" alt="Логотип SmartUrok" class="h-10 w-auto mr-3 logo-animate">
+                <h3 class="text-xl font-bold gradient-text">SmartUrok</h3>
+            </div>
+            <div class="flex flex-col items-center md:items-end">
+                <p class="text-gray-400 text-sm mb-2">© 2026 SmartUrok. Все права защищены.</p>
+                <div class="flex space-x-4">
+                    <a href="{% url 'privacy_policy' %}" class="text-gray-400 hover:text-white text-sm transition">Политика конфиденциальности</a>
+                    <a href="{% url 'public_offer' %}" class="text-gray-400 hover:text-white text-sm transition">Договор-оферта</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

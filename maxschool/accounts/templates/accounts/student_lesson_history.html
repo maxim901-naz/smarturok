@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История уроков — SmartUrok</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .content-container {
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        .logo-animate {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .lesson-card {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #FF6B35;
+            background: white;
+        }
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-left: 4px solid #00A6FB;
+        }
+        .calendar-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            padding: 16px;
+        }
+        .calendar-list {
+            display: grid;
+            gap: 10px;
+        }
+        .calendar-day {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .calendar-day.active {
+            border-color: #FF6B35;
+            background: rgba(255, 107, 53, 0.08);
+            box-shadow: 0 6px 14px rgba(255, 107, 53, 0.15);
+        }
+        .calendar-day:hover {
+            transform: translateY(-2px);
+        }
+        .day-count {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: rgba(0, 166, 251, 0.12);
+            color: #00A6FB;
+        }
+        .lessons-panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+            padding: 20px;
+            min-height: 320px;
+        }
+        .lesson-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo3.png' %}" alt="Логотип SmartUrok" class="h-12 w-auto logo-animate">
+                <h1 class="text-2xl font-bold gradient-text">SmartUrok</h1>
+            </div>
+            <nav class="hidden lg:flex space-x-6 items-center">
+                <a href="{% url 'lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
+                <a href="{% url 'my_homeworks' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
+                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
+            </nav>
+            <div class="hidden lg:flex items-center space-x-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary">
+                        {% if user.photo %}
+                            <img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <img src="{% static 'images/logo4-round.png' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <span class="ml-3 font-medium">{{ user.first_name|default:user.username }}</span>
+                </div>
+                <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Выйти</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="pt-28 pb-10 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div class="content-container px-6 lg:px-8">
+            <a href="{% url 'student_dashboard' %}" class="text-secondary font-medium hover:text-primary transition">
+                <i class="fas fa-arrow-left mr-2"></i> Назад в кабинет
+            </a>
+            <h2 class="text-3xl md:text-4xl font-bold mt-3">История уроков</h2>
+            <p class="text-gray-600 mt-2">Ваши завершённые занятия и материалы</p>
+        </div>
+    </section>
+
+    <main class="content-container py-8 px-6 lg:px-8">
+        {% if lessons %}
+            {% regroup lessons by display_date as lessons_by_date %}
+            <div class="grid lg:grid-cols-[320px_1fr] gap-6">
+                <div class="calendar-panel">
+                    <h3 class="text-xl font-bold mb-4">Даты уроков</h3>
+                    <div class="calendar-list" id="lesson-calendar">
+                        {% for group in lessons_by_date %}
+                        <button class="calendar-day" data-day="{{ group.grouper }}">
+                            <span>{{ group.grouper }}</span>
+                            <span class="day-count">{{ group.list|length }}</span>
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="lessons-panel">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold" id="lessons-title">Уроки</h3>
+                        <span class="text-gray-500 text-sm" id="lessons-count"></span>
+                    </div>
+                    <div id="lessons-container">
+                        {% for group in lessons_by_date %}
+                        <div class="lesson-grid" data-day="{{ group.grouper }}" style="display: none;">
+                            {% for lesson in group.list %}
+                            <div class="lesson-card p-6">
+                                <h3 class="text-xl font-semibold mb-2">{{ lesson.subject.name }}</h3>
+                                <p class="mb-1"><strong>Преподаватель:</strong> {{ lesson.teacher.get_full_name|default:lesson.teacher.username }}</p>
+                                <p class="mb-1"><strong>Дата:</strong> {{ lesson.display_date|default:lesson.date }} &nbsp; <strong>Время:</strong> {{ lesson.display_time|default:lesson.time }} (ваше)</p>
+                                <p class="mb-1"><strong>По МСК:</strong> {{ lesson.teacher_display_date|default:lesson.date }} в {{ lesson.teacher_display_time|default:lesson.time }}</p>
+                                <p class="mb-1"><strong>Длительность:</strong> {{ lesson.duration_minutes }} мин</p>
+
+                                {% if lesson.topic %}
+                                    <p class="mt-2"><strong>Тема:</strong> {{ lesson.topic }}</p>
+                                {% endif %}
+                                {% if lesson.homework %}
+                                    <p><strong>Домашнее задание:</strong> {{ lesson.homework }}</p>
+                                {% endif %}
+                                {% if lesson.teacher_notes %}
+                                    <p><strong>Комментарий преподавателя:</strong> {{ lesson.teacher_notes }}</p>
+                                {% endif %}
+                                {% if lesson.homework_file %}
+                                    <p class="mt-2">
+                                        <i class="fas fa-paperclip mr-2 text-primary"></i>
+                                        <a href="{{ lesson.homework_file.url }}" class="text-blue-600 underline" target="_blank">
+                                            Скачать домашнее задание
+                                        </a>
+                                    </p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-white p-8 rounded-2xl shadow-lg text-center">
+                <div class="text-5xl text-primary mb-4">
+                    <i class="far fa-calendar-times"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Прошедших уроков пока нет</h3>
+                <p class="text-gray-600">Как только уроки пройдут — они появятся здесь.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="content-container flex flex-col md:flex-row justify-between items-center px-6 lg:px-8">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="{% static 'images/logo4-round.png' %}" alt="Логотип SmartUrok" class="h-10 w-auto mr-3 logo-animate">
+                <h3 class="text-xl font-bold gradient-text">SmartUrok</h3>
+            </div>
+            <div class="flex flex-col items-center md:items-end">
+                <p class="text-gray-400 text-sm mb-2">© 2026 SmartUrok. Все права защищены.</p>
+                <div class="flex space-x-4">
+                    <a href="{% url 'privacy_policy' %}" class="text-gray-400 hover:text-white text-sm transition">Политика конфиденциальности</a>
+                    <a href="{% url 'public_offer' %}" class="text-gray-400 hover:text-white text-sm transition">Договор-оферта</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script>
+        const lessonDays = Array.from(document.querySelectorAll('#lesson-calendar .calendar-day'));
+        const lessonGrids = Array.from(document.querySelectorAll('#lessons-container .lesson-grid'));
+        const lessonsTitle = document.getElementById('lessons-title');
+        const lessonsCount = document.getElementById('lessons-count');
+
+        function showLessonDay(dayKey, labelText) {
+            lessonDays.forEach(btn => btn.classList.toggle('active', btn.dataset.day === dayKey));
+            lessonGrids.forEach(grid => {
+                grid.style.display = grid.dataset.day === dayKey ? 'grid' : 'none';
+                if (grid.dataset.day === dayKey) {
+                    const count = grid.querySelectorAll('.lesson-card').length;
+                    lessonsTitle.textContent = labelText;
+                    lessonsCount.textContent = `${count} уроков`;
+                }
+            });
+        }
+
+        if (lessonDays.length) {
+            lessonDays.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const label = btn.querySelector('span')?.textContent?.trim() || 'Уроки';
+                    showLessonDay(btn.dataset.day, label);
+                });
+            });
+            const first = lessonDays[0];
+            const firstLabel = first.querySelector('span')?.textContent?.trim() || 'Уроки';
+            showLessonDay(first.dataset.day, firstLabel);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<h2>Личный кабинет</h2>
+<p>Привет, {{ user.username }}!</p>
+<p>Ваша роль: {{ user.get_role_display }}</p>
+{% if user.role == 'teacher' and not user.is_approved %}
+    <p>⛔ Ваш аккаунт преподавателя ещё не подтверждён админом.</p>
+{% endif %}
+<p><a href="{% url 'logout' %}">Выйти</a></p>

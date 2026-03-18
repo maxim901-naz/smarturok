@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отправка домашнего задания — SmartUrok</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/logo3.PNG' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .content-container {
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        .form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-12 w-auto">
+                <h1 class="text-2xl font-bold gradient-text">SmartUrok</h1>
+            </div>
+            <a href="{% url 'student_dashboard' %}" class="text-secondary font-medium hover:text-primary transition">
+                ← Назад
+            </a>
+        </div>
+    </header>
+
+    <section class="pt-28 pb-6 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div class="content-container px-6 lg:px-8">
+            <h2 class="text-2xl md:text-3xl font-bold">Отправка домашнего задания</h2>
+            <p class="text-gray-600 mt-2">Урок по предмету: {{ lesson.subject.name }}</p>
+        </div>
+    </section>
+
+    <main class="content-container py-6 px-6 lg:px-8">
+        <form method="post" enctype="multipart/form-data" class="form-card space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block mb-1 font-semibold">Комментарий или решение</label>
+                {{ form.text }}
+            </div>
+            <div>
+                <label class="block mb-1 font-semibold">Прикрепить файл</label>
+                {{ form.file }}
+            </div>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane mr-2"></i> Отправить
+            </button>
+        </form>
+    </main>
+
+    <footer class="bg-dark text-white py-8 mt-16">
+        <div class="content-container flex flex-col md:flex-row justify-between items-center px-6 lg:px-8">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-10 w-auto mr-3">
+                <h3 class="text-xl font-bold gradient-text">SmartUrok</h3>
+            </div>
+            <div class="flex flex-col items-center md:items-end">
+                <p class="text-gray-400 text-sm mb-2">© 2026 SmartUrok. Все права защищены.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition">Политика конфиденциальности</a>
+                    <a href="#" class="text-gray-400 hover:text-white text-sm transition">Договор-оферта</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

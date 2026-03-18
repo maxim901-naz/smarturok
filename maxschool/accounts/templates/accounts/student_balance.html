@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Баланс — SmartUrok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f8fafc; }
+        .btn-primary { background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="max-w-4xl mx-auto py-10 px-4">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold">История баланса</h1>
+            <a href="{% url 'student_dashboard' %}" class="text-primary hover:underline">← В кабинет</a>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-6">
+            {% if balance_history %}
+                <div class="space-y-3">
+                    {% for t in balance_history %}
+                        <div class="flex justify-between py-2 border-b last:border-b-0">
+                            <div>
+                                <div class="font-medium">{% if t.direction == 'credit' %}Пополнение{% else %}Списание{% endif %}</div>
+                                <div class="text-sm text-gray-600">{{ t.created_at|date:"d.m.Y H:i" }}</div>
+                            </div>
+                            <div class="font-semibold">{% if t.direction == 'credit' %}+{% else %}-{% endif %}{{ t.amount }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-gray-600">История пока пуста.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

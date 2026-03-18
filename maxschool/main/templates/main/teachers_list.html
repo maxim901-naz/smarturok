@@ -1,0 +1,453 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Преподаватели SmartUrok – Наша команда профессионалов</title>
+    
+    <!-- Подключение стилей как на главной странице -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.PNG' %}">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Стили как на главной странице */
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        .modal {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .section-header {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 15px;
+        }
+        .section-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            border-radius: 2px;
+        }
+        
+        .content-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+
+<!-- Хедер как на главной странице -->
+<header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+    <div class="content-container w-full flex justify-between items-center py-4 px-4 sm:px-6 lg:px-8">
+        <!-- Логотип -->
+        <div class="flex items-center space-x-3">
+            <a href="/">
+                <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-10 sm:h-12 w-auto">
+            </a>
+            <a href="/" class="text-xl sm:text-2xl font-bold gradient-text">SmartUrok</a>
+        </div>
+
+        <!-- Навигация -->
+        <nav class="hidden lg:flex space-x-6">
+            <a href="/#courses" class="text-dark font-medium transition nav-link">Курсы</a>
+            <a href="/#materials" class="text-dark font-medium transition nav-link">Материалы</a>
+            <a href="/#teachers" class="text-dark font-medium transition nav-link">Преподаватели</a>
+            <a href="/#reviews" class="text-dark font-medium transition nav-link">Отзывы</a>
+            <a href="/#success" class="text-dark font-medium transition nav-link">Успехи</a>
+            <a href="/#contacts" class="text-dark font-medium transition nav-link">Контакты</a>
+        </nav>
+        
+        <!-- Кнопки авторизации -->
+        {% if user.is_authenticated %}
+        <div class="hidden lg:flex items-center space-x-4">
+            {% if user.role == 'teacher' %}
+                <a href="{% url 'teacher_dashboard' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                    {{ user.get_full_name|default:user.username }}
+                </a>
+            {% elif user.role == 'student' %}
+                <a href="{% url 'student_dashboard' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                    {{ user.get_full_name|default:user.username }}
+                </a>
+            {% elif user.role == 'admin' %}
+                <a href="{% url 'admin:index' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                    Панель администратора
+                </a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">
+                Выйти
+            </a>
+        </div>
+        {% else %}
+        <div class="hidden lg:flex items-center space-x-4">
+            <a href="{% url 'login' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Войти</a>
+            <a href="{% url 'register' %}" class="px-6 py-2 btn-primary text-white rounded-lg font-medium">Регистрация</a>
+        </div>
+        {% endif %}
+
+        <!-- Кнопка бургера -->
+        <button id="burger-btn" class="lg:hidden text-2xl text-dark focus:outline-none">
+            ☰
+        </button>
+    </div>
+</header>
+
+<!-- Основной контент -->
+<main class="pt-20">
+    <!-- Шапка страницы -->
+    <section class="pt-24 pb-16 bg-gradient-to-r from-primary to-accent text-white">
+        <div class="content-container px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-6">Наша команда преподавателей</h1>
+                <p class="text-xl max-w-3xl mx-auto opacity-90">Профессионалы с педагогическим образованием и большим опытом работы</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент - преподаватели -->
+    <section class="py-16 bg-white">
+        <div class="content-container px-4 sm:px-6 lg:px-8">
+            <!-- Фильтры и поиск -->
+            <div class="mb-12" data-aos="fade-up">
+                <div class="flex flex-col lg:flex-row gap-4 justify-between items-center">
+                    <div class="flex flex-wrap gap-4">
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg font-medium">Все</button>
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">Программирование</button>
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">Математика</button>
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">Физика</button>
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition">Английский</button>
+                    </div>
+                    <div class="relative">
+                        <input type="text" placeholder="Поиск преподавателя..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent w-64">
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сетка всех преподавателей -->
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 teacher-grid">
+                {% for teacher in teachers %}
+                <div class="teacher-card bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-6 text-center hover-scale" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:1 }}00">
+                    <div class="w-32 h-32 mx-auto mb-4 overflow-hidden rounded-full border-4 border-primary border-opacity-20">
+                        {% if teacher.photo %}
+                        <img src="{{ teacher.photo.url }}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <img src="{% static 'images/default-teacher.jpg' %}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <h3 class="text-xl font-bold text-dark mb-2">{{ teacher.get_full_name|default:teacher.username }}</h3>
+                    <p class="text-primary font-medium mb-3">{{ teacher.get_subjects_display }}</p>
+                    <p class="text-gray-600 mb-4 text-sm">Опыт: {{ teacher.experience_years|default:"5" }}+ лет</p>
+                    
+                    <!-- Рейтинг -->
+                    <div class="flex justify-center space-x-1 mb-4">
+                        {% for _ in "12345" %}
+                        <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Достижения -->
+                    <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                        <div class="flex justify-between text-sm text-gray-600">
+                            <span>Учеников:</span>
+                            <span class="font-semibold">{{ teacher.students_count|default:"50" }}+</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-600 mt-1">
+                            <span>Успешных работ:</span>
+                            <span class="font-semibold text-green-600">{{ teacher.success_rate|default:"95" }}%</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="openModal('modal-teacher-{{ teacher.id }}')" class="w-full px-6 py-3 btn-primary text-white rounded-lg font-medium hover-scale transition-all">
+                        Подробнее
+                    </button>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-12">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                    <h3 class="text-xl font-bold text-gray-600 mb-2">Преподаватели не найдены</h3>
+                    <p class="text-gray-500">Попробуйте изменить параметры поиска или фильтрации</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Пагинация -->
+            {% if teachers.has_other_pages %}
+            <div class="flex justify-center mt-12" data-aos="fade-up">
+                <div class="flex space-x-2">
+                    {% if teachers.has_previous %}
+                    <a href="?page={{ teachers.previous_page_number }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        ← Назад
+                    </a>
+                    {% endif %}
+                    
+                    {% for num in teachers.paginator.page_range %}
+                        {% if teachers.number == num %}
+                        <span class="px-4 py-2 bg-primary text-white rounded-lg">{{ num }}</span>
+                        {% else %}
+                        <a href="?page={{ num }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if teachers.has_next %}
+                    <a href="?page={{ teachers.next_page_number }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                        Вперед →
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- CTA Блок -->
+    <section class="py-16 bg-gradient-to-r from-primary to-accent text-white">
+        <div class="content-container px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-6">Не нашли подходящего преподавателя?</h2>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">Наш методист поможет подобрать идеального репетитора для вашего ребенка</p>
+            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="{% url 'trial' %}" class="px-8 py-3 bg-white text-primary rounded-lg text-lg font-semibold hover:bg-opacity-90 transition hover-scale">
+                    Бесплатная консультация
+                </a>
+                <button onclick="openCallbackBox()" class="px-8 py-3 border-2 border-white text-white rounded-lg text-lg font-semibold hover:bg-white hover:text-primary transition hover-scale">
+                    Позвоните мне
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Футер -->
+<footer class="bg-dark text-white py-8">
+    <div class="content-container px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <img src="{% static 'images/logo4-round.PNG' %}" alt="Логотип SmartUrok" class="h-10 w-auto mr-3">
+                <h3 class="text-xl font-bold">SmartUrok</h3>
+            </div>
+            
+            <div class="flex flex-col items-center md:items-end">
+                <p class="text-gray-400 text-sm mb-2">© 2025 SmartUrok. Все права защищены.</p>
+                <div class="flex space-x-4">
+                    <a href="{% url 'privacy_policy' %}" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                    <a href="{% url 'public_offer' %}" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Модальные окна для всех преподавателей -->
+{% for teacher in teachers %}
+<div id="modal-teacher-{{ teacher.id }}" class="modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+    <div class="modal-content bg-white rounded-2xl p-6 w-full max-w-4xl relative max-h-[90vh] overflow-y-auto">
+        <button onclick="closeModal('modal-teacher-{{ teacher.id }}')" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl z-10">
+            ✖
+        </button>
+        
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Левая колонка - фото и основная информация -->
+            <div class="lg:w-1/3">
+                <div class="w-48 h-48 mx-auto lg:mx-0 mb-6 overflow-hidden rounded-full border-4 border-primary border-opacity-30">
+                    {% if teacher.photo %}
+                    <img src="{{ teacher.photo.url }}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <img src="{% static 'images/default-teacher.jpg' %}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+                
+                <div class="text-center lg:text-left">
+                    <h3 class="text-2xl font-bold text-dark mb-2">{{ teacher.get_full_name|default:teacher.username }}</h3>
+                    <p class="text-primary font-medium text-lg mb-4">{{ teacher.get_subjects_display }}</p>
+                    
+                    <div class="flex items-center justify-center lg:justify-start mb-4">
+                        <div class="flex space-x-1">
+                            {% for _ in "12345" %}
+                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                            </svg>
+                            {% endfor %}
+                        </div>
+                        <span class="text-gray-600 ml-2">5.0 (24 отзыва)</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Опыт:</span>
+                            <span class="font-semibold">{{ teacher.experience_years|default:"5" }}+ лет</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Учеников:</span>
+                            <span class="font-semibold">{{ teacher.students_count|default:"50" }}+</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Успешных работ:</span>
+                            <span class="font-semibold text-green-600">{{ teacher.success_rate|default:"95" }}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Правая колонка - детальная информация -->
+            <div class="lg:w-2/3">
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-4 text-dark">О преподавателе</h4>
+                    <p class="text-gray-700 leading-relaxed">
+                        {{ teacher.bio|default:"Опытный преподаватель с глубокими знаниями предмета и индивидуальным подходом к каждому ученику. Специализируется на подготовке к экзаменам и олимпиадам." }}
+                    </p>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-4 text-dark">Образование</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-primary mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>{{ teacher.education|default:"МГУ им. М.В. Ломоносова, факультет вычислительной математики и кибернетики" }}</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="w-5 h-5 text-primary mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Сертификат преподавателя высшей категории</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-xl font-bold mb-4 text-dark">Методика преподавания</h4>
+                    <p class="text-gray-700 leading-relaxed">
+                        {{ teacher.methodology|default:"Использую индивидуальный подход к каждому ученику, совмещая традиционные методики с современными образовательными технологиями. Делаю акцент на понимании материала, а не на механическом запоминании." }}
+                    </p>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <a href="{% url 'book_lesson' teacher.id %}?teacher={{ teacher.id }}" class="flex-1 px-6 py-3 btn-primary text-white rounded-lg font-semibold text-center hover-scale transition-all">
+                        Записаться на урок
+                    </a>
+                    <button onclick="closeModal('modal-teacher-{{ teacher.id }}')" class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-primary hover:text-primary transition-all">
+                        Закрыть
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- JavaScript -->
+<script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script>
+    // Инициализация AOS
+    AOS.init({
+        duration: 800,
+        once: true,
+        offset: 100
+    });
+
+    // Функции для модальных окон
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    function openCallbackBox() {
+        openModal('callback-modal');
+    }
+
+    // Закрытие модального окна при клике вне его
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // Мобильное меню
+    document.getElementById('burger-btn').addEventListener('click', function() {
+        const menu = document.getElementById('mobile-menu');
+        menu.classList.toggle('hidden');
+    });
+</script>
+
+</body>
+</html>

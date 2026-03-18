@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перенос урока — SmartUrok</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{% static 'images/logo3.PNG' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF6B35',
+                        secondary: '#004E89',
+                        accent: '#00A6FB',
+                        dark: '#1A1A2E',
+                        light: '#F8F9FA'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            scroll-behavior: smooth;
+            background-image: radial-gradient(#f0f4ff 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .content-container {
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .option-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        .option-card.active {
+            border-color: #FF6B35;
+            background: rgba(255, 107, 53, 0.08);
+            box-shadow: 0 8px 16px rgba(255, 107, 53, 0.15);
+        }
+        .slot-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        .slot-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: #fff;
+        }
+        .slot-item input {
+            margin-right: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(255, 107, 53, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
+        }
+        .note {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #9a3412;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+    </style>
+</head>
+<body class="bg-light text-dark font-sans antialiased">
+    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+        <div class="content-container flex justify-between items-center py-4 px-6 lg:px-8">
+            <div class="flex items-center space-x-3">
+                <img src="{% static 'images/logo3.PNG' %}" alt="Логотип SmartUrok" class="h-12 w-auto">
+                <h1 class="text-2xl font-bold gradient-text">SmartUrok</h1>
+            </div>
+            <a href="javascript:history.back()" class="text-secondary font-medium hover:text-primary transition">
+                ← Назад
+            </a>
+        </div>
+    </header>
+
+    <section class="pt-28 pb-6 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div class="content-container px-6 lg:px-8">
+            <h2 class="text-3xl md:text-4xl font-bold">Перенос урока</h2>
+            <p class="text-gray-600 mt-2">
+                {{ lesson.subject.name }} • {{ lesson.date }} {{ lesson.time }}
+            </p>
+        </div>
+    </section>
+
+    <main class="content-container py-6 px-6 lg:px-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <label class="option-card active" id="opt-single">
+                    <input type="radio" name="reschedule_type" value="single" checked>
+                    Разовый перенос
+                    <div class="text-sm text-gray-500 mt-1">Переносит только этот урок</div>
+                </label>
+                <label class="option-card" id="opt-series">
+                    <input type="radio" name="reschedule_type" value="series" {% if not lesson.is_recurring %}disabled{% endif %}>
+                    Перенос регулярной серии
+                    <div class="text-sm text-gray-500 mt-1">Изменяет время всех будущих уроков серии</div>
+                </label>
+            </div>
+
+            <div id="single-slots">
+                <h3 class="text-xl font-bold mb-3">Свободные разовые слоты</h3>
+                {% if available_one_time %}
+                <div class="slot-list">
+                    {% for slot in available_one_time %}
+                    <label class="slot-item">
+                        <input type="radio" name="slot_id" value="{{ slot.id }}">
+                        {{ slot.get_display_text }}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="note">Нет свободных разовых слотов.</div>
+                {% endif %}
+            </div>
+
+            <div id="series-slots" style="display: none;">
+                <h3 class="text-xl font-bold mb-3">Свободные регулярные слоты</h3>
+                {% if available_recurring %}
+                <div class="slot-list">
+                    {% for slot in available_recurring %}
+                    <label class="slot-item">
+                        <input type="radio" name="slot_id" value="{{ slot.id }}">
+                        {{ slot.get_display_text }}
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="note">Нет свободных регулярных слотов.</div>
+                {% endif %}
+                <div class="note mt-3">
+                    Для серии доступны только слоты в тот же день недели.
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Перенести урок</button>
+        </form>
+    </main>
+
+    <script>
+        const optSingle = document.getElementById('opt-single');
+        const optSeries = document.getElementById('opt-series');
+        const singleSlots = document.getElementById('single-slots');
+        const seriesSlots = document.getElementById('series-slots');
+
+        function setMode(mode) {
+            if (mode === 'series') {
+                optSeries.classList.add('active');
+                optSingle.classList.remove('active');
+                seriesSlots.style.display = 'block';
+                singleSlots.style.display = 'none';
+            } else {
+                optSingle.classList.add('active');
+                optSeries.classList.remove('active');
+                singleSlots.style.display = 'block';
+                seriesSlots.style.display = 'none';
+            }
+        }
+
+        document.querySelectorAll('input[name="reschedule_type"]').forEach(radio => {
+            radio.addEventListener('change', () => setMode(radio.value));
+        });
+        setMode('single');
+    </script>
+</body>
+</html>
