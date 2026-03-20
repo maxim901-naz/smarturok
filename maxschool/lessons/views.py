@@ -576,14 +576,35 @@ from .models import TeacherAvailability
 
 @login_required
 def select_teacher(request):
-    # Берём всех учителей, у которых у этого студента есть подтверждённые уроки
-    teachers = CustomUser.objects.filter(
-        role='teacher',
-        lessons_to_teach__student=request.user,
-        lessons_to_teach__is_confirmed=True  # только подтверждённые
-    ).distinct()
-    
-    print("Teachers:", teachers)  # Проверка
+    if getattr(request.user, 'role', None) != 'student':
+        return redirect('dashboard')
+
+    # Основной источник — преподаватели, закрепленные за учеником в админке.
+    teachers = (
+        request.user.teachers
+        .filter(role='teacher', is_approved=True)
+        .select_related('desired_subject')
+        .prefetch_related('subjects_taught')
+        .order_by('first_name', 'last_name', 'username')
+        .distinct()
+    )
+
+    # Fallback для старых данных: преподаватели из подтвержденных уроков.
+    if not teachers.exists():
+        teachers = (
+            CustomUser.objects
+            .filter(
+                role='teacher',
+                lessons_to_teach__student=request.user,
+                lessons_to_teach__is_confirmed=True,
+                is_approved=True,
+            )
+            .select_related('desired_subject')
+            .prefetch_related('subjects_taught')
+            .order_by('first_name', 'last_name', 'username')
+            .distinct()
+        )
+
     return render(request, "lessons/select_teacher.html", {"teachers": teachers})
 
 #     teacher = get_object_or_404(CustomUser, id=teacher_id, role='teacher')

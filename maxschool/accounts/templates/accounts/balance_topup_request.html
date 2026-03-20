@@ -7,6 +7,7 @@
     <title>Пополнение баланса — SmartUrok</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <style>
         body { font-family: 'Poppins', sans-serif; background: #f8fafc; }
         .btn-primary { background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%); }
@@ -19,13 +20,34 @@
 
         <form method="post" class="bg-white shadow rounded-xl p-6 space-y-4">
             {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
             <div>
-                <label class="block text-gray-700 mb-2">Пакет уроков</label>
-                {{ form.package }}
+                <label for="id_package" class="block text-gray-700 mb-2">Пакет уроков</label>
+                <select name="package" id="id_package" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="4" {% if form.package.value == "4" %}selected{% endif %}>4 урока</option>
+                    <option value="8" {% if form.package.value == "8" %}selected{% endif %}>8 уроков</option>
+                    <option value="12" {% if form.package.value == "12" %}selected{% endif %}>12 уроков</option>
+                </select>
+                {% if form.package.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.package.errors|striptags }}</p>
+                {% endif %}
             </div>
             <div>
-                <label class="block text-gray-700 mb-2">Комментарий</label>
-                {{ form.comment }}
+                <label for="id_comment" class="block text-gray-700 mb-2">Комментарий</label>
+                <textarea
+                    name="comment"
+                    id="id_comment"
+                    rows="3"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2"
+                    placeholder="Комментарий (необязательно)"
+                >{{ form.comment.value|default_if_none:'' }}</textarea>
+                {% if form.comment.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.comment.errors|striptags }}</p>
+                {% endif %}
             </div>
             <button type="submit" class="w-full text-white py-3 rounded-lg btn-primary">Отправить заявку</button>
         </form>

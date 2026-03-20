@@ -1,31 +1,15 @@
-{% comment %} <h2>Выберите преподавателя</h2>
-<ul>
-  {% for teacher in teachers %}
-    <li>
-      <a href="{% url 'book_lesson' teacher.id %}">
-        {{ teacher }}
-      </a>
-    </li>
-  {% empty %}
-    <li>У вас пока нет закреплённых преподавателей.</li>
-  {% endfor %}
-</ul> {% endcomment %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выбор преподавателя — MaxSchool</title>
-    
-    <!-- Подключение шрифтов и библиотек -->
+    <title>Выбор преподавателя — SmartUrok</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{% static 'images/logo2.PNG' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
 
-    <!-- Подключение Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -45,14 +29,13 @@
             }
         }
     </script>
-    
+
     <style>
         body {
             background: linear-gradient(135deg, #f0f4ff 0%, #e6eeff 100%);
             min-height: 100vh;
             font-family: 'Poppins', sans-serif;
         }
-        
         .teacher-card {
             background: white;
             border-radius: 16px;
@@ -60,12 +43,10 @@
             transition: all 0.3s ease;
             overflow: hidden;
         }
-        
         .teacher-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
         }
-        
         .teacher-image {
             height: 200px;
             background: linear-gradient(120deg, #004E89 0%, #00A6FB 100%);
@@ -73,17 +54,14 @@
             align-items: center;
             justify-content: center;
         }
-        
         .select-btn {
             background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%);
             transition: all 0.3s ease;
         }
-        
         .select-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(255, 107, 53, 0.3);
         }
-        
         .empty-state {
             background: white;
             border-radius: 16px;
@@ -92,12 +70,11 @@
     </style>
 </head>
 <body class="bg-light text-dark font-sans antialiased">
-    <!-- Шапка -->
     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <img src="{% static 'images/logo2.PNG' %}" alt="Логотип MaxSchool" class="h-10 w-auto">
-                <h1 class="text-xl font-bold" style="background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%); -webkit-background-clip: text; background-clip: text; color: transparent;">MaxSchool</h1>
+                <img src="{% static 'images/logo3.png' %}" alt="Логотип SmartUrok" class="h-10 w-auto">
+                <h1 class="text-xl font-bold" style="background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%); -webkit-background-clip: text; background-clip: text; color: transparent;">SmartUrok</h1>
             </div>
             <a href="{% url 'student_dashboard' %}" class="text-primary hover:text-secondary transition">
                 <i class="fas fa-arrow-left mr-1"></i> Назад
@@ -105,66 +82,60 @@
         </div>
     </header>
 
-    <!-- Основной контент -->
     <main class="container mx-auto px-4 py-8">
         <div class="text-center mb-10">
             <h2 class="text-3xl font-bold text-gray-800 mb-2">Выберите преподавателя</h2>
-            <p class="text-gray-600">Выберите преподавателя для записи на урок</p>
+            <p class="text-gray-600">Данные карточек берутся из профиля преподавателя в админке.</p>
         </div>
-        
+
         {% if teachers %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for teacher in teachers %}
-            <div class="teacher-card">
+            <article class="teacher-card">
                 <div class="teacher-image">
-                    <div class="w-24 h-24 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                        <i class="fas fa-user-graduate text-white text-4xl"></i>
-                    </div>
+                    {% if teacher.photo %}
+                        <img src="{{ teacher.photo.url }}" alt="{{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-24 h-24 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                            <i class="fas fa-user-graduate text-white text-4xl"></i>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="p-6">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ teacher.first_name }} {{ teacher.last_name }}</h3>
-                    <div class="flex items-center mb-4">
-                        <div class="flex text-yellow-400 mr-2">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <span class="text-gray-600">4.8</span>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ teacher.get_full_name|default:teacher.username }}</h3>
+
+                    <div class="flex items-start text-gray-700 mb-3">
+                        <i class="fas fa-book-open mr-2 mt-1 text-primary"></i>
+                        <span>{{ teacher.get_subjects_display|default:"Предметы пока не указаны" }}</span>
                     </div>
-                    {% comment %} <div class="flex items-center text-gray-600 mb-4">
-                        <i class="fas fa-book-open mr-2"></i>
-                        <span>Математика, Физика</span>
-                    </div> {% endcomment %}
-                    <div class="flex items-center text-gray-600 mb-6">
-                        <i class="fas fa-award mr-2"></i>
-                        <span>5 лет опыта</span>
+
+                    <div class="flex items-start text-gray-600 mb-6">
+                        <i class="fas fa-at mr-2 mt-1 text-primary"></i>
+                        <span>{{ teacher.email|default:teacher.username }}</span>
                     </div>
+
                     <a href="{% url 'book_lesson' teacher.id %}" class="block w-full py-3 select-btn text-white text-center rounded-lg font-semibold">
-                      {{ teacher }}  
-                      Выбрать
+                        Выбрать преподавателя
                     </a>
                 </div>
-            </div>
+            </article>
             {% endfor %}
         </div>
         {% else %}
         <div class="empty-state p-8 text-center max-w-2xl mx-auto">
             <div class="text-5xl mb-4">👨‍🏫</div>
-            <h3 class="text-xl font-semibold mb-2">У вас пока нет закреплённых преподавателей</h3>
-            <p class="text-gray-600 mb-6">Обратитесь к администратору, чтобы вам назначили преподавателя</p>
+            <h3 class="text-xl font-semibold mb-2">Нет доступных преподавателей</h3>
+            <p class="text-gray-600 mb-6">Попросите администратора закрепить преподавателя за вашим аккаунтом или подтвердить запись на урок.</p>
             <a href="{% url 'student_dashboard' %}" class="inline-block py-2 px-6 bg-gray-100 rounded-lg font-medium text-gray-700 hover:bg-gray-200 transition">
-                Вернуться на главную
+                Вернуться в кабинет
             </a>
         </div>
         {% endif %}
     </main>
 
-    <!-- Футер -->
     <footer class="bg-white mt-12 py-6 border-t border-gray-100">
         <div class="container mx-auto px-4 text-center">
-            <p class="text-sm text-gray-500">© 2025 MaxSchool. Все права защищены.</p>
+            <p class="text-sm text-gray-500">© 2026 SmartUrok. Все права защищены.</p>
         </div>
     </footer>
 </body>
