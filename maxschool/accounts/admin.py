@@ -152,13 +152,27 @@ class CustomUserAdmin(UserAdmin):
         ("Дополнительно", {
             "fields": ("desired_subject", "subjects_taught", "teachers")
         }),
+        ("Профиль преподавателя", {
+            "fields": (
+                "experience_years",
+                "students_count",
+                "success_rate",
+                "rating",
+                "reviews_count",
+                "bio",
+                "education",
+                "methodology",
+                "achievements",
+            )
+        }),
     )
 
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
             "fields": ("username", "email", "password1", "password2",
-                       "role", "is_approved", "is_email_verified", "desired_subject", "subjects_taught", "photo", "time_zone"),
+                       "role", "is_approved", "is_email_verified", "desired_subject", "subjects_taught", "photo", "time_zone",
+                       "experience_years", "students_count", "success_rate", "rating", "reviews_count"),
         }),
     )
 

@@ -22,6 +22,16 @@ class CustomUser(AbstractUser):
     photo = models.ImageField(upload_to='photos/', blank=True, null=True)
     balance = models.IntegerField(default=0)
     time_zone = models.CharField(max_length=64, default='Europe/Moscow', verbose_name='Часовой пояс')
+    # Публичный профиль преподавателя (редактируется из админки).
+    experience_years = models.PositiveSmallIntegerField(default=5, verbose_name='Опыт (лет)')
+    students_count = models.PositiveIntegerField(default=50, verbose_name='Количество учеников')
+    success_rate = models.PositiveSmallIntegerField(default=95, verbose_name='Успешных работ (%)')
+    rating = models.DecimalField(max_digits=2, decimal_places=1, default=5.0, verbose_name='Рейтинг')
+    reviews_count = models.PositiveIntegerField(default=24, verbose_name='Количество отзывов')
+    bio = models.TextField(blank=True, default='', verbose_name='О преподавателе')
+    education = models.TextField(blank=True, default='', verbose_name='Образование')
+    methodology = models.TextField(blank=True, default='', verbose_name='Методика преподавания')
+    achievements = models.TextField(blank=True, default='', verbose_name='Достижения')
 
     teachers = models.ManyToManyField(
         'self',

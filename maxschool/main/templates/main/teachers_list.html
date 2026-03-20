@@ -339,7 +339,7 @@
                             </svg>
                             {% endfor %}
                         </div>
-                        <span class="text-gray-600 ml-2">5.0 (24 отзыва)</span>
+                        <span class="text-gray-600 ml-2">{{ teacher.rating|default_if_none:"5.0" }} ({{ teacher.reviews_count|default_if_none:24 }} отзывов)</span>
                     </div>
                     
                     <div class="space-y-3">
@@ -370,20 +370,9 @@
                 
                 <div class="mb-6">
                     <h4 class="text-xl font-bold mb-4 text-dark">Образование</h4>
-                    <ul class="space-y-2 text-gray-700">
-                        <li class="flex items-start">
-                            <svg class="w-5 h-5 text-primary mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>{{ teacher.education|default:"МГУ им. М.В. Ломоносова, факультет вычислительной математики и кибернетики" }}</span>
-                        </li>
-                        <li class="flex items-start">
-                            <svg class="w-5 h-5 text-primary mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            <span>Сертификат преподавателя высшей категории</span>
-                        </li>
-                    </ul>
+                    <p class="text-gray-700 leading-relaxed whitespace-pre-line">
+                        {{ teacher.education|default:"МГУ им. М.В. Ломоносова, факультет вычислительной математики и кибернетики" }}
+                    </p>
                 </div>
                 
                 <div class="mb-6">
