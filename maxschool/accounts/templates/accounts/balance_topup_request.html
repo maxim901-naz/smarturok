@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пополнение баланса — SmartUrok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f8fafc; }
+        .btn-primary { background: linear-gradient(90deg, #FF6B35 0%, #FFBE0B 100%); }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="max-w-xl mx-auto py-12 px-4">
+        <h1 class="text-2xl font-bold mb-4">Пополнение баланса</h1>
+        <p class="text-gray-600 mb-6">Выберите пакет уроков. Администратор свяжется с вами и пополнит баланс вручную.</p>
+
+        <form method="post" class="bg-white shadow rounded-xl p-6 space-y-4">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            <div>
+                <label for="id_package" class="block text-gray-700 mb-2">Пакет уроков</label>
+                <select name="package" id="id_package" class="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="4" {% if form.package.value == "4" %}selected{% endif %}>4 урока</option>
+                    <option value="8" {% if form.package.value == "8" %}selected{% endif %}>8 уроков</option>
+                    <option value="12" {% if form.package.value == "12" %}selected{% endif %}>12 уроков</option>
+                </select>
+                {% if form.package.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.package.errors|striptags }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <label for="id_comment" class="block text-gray-700 mb-2">Комментарий</label>
+                <textarea
+                    name="comment"
+                    id="id_comment"
+                    rows="3"
+                    class="w-full rounded-lg border border-slate-300 px-3 py-2"
+                    placeholder="Комментарий (необязательно)"
+                >{{ form.comment.value|default_if_none:'' }}</textarea>
+                {% if form.comment.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.comment.errors|striptags }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="w-full text-white py-3 rounded-lg btn-primary">Отправить заявку</button>
+        </form>
+
+        <div class="mt-6">
+            <a href="{% url 'student_dashboard' %}" class="text-primary hover:underline">← Вернуться в кабинет</a>
+        </div>
+    </div>
+</body>
+</html>
