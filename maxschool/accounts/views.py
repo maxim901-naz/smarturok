@@ -17,6 +17,7 @@ import json
 import random
 from datetime import datetime, date, timedelta
 from zoneinfo import ZoneInfo
+import logging
 from .forms import (
     BalanceTopUpRequestForm,
     CustomUserCreationForm,
@@ -55,6 +56,7 @@ LOGIN_USER_RATE_LIMIT = 10
 LOGIN_RATE_WINDOW_SECONDS = 15 * 60  # 15 minutes
 REGISTER_CAPTCHA_ANSWER_KEY = 'register_captcha_answer'
 REGISTER_CAPTCHA_LABEL_KEY = 'register_captcha_label'
+logger = logging.getLogger(__name__)
 
 
 def get_user_tz(user):
@@ -133,7 +135,12 @@ def _send_email_verification(request, user):
         to=[user.email],
         headers={'Message-ID': make_msgid(domain='localhost')},
     )
-    return bool(message.send(fail_silently=True))
+    try:
+        message.send(fail_silently=False)
+        return True
+    except Exception:
+        logger.exception('Failed to send verification email to user_id=%s email=%s', user.pk, user.email)
+        return False
 
 # Регистрация
 def register_view(request):
@@ -177,11 +184,18 @@ def register_view(request):
                 user.is_approved = True
             user.is_email_verified = False
             user.save()
-            _send_email_verification(request, user)
+            email_sent = _send_email_verification(request, user)
             _rate_limit_reset(register_key)
             request.session.pop(REGISTER_CAPTCHA_ANSWER_KEY, None)
             request.session.pop(REGISTER_CAPTCHA_LABEL_KEY, None)
-            messages.success(request, 'Регистрация завершена. Подтвердите email по ссылке из письма.')
+            if email_sent:
+                messages.success(request, 'Регистрация завершена. Подтвердите email по ссылке из письма.')
+            else:
+                messages.warning(
+                    request,
+                    'Регистрация завершена, но письмо подтверждения не отправилось. '
+                    'Попробуйте войти снова, чтобы отправить новую ссылку, или обратитесь в поддержку.'
+                )
             return redirect('login')
         if not captcha_ok and 'captcha_answer' not in form.errors:
             form.add_error('captcha_answer', 'Неверный ответ на проверочный вопрос.')
@@ -214,8 +228,11 @@ def login_view(request):
 
         if user is not None:
             if user.role == 'student' and not getattr(user, 'is_email_verified', True):
-                _send_email_verification(request, user)
-                form.add_error(None, 'Подтвердите email. Мы отправили вам новую ссылку для подтверждения.')
+                email_sent = _send_email_verification(request, user)
+                if email_sent:
+                    form.add_error(None, 'Подтвердите email. Мы отправили вам новую ссылку для подтверждения.')
+                else:
+                    form.add_error(None, 'Подтвердите email. Не удалось отправить письмо подтверждения, попробуйте позже.')
                 return render(request, 'accounts/login.html', {'form': form})
 
             if user.role == 'teacher' and not user.is_approved:
