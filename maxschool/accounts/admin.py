@@ -120,9 +120,45 @@ class LessonAdmin(admin.ModelAdmin):
 # Админка для заявок на пробный урок
 @admin.register(TrialRequest)
 class TrialRequestAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'subject', 'personal_data_consent', 'assigned_teacher', 'is_converted', 'created_at')
-    list_filter = ('subject', 'personal_data_consent', 'is_converted')
-    search_fields = ('name', 'email')
+    list_display = (
+        'name',
+        'phone',
+        'email',
+        'subject',
+        'lead_form',
+        'pricing_lessons_count',
+        'pricing_discount_percent',
+        'pricing_total_price',
+        'personal_data_consent',
+        'assigned_teacher',
+        'is_converted',
+        'created_at',
+    )
+    list_filter = ('subject', 'lead_form', 'personal_data_consent', 'is_converted')
+    search_fields = ('name', 'email', 'phone', 'pricing_subject_name')
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'consent_at', 'consent_ip', 'consent_user_agent')
+    fields = (
+        'name',
+        'phone',
+        'email',
+        'subject',
+        'lead_form',
+        'pricing_subject_name',
+        'pricing_lessons_count',
+        'pricing_discount_percent',
+        'pricing_total_price',
+        'pricing_old_price',
+        'preferred_time',
+        'message',
+        'personal_data_consent',
+        'consent_at',
+        'consent_ip',
+        'consent_user_agent',
+        'assigned_teacher',
+        'is_converted',
+        'created_at',
+    )
 
 # Админка для пользователей
 @admin.register(CustomUser)

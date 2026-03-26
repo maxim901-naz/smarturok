@@ -204,12 +204,24 @@ def home_lead(request):
     if (request.POST.get('website') or '').strip():
         return redirect('home')
 
+    def _parse_positive_int(value):
+        cleaned = (value or '').strip().replace(' ', '').replace(',', '')
+        if not cleaned.isdigit():
+            return None
+        return int(cleaned)
+
     name = (request.POST.get('name') or '').strip()
     email = (request.POST.get('email') or '').strip()
     phone = (request.POST.get('phone') or '').strip()
     preferred_time = (request.POST.get('preferred_time') or '').strip()
     message = (request.POST.get('message') or '').strip()
     subject_id = (request.POST.get('subject') or '').strip()
+    pricing_subject_id = (request.POST.get('pricing_subject_id') or '').strip()
+    pricing_subject_name = _clean_tracking_value(request.POST.get('pricing_subject_name'), max_length=120)
+    pricing_lessons_count = _parse_positive_int(request.POST.get('pricing_lessons_count'))
+    pricing_discount_percent = _parse_positive_int(request.POST.get('pricing_discount_percent'))
+    pricing_total_price = _parse_positive_int(request.POST.get('pricing_total_price'))
+    pricing_old_price = _parse_positive_int(request.POST.get('pricing_old_price'))
     consent_given = request.POST.get('privacy_consent') == '1'
     lead_form = _clean_tracking_value(request.POST.get('lead_form'), max_length=64)
     attribution_map = [
@@ -228,6 +240,9 @@ def home_lead(request):
 
     client_ip = _get_client_ip(request) or 'unknown'
     user_agent = (request.META.get('HTTP_USER_AGENT') or '')[:255]
+
+    if not subject_id and pricing_subject_id.isdigit():
+        subject_id = pricing_subject_id
 
     subject = None
     if subject_id.isdigit():
@@ -271,6 +286,12 @@ def home_lead(request):
         subject=subject,
         preferred_time=preferred_time,
         message=message,
+        lead_form=lead_form,
+        pricing_subject_name=pricing_subject_name,
+        pricing_lessons_count=pricing_lessons_count,
+        pricing_discount_percent=pricing_discount_percent,
+        pricing_total_price=pricing_total_price,
+        pricing_old_price=pricing_old_price,
         personal_data_consent=True,
         consent_at=timezone.now(),
         consent_ip=client_ip if client_ip != 'unknown' else None,

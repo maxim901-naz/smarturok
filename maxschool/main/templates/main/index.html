@@ -1067,6 +1067,8 @@
                                         {% for s in subjects %}
                                         <option
                                             value="{{ s.price_per_lesson }}"
+                                            data-subject-id="{{ s.id }}"
+                                            data-subject-name="{{ s.name }}"
                                             data-d4="{{ s.discount_4 }}"
                                             data-d8="{{ s.discount_8 }}"
                                             data-d12="{{ s.discount_12 }}"
@@ -1106,7 +1108,7 @@
                                 <p id="discount-label" class="text-sm text-primary font-semibold mt-2 hidden">Ваша персональная скидка — <span id="discount-value">0</span>%</p>
 
                                 <div class="mt-6">
-                                    <button type="button" onclick="openCallbackBox()" data-cta="callback_open" data-cta-location="calculator" class="w-full px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition">
+                                    <button type="button" onclick="openDiscountOfferModal(true)" data-cta="callback_open" data-cta-location="calculator" class="w-full px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition">
                                         Записаться со скидкой
                                     </button>
                                     <p class="text-xs text-gray-500 mt-2 text-center">Подберём преподавателя за 15 минут</p>
@@ -1810,6 +1812,13 @@
                     <input type="hidden" name="yclid">
                     <input type="hidden" name="landing_path">
                     <input type="hidden" name="referrer">
+                    <input type="hidden" name="subject" id="promo-subject-id">
+                    <input type="hidden" name="pricing_subject_id" id="promo-pricing-subject-id">
+                    <input type="hidden" name="pricing_subject_name" id="promo-pricing-subject-name">
+                    <input type="hidden" name="pricing_lessons_count" id="promo-pricing-lessons-count">
+                    <input type="hidden" name="pricing_discount_percent" id="promo-pricing-discount-percent">
+                    <input type="hidden" name="pricing_total_price" id="promo-pricing-total-price">
+                    <input type="hidden" name="pricing_old_price" id="promo-pricing-old-price">
                     <input type="hidden" name="message" id="promo-message" value="&#1055;&#1088;&#1086;&#1084;&#1086;-&#1086;&#1082;&#1085;&#1086;: &#1093;&#1086;&#1095;&#1091; &#1087;&#1086;&#1083;&#1091;&#1095;&#1080;&#1090;&#1100; &#1089;&#1082;&#1080;&#1076;&#1082;&#1091; &#1080; &#1087;&#1086;&#1076;&#1086;&#1073;&#1088;&#1072;&#1090;&#1100; &#1087;&#1088;&#1077;&#1087;&#1086;&#1076;&#1072;&#1074;&#1072;&#1090;&#1077;&#1083;&#1103;.">
                     <div class="sm:col-span-1">
                         <label for="promo-name" class="sr-only">Ваше имя</label>
@@ -2348,6 +2357,7 @@
             const now = Date.now();
             if (!force && now - discountPopupLastOpenTs < DISCOUNT_POPUP_INTERVAL_MS) return;
 
+            syncPromoPricingFields();
             openModalElement(modal);
             discountPopupLastOpenTs = now;
         }
@@ -2537,38 +2547,75 @@
         setInterval(updateTimer, 1000);
 
         // Калькулятор стоимости
-        function calculateTotal() {
+        function getCalculatorState() {
             const select = document.getElementById('course-select');
-            const option = select.options[select.selectedIndex];
-            const coursePrice = parseFloat(option.value || '0');
-            const lessonsCount = parseInt(document.getElementById('lessons-range').value);
+            const lessonsSelect = document.getElementById('lessons-range');
+            if (!select || !lessonsSelect) return null;
 
+            const option = select.options[select.selectedIndex];
+            if (!option) return null;
+
+            const coursePrice = parseFloat(option.value || '0');
+            const lessonsCount = parseInt(lessonsSelect.value || '0', 10);
             const discountMap = {
-                4: parseInt(option.dataset.d4 || '0'),
-                8: parseInt(option.dataset.d8 || '0'),
-                12: parseInt(option.dataset.d12 || '0'),
-                28: parseInt(option.dataset.d28 || '0'),
-                64: parseInt(option.dataset.d64 || '0'),
-                128: parseInt(option.dataset.d128 || '0'),
+                4: parseInt(option.dataset.d4 || '0', 10),
+                8: parseInt(option.dataset.d8 || '0', 10),
+                12: parseInt(option.dataset.d12 || '0', 10),
+                28: parseInt(option.dataset.d28 || '0', 10),
+                64: parseInt(option.dataset.d64 || '0', 10),
+                128: parseInt(option.dataset.d128 || '0', 10),
             };
 
-            let total = coursePrice * lessonsCount;
-            let oldTotal = total;
+            const oldTotal = Math.round(coursePrice * lessonsCount);
             const discount = discountMap[lessonsCount] || 0;
-            if (discount > 0) {
-                total = total * (1 - discount / 100);
-            }
-            
-            document.getElementById('total-price').textContent = Math.round(total).toLocaleString('ru-RU');
-            document.getElementById('old-price').textContent = Math.round(oldTotal).toLocaleString('ru-RU');
+            const total = discount > 0
+                ? Math.round(oldTotal * (1 - discount / 100))
+                : oldTotal;
+
+            return {
+                subjectId: option.dataset.subjectId || '',
+                subjectName: option.dataset.subjectName || '',
+                lessonsCount,
+                discount,
+                total,
+                oldTotal,
+            };
+        }
+
+        function syncPromoPricingFields() {
+            const state = getCalculatorState();
+            if (!state) return;
+
+            const assign = (id, value) => {
+                const field = document.getElementById(id);
+                if (field) field.value = String(value ?? '');
+            };
+
+            assign('promo-subject-id', state.subjectId);
+            assign('promo-pricing-subject-id', state.subjectId);
+            assign('promo-pricing-subject-name', state.subjectName);
+            assign('promo-pricing-lessons-count', state.lessonsCount);
+            assign('promo-pricing-discount-percent', state.discount);
+            assign('promo-pricing-total-price', state.total);
+            assign('promo-pricing-old-price', state.oldTotal);
+        }
+
+        function calculateTotal() {
+            const state = getCalculatorState();
+            if (!state) return;
+
+            document.getElementById('total-price').textContent = state.total.toLocaleString('ru-RU');
+            document.getElementById('old-price').textContent = state.oldTotal.toLocaleString('ru-RU');
             const label = document.getElementById('discount-label');
             const value = document.getElementById('discount-value');
-            if (discount > 0) {
-                value.textContent = discount;
+            if (state.discount > 0) {
+                value.textContent = state.discount;
                 label.classList.remove('hidden');
             } else {
                 label.classList.add('hidden');
             }
+
+            syncPromoPricingFields();
         }
 
         document.getElementById('course-select').addEventListener('change', calculateTotal);
