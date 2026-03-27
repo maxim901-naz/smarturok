@@ -36,6 +36,7 @@ from .models import (
     TrialRequest,
     Subject
 )
+from .finance import get_teacher_payout_amount_for_lesson
 from lessons.utils import SERIES_WEEKS
 
 DEFAULT_APP_TZ_NAME = getattr(settings, 'TIME_ZONE', None) or 'UTC'
@@ -928,9 +929,7 @@ def student_cancel_lesson_view(request, lesson_id):
 
     if is_late_cancel:
         # Начисляем учителю оплату, списываем у ученика урок
-        amount_value = lesson.price_per_lesson or 0
-        if amount_value == 0 and subject and getattr(subject, 'price_per_lesson', 0):
-            amount_value = subject.price_per_lesson
+        amount_value = get_teacher_payout_amount_for_lesson(teacher, lesson, subject=subject)
 
         # списание баланса (не уходим ниже 0)
         if request.user.balance > 0:

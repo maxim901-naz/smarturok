@@ -22,6 +22,17 @@ class CustomUser(AbstractUser):
     photo = models.ImageField(upload_to='photos/', blank=True, null=True)
     balance = models.IntegerField(default=0)
     time_zone = models.CharField(max_length=64, default='Europe/Moscow', verbose_name='Часовой пояс')
+    teacher_payout_percent = models.PositiveSmallIntegerField(
+        default=50,
+        verbose_name='Teacher payout percent, %',
+        help_text='Teacher payout as percent of student lesson price if fixed payout is empty.',
+    )
+    teacher_payout_fixed = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name='Teacher fixed payout per lesson',
+        help_text='If set, this value is used instead of payout percent.',
+    )
     # Публичный профиль преподавателя (редактируется из админки).
     experience_years = models.PositiveSmallIntegerField(default=5, verbose_name='Опыт (лет)')
     students_count = models.PositiveIntegerField(default=50, verbose_name='Количество учеников')
@@ -65,6 +76,16 @@ class CustomUser(AbstractUser):
         if self.role == 'teacher':
             return 'Europe/Moscow'
         return self.time_zone or 'Europe/Moscow'
+
+    def calculate_lesson_payout(self, lesson_price):
+        base_price = int(lesson_price or 0)
+        fixed_payout = int(self.teacher_payout_fixed or 0)
+        if fixed_payout > 0:
+            return fixed_payout
+
+        payout_percent = int(self.teacher_payout_percent or 0)
+        payout_percent = max(0, min(100, payout_percent))
+        return int(round(base_price * payout_percent / 100))
 
 class BalanceTransaction(models.Model):
     DIRECTION_CHOICES = (

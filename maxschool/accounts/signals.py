@@ -1,6 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from .models import Lesson, BalanceTransaction, TeacherFinanceEntry
+from .finance import get_teacher_payout_amount_for_lesson
 
 
 @receiver(post_save, sender=Lesson)
@@ -27,9 +28,11 @@ def deduct_balance_on_complete(sender, instance, created, **kwargs):
             note='Списание за завершенный урок'
         )
 
-        amount_value = instance.price_per_lesson or 0
-        if amount_value == 0 and instance.subject and getattr(instance.subject, 'price_per_lesson', 0):
-            amount_value = instance.subject.price_per_lesson
+        amount_value = get_teacher_payout_amount_for_lesson(
+            instance.teacher,
+            instance,
+            subject=instance.subject,
+        )
         subject_name = instance.subject.name if getattr(instance, "subject", None) else ""
         if getattr(instance, "student", None):
             student_name = instance.student.get_full_name() or instance.student.username

@@ -168,9 +168,11 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
 
     list_display = (
-        'id', 'username', 'email', 'role', 'desired_subject', 'is_approved', 'is_email_verified', 'is_active', 'balance'
+        'id', 'username', 'email', 'role', 'desired_subject', 'is_approved',
+        'is_email_verified', 'is_active', 'balance',
+        'teacher_payout_percent', 'teacher_payout_fixed'
     )
-    list_editable = ('balance',)
+    list_editable = ('balance', 'teacher_payout_percent', 'teacher_payout_fixed')
     list_filter = ('role', 'is_approved', 'is_email_verified', 'is_active', 'desired_subject')
 
     # --- ВАЖНО: НЕ НАСЛЕДУЕМ UserAdmin.fieldsets ---
@@ -201,6 +203,9 @@ class CustomUserAdmin(UserAdmin):
                 "achievements",
             )
         }),
+        ("Teacher payout", {
+            "fields": ("teacher_payout_percent", "teacher_payout_fixed")
+        }),
     )
 
     add_fieldsets = (
@@ -208,7 +213,8 @@ class CustomUserAdmin(UserAdmin):
             "classes": ("wide",),
             "fields": ("username", "email", "password1", "password2",
                        "role", "is_approved", "is_email_verified", "desired_subject", "subjects_taught", "photo", "time_zone",
-                       "experience_years", "students_count", "success_rate", "rating", "reviews_count"),
+                       "experience_years", "students_count", "success_rate", "rating", "reviews_count",
+                       "teacher_payout_percent", "teacher_payout_fixed"),
         }),
     )
 
