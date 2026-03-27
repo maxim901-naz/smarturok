@@ -339,6 +339,7 @@ EMAIL_HOST = env_first('DJANGO_EMAIL_HOST', 'EMAIL_HOST', default='smtp.gmail.co
 EMAIL_PORT = env_int('DJANGO_EMAIL_PORT', 587)
 EMAIL_USE_TLS = env_bool('DJANGO_EMAIL_USE_TLS', True)
 EMAIL_USE_SSL = env_bool('DJANGO_EMAIL_USE_SSL', False)
+EMAIL_TIMEOUT = env_int('DJANGO_EMAIL_TIMEOUT', 10)
 EMAIL_HOST_USER = env_first('DJANGO_EMAIL_HOST_USER', 'EMAIL_HOST_USER', default='smarturok.ru@gmail.com')
 EMAIL_HOST_PASSWORD = env_first('DJANGO_EMAIL_HOST_PASSWORD', 'EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = env_first('DJANGO_DEFAULT_FROM_EMAIL', default=(EMAIL_HOST_USER or 'smarturok.ru@gmail.com'))
