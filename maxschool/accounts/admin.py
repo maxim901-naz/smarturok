@@ -1,91 +1,3 @@
-# from typing import Literal
-# from django.contrib import admin
-# from django.contrib.auth.admin import UserAdmin
-# from .models import Subject, Lesson, TrialRequest, CustomUser, BalanceTransaction, BalanceTopUpRequest, TeacherFinanceEntry, TeacherNotification
-# from lessons.models import TeacherAvailability
-
-
-# from .forms import AdminUserCreationForm, AdminUserChangeForm
-
-# # Регистрируем предметы и занятия
-# 
-# admin.site.register(Lesson)
-# class LessonAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'date', 'time', 'subject', 'teacher', 'student', 'duration_minutes'
-#     )
-#     list_filter = (
-#         'teacher', 'student', 'subject', 'date',
-#     )
-#     search_fields = (
-#         'teacher__username', 'student__username', 'subject__name'
-#     )
-#     ordering = ('date', 'time')
-#     list_editable = ('is_completed',)
-# # Админка для заявок на пробный урок
-# @admin.register(TrialRequest)
-# class TrialRequestAdmin(admin.ModelAdmin):
-#     list_display = ('name', 'email', 'subject', 'assigned_teacher', 'is_converted', 'created_at')
-#     list_filter = ('subject', 'is_converted')
-#     search_fields = ('name', 'email')
-
-# # Админка для пользователей
-# @admin.register(CustomUser)
-# class CustomUserAdmin(UserAdmin):
-#     add_form = AdminUserCreationForm
-#     form = AdminUserChangeForm
-#     model = CustomUser
-
-#     list_display = (
-#         'id', 'username', 'email', 'role', 'desired_subject', 'is_approved', 'is_active','balance'
-#     )
-#     list_editable = ('balance',)
-
-#     list_filter = ('role', 'is_approved', 'is_active', 'desired_subject')
-
-#     # --- ВАЖНО: НЕ НАСЛЕДУЕМ UserAdmin.fieldsets ---
-#     fieldsets = (
-#         (None, {
-#             "fields": ("username", "password")
-#         }),
-#         ("Персональная информация", {
-#             "fields": ("first_name", "last_name", "email", "photo")
-#         }),
-#         ("Роли и доступ", {
-#             "fields": ("role", "is_approved", "is_active", "is_staff",
-#                        "is_superuser", "groups", "user_permissions")
-#         }),
-#         ("Дополнительно", {
-#             "fields": ("desired_subject", "subjects_taught", "teachers")
-#         }),
-#     )
-
-#     add_fieldsets = (
-#         (None, {
-#             "classes": ("wide",),
-#             "fields": ("username", "email", "password1", "password2",
-#                        "role", "is_approved", "desired_subject", "photo"),
-#         }),
-#     )
-
-#     actions = ['approve_teachers']
-
-#     def approve_teachers(self, request, queryset):
-#         updated = queryset.filter(role='teacher').update(is_approved=True)
-#         self.message_user(request, f"Одобрено преподавателей: {updated}")
-
-#     approve_teachers.short_description = "Одобрить выбранных преподавателей"
-
-# @admin.register(TeacherAvailability)
-# class TeacherAvailabilityAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'teacher', 'get_display_text', 'time', 'duration_minutes', 'is_recurring', 'is_booked'
-#     )
-#     list_filter = (
-#         'teacher', 'is_recurring', 'is_booked',
-#     )
-#     search_fields = ('teacher__username',)
-#     ordering = ('date', 'time')
 from typing import Literal
 from django.contrib import admin
 from django.http import HttpResponseRedirect
@@ -93,9 +5,23 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.contrib.auth.admin import UserAdmin
-from .models import Subject, Lesson, TrialRequest, CustomUser, BalanceTransaction, BalanceTopUpRequest, TeacherFinanceEntry, TeacherNotification, StudentNotification, StudentVacation
-from lessons.models import TeacherAvailability
+
 from .forms import AdminUserCreationForm, AdminUserChangeForm
+from .models import (
+    Subject,
+    Lesson,
+    TrialRequest,
+    CustomUser,
+    BalanceTransaction,
+    BalanceTopUpRequest,
+    TeacherFinanceEntry,
+    TeacherNotification,
+    StudentNotification,
+    StudentVacation,
+    Vacancy,
+    TeacherApplication,
+)
+from lessons.models import TeacherAvailability
 
 
 class RequestSLAAdminMixin:
@@ -275,6 +201,24 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
             obj.save(update_fields=['work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
 
 # Админка для пользователей
+@admin.register(Vacancy)
+class VacancyAdmin(admin.ModelAdmin):
+    list_display = ('title', 'is_active', 'order', 'updated_at')
+    list_filter = ('is_active',)
+    list_editable = ('is_active', 'order')
+    search_fields = ('title', 'short_description')
+    ordering = ('order', 'title')
+
+
+@admin.register(TeacherApplication)
+class TeacherApplicationAdmin(admin.ModelAdmin):
+    list_display = ('submitted_at', 'name', 'vacancy', 'phone', 'email', 'years_experience')
+    list_filter = ('vacancy', 'submitted_at')
+    search_fields = ('name', 'first_name', 'last_name', 'email', 'phone', 'specialization')
+    readonly_fields = ('submitted_at',)
+    ordering = ('-submitted_at',)
+
+
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     add_form = AdminUserCreationForm

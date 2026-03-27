@@ -34,7 +34,8 @@ from .models import (
     CustomUser,
     Lesson,
     TrialRequest,
-    Subject
+    Subject,
+    Vacancy
 )
 from .finance import get_teacher_payout_amount_for_lesson
 from lessons.utils import SERIES_WEEKS
@@ -524,24 +525,49 @@ def my_schedule_view(request):
 
 # Заявка на вакансию
 def teacher_application_view(request):
+    vacancies = Vacancy.objects.filter(is_active=True).order_by('order', 'title')
+    has_open_vacancies = vacancies.exists()
+
+    initial_data = {}
+    requested_vacancy = (request.GET.get('vacancy') or '').strip()
+    if requested_vacancy.isdigit():
+        selected_vacancy = vacancies.filter(id=int(requested_vacancy)).first()
+        if selected_vacancy:
+            initial_data['vacancy'] = selected_vacancy
+
     if request.method == 'POST':
         form = TeacherApplicationForm(request.POST)
         if form.is_valid():
             application = form.save()
-            subject = "Новая заявка на вакансию преподавателя"
-            body = (
-                f"Имя: {application.name}\n"
-                f"Email: {application.email}\n"
-                f"Телефон: {application.phone}\n"
-                f"Специализация: {application.specialization}\n"
-                f"Опыт: {application.experience}\n"
-                f"Мотивация: {application.motivation}"
-            )
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL])
-            return render(request, 'accounts/teacher_application_success.html')
+            vacancy_title = application.vacancy.title if application.vacancy_id else application.specialization
+            subject = 'New teacher vacancy application'
+            body_lines = [
+                f'Vacancy: {vacancy_title}',
+                f'First name: {application.first_name}',
+                f'Last name: {application.last_name}',
+                f'Full name: {application.name}',
+                f'Email: {application.email}',
+                f'Phone: {application.phone}',
+                f'Experience (years): {application.years_experience or ""}',
+                f'Experience details: {application.experience}',
+                f'Motivation: {application.motivation}',
+            ]
+            body = '\n'.join(body_lines)
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL], fail_silently=True)
+            return render(request, 'accounts/teacher_application_success.html', {'application': application})
     else:
-        form = TeacherApplicationForm()
-    return render(request, 'accounts/teacher_application.html', {'form': form})
+        form = TeacherApplicationForm(initial=initial_data)
+
+    return render(
+        request,
+        'accounts/teacher_application.html',
+        {
+            'form': form,
+            'vacancies': vacancies,
+            'has_open_vacancies': has_open_vacancies,
+        },
+    )
+
 @login_required
 def dashboard_router_view(request):
     if request.user.role == 'student':

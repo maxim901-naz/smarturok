@@ -110,16 +110,62 @@ class TrialLessonForm(forms.Form):
     preferred_time = forms.CharField(label="РЈРґРѕР±РЅРѕРµ РІСЂРµРјСЏ", max_length=100, required=False)
     message = forms.CharField(label="РљРѕРјРјРµРЅС‚Р°СЂРёР№", widget=forms.Textarea, required=False)
 
-from .models import TeacherApplication
+from .models import TeacherApplication, Vacancy
 
 class TeacherApplicationForm(forms.ModelForm):
     class Meta:
         model = TeacherApplication
-        fields = ['name', 'email', 'phone', 'specialization', 'experience', 'motivation']
+        fields = [
+            'vacancy',
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'years_experience',
+            'experience',
+            'motivation',
+        ]
         widgets = {
-            'experience': forms.Textarea(attrs={'rows': 3}),
-            'motivation': forms.Textarea(attrs={'rows': 3}),
+            'experience': forms.Textarea(attrs={'rows': 4}),
+            'motivation': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['vacancy'].queryset = Vacancy.objects.filter(is_active=True).order_by('order', 'title')
+        self.fields['vacancy'].required = True
+
+        base_class = 'w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-secondary focus:ring-2 focus:ring-secondary/30'
+        textarea_class = base_class + ' min-h-[120px]'
+
+        self.fields['vacancy'].empty_label = 'Select vacancy'
+        self.fields['vacancy'].widget.attrs.update({'class': base_class})
+        self.fields['first_name'].widget.attrs.update({'class': base_class, 'placeholder': 'First name'})
+        self.fields['last_name'].widget.attrs.update({'class': base_class, 'placeholder': 'Last name'})
+        self.fields['email'].widget.attrs.update({'class': base_class, 'placeholder': 'Email'})
+        self.fields['phone'].widget.attrs.update({'class': base_class, 'placeholder': '+7 (___) ___-__-__'})
+        self.fields['years_experience'].widget.attrs.update({'class': base_class, 'min': 0, 'placeholder': 'Years'})
+        self.fields['experience'].widget.attrs.update({'class': textarea_class, 'placeholder': 'Describe teaching experience'})
+        self.fields['motivation'].widget.attrs.update({'class': textarea_class, 'placeholder': 'Why do you want to work with us?'})
+
+    def clean_vacancy(self):
+        vacancy = self.cleaned_data.get('vacancy')
+        if vacancy and not vacancy.is_active:
+            raise forms.ValidationError('Selected vacancy is not active.')
+        return vacancy
+
+    def save(self, commit=True):
+        application = super().save(commit=False)
+        first_name = (application.first_name or '').strip()
+        last_name = (application.last_name or '').strip()
+        application.name = f'{first_name} {last_name}'.strip()
+        if application.vacancy_id:
+            application.specialization = application.vacancy.title[:100]
+        if not application.specialization:
+            application.specialization = 'Teacher application'
+        if commit:
+            application.save()
+        return application
 
 from accounts.models import Lesson
 

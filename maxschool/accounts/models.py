@@ -482,14 +482,51 @@ class TrialRequest(models.Model):
             return False
         return timezone.now() >= (self.created_at + timedelta(minutes=response_minutes))
 
-class TeacherApplication(models.Model):
-    name = models.CharField("ФИО", max_length=100)
-    email = models.EmailField("Email")
-    phone = models.CharField("Телефон", max_length=20)
-    specialization = models.CharField("Предмет/Специализация", max_length=100)
-    experience = models.TextField("Опыт работы")
-    motivation = models.TextField("Почему хотите работать у нас?")
-    submitted_at = models.DateTimeField(auto_now_add=True)
+class Vacancy(models.Model):
+    title = models.CharField("Vacancy title", max_length=150)
+    short_description = models.CharField("Short description", max_length=255, blank=True)
+    responsibilities = models.TextField("Responsibilities", blank=True)
+    requirements = models.TextField("Requirements", blank=True)
+    conditions = models.TextField("Conditions", blank=True)
+    is_active = models.BooleanField("Is active", default=True)
+    order = models.PositiveSmallIntegerField("Display order", default=0)
+    created_at = models.DateTimeField("Created at", auto_now_add=True)
+    updated_at = models.DateTimeField("Updated at", auto_now=True)
+
+    class Meta:
+        ordering = ("order", "title")
+        verbose_name = "Vacancy"
+        verbose_name_plural = "Vacancies"
 
     def __str__(self):
-        return f"{self.name} ({self.specialization})"
+        return self.title
+
+
+class TeacherApplication(models.Model):
+    vacancy = models.ForeignKey(
+        Vacancy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="applications",
+        verbose_name="Vacancy",
+    )
+    name = models.CharField("Full name", max_length=100)
+    first_name = models.CharField("First name", max_length=60, blank=True, default="")
+    last_name = models.CharField("Last name", max_length=80, blank=True, default="")
+    email = models.EmailField("Email")
+    phone = models.CharField("Phone", max_length=20)
+    specialization = models.CharField("Subject/Specialization", max_length=100)
+    years_experience = models.PositiveSmallIntegerField("Experience years", null=True, blank=True)
+    experience = models.TextField("Experience details")
+    motivation = models.TextField("Motivation")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-submitted_at",)
+        verbose_name = "Teacher application"
+        verbose_name_plural = "Teacher applications"
+
+    def __str__(self):
+        vacancy_title = self.vacancy.title if self.vacancy_id else self.specialization
+        return f"{self.name} ({vacancy_title})"
