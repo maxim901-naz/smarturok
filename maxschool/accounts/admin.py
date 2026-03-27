@@ -88,11 +88,50 @@
 #     ordering = ('date', 'time')
 from typing import Literal
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.contrib.auth.admin import UserAdmin
 from .models import Subject, Lesson, TrialRequest, CustomUser, BalanceTransaction, BalanceTopUpRequest, TeacherFinanceEntry, TeacherNotification, StudentNotification, StudentVacation
 from lessons.models import TeacherAvailability
 from .forms import AdminUserCreationForm, AdminUserChangeForm
+
+
+class RequestSLAAdminMixin:
+    response_sla_minutes = 5
+    default_new_filter = True
+
+    def changelist_view(self, request, extra_context=None):
+        if self.default_new_filter and not request.GET:
+            return HttpResponseRedirect(f'{request.path}?work_status__exact=new')
+        return super().changelist_view(request, extra_context=extra_context)
+
+    @admin.display(description='SLA')
+    def sla_badge(self, obj):
+        if getattr(obj, 'work_status', '') == 'new':
+            created_at = getattr(obj, 'created_at', None)
+            if not created_at:
+                return '—'
+
+            elapsed_minutes = int((timezone.now() - created_at).total_seconds() // 60)
+            if elapsed_minutes >= self.response_sla_minutes:
+                return format_html(
+                    "<span style='color:#dc2626;font-weight:700;'>Просрочено: {} мин</span>",
+                    elapsed_minutes,
+                )
+            return format_html(
+                "<span style='color:#d97706;font-weight:600;'>Новая: {} мин</span>",
+                elapsed_minutes,
+            )
+
+        if getattr(obj, 'work_status', '') == 'in_progress':
+            return format_html("<span style='color:#2563eb;font-weight:600;'>В работе</span>")
+        if getattr(obj, 'work_status', '') == 'done':
+            return format_html("<span style='color:#15803d;font-weight:600;'>Закрыта</span>")
+        if getattr(obj, 'work_status', '') == 'rejected':
+            return format_html("<span style='color:#6b7280;font-weight:600;'>Отклонена</span>")
+        return '—'
 
 # Регистрируем предметы
 
@@ -119,31 +158,56 @@ class LessonAdmin(admin.ModelAdmin):
 
 # Админка для заявок на пробный урок
 @admin.register(TrialRequest)
-class TrialRequestAdmin(admin.ModelAdmin):
+class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
     list_display = (
         'name',
         'phone',
         'email',
         'subject',
         'lead_form',
+        'work_status',
+        'assigned_admin',
+        'first_response_at',
         'pricing_lessons_count',
         'pricing_discount_percent',
         'pricing_total_price',
         'personal_data_consent',
         'assigned_teacher',
         'is_converted',
+        'sla_badge',
         'created_at',
     )
-    list_filter = ('subject', 'lead_form', 'personal_data_consent', 'is_converted')
+    list_filter = (
+        'work_status',
+        'assigned_admin',
+        'subject',
+        'lead_form',
+        'personal_data_consent',
+        'is_converted',
+        'created_at',
+    )
     search_fields = ('name', 'email', 'phone', 'pricing_subject_name')
     ordering = ('-created_at',)
-    readonly_fields = ('created_at', 'consent_at', 'consent_ip', 'consent_user_agent')
+    readonly_fields = (
+        'created_at',
+        'consent_at',
+        'consent_ip',
+        'consent_user_agent',
+        'first_response_at',
+        'closed_at',
+        'sla_badge',
+    )
     fields = (
         'name',
         'phone',
         'email',
         'subject',
         'lead_form',
+        'work_status',
+        'assigned_admin',
+        'first_response_at',
+        'closed_at',
+        'sla_badge',
         'pricing_subject_name',
         'pricing_lessons_count',
         'pricing_discount_percent',
@@ -159,6 +223,56 @@ class TrialRequestAdmin(admin.ModelAdmin):
         'is_converted',
         'created_at',
     )
+    actions = ('take_in_work', 'mark_done', 'mark_rejected')
+
+    def _touch_first_response(self, obj, now_value):
+        if not obj.first_response_at:
+            obj.first_response_at = now_value
+
+    def save_model(self, request, obj, form, change):
+        now_value = timezone.now()
+        if obj.work_status in {'in_progress', 'done', 'rejected'}:
+            if not obj.assigned_admin_id and request.user.is_staff:
+                obj.assigned_admin = request.user
+            self._touch_first_response(obj, now_value)
+        if obj.work_status in {'done', 'rejected'} and not obj.closed_at:
+            obj.closed_at = now_value
+        if obj.work_status in {'new', 'in_progress'}:
+            obj.closed_at = None
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description='Take in work')
+    def take_in_work(self, request, queryset):
+        now_value = timezone.now()
+        for obj in queryset:
+            obj.work_status = 'in_progress'
+            if not obj.assigned_admin_id and request.user.is_staff:
+                obj.assigned_admin = request.user
+            self._touch_first_response(obj, now_value)
+            obj.closed_at = None
+            obj.save(update_fields=['work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
+
+    @admin.action(description='Close request')
+    def mark_done(self, request, queryset):
+        now_value = timezone.now()
+        for obj in queryset:
+            obj.work_status = 'done'
+            if not obj.assigned_admin_id and request.user.is_staff:
+                obj.assigned_admin = request.user
+            self._touch_first_response(obj, now_value)
+            obj.closed_at = now_value
+            obj.save(update_fields=['work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
+
+    @admin.action(description='Mark rejected')
+    def mark_rejected(self, request, queryset):
+        now_value = timezone.now()
+        for obj in queryset:
+            obj.work_status = 'rejected'
+            if not obj.assigned_admin_id and request.user.is_staff:
+                obj.assigned_admin = request.user
+            self._touch_first_response(obj, now_value)
+            obj.closed_at = now_value
+            obj.save(update_fields=['work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
 
 # Админка для пользователей
 @admin.register(CustomUser)
@@ -248,32 +362,95 @@ class BalanceTransactionAdmin(admin.ModelAdmin):
 
 
 @admin.register(BalanceTopUpRequest)
-class BalanceTopUpRequestAdmin(admin.ModelAdmin):
-    list_display = ('user', 'package', 'status', 'created_at')
-    list_filter = ('status', 'created_at')
+class BalanceTopUpRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
+    list_display = (
+        'user',
+        'package',
+        'status',
+        'work_status',
+        'assigned_admin',
+        'first_response_at',
+        'sla_badge',
+        'created_at',
+    )
+    list_filter = ('status', 'work_status', 'assigned_admin', 'created_at')
     search_fields = ('user__username',)
     ordering = ('-created_at',)
-    actions = ['mark_approved', 'mark_rejected']
+    readonly_fields = ('first_response_at', 'closed_at', 'sla_badge', 'created_at')
+    fields = (
+        'user',
+        'package',
+        'comment',
+        'status',
+        'work_status',
+        'assigned_admin',
+        'first_response_at',
+        'closed_at',
+        'sla_badge',
+        'created_at',
+    )
+    actions = ['take_in_work', 'mark_approved', 'mark_rejected']
 
-    def mark_approved(self, request, queryset):
+    def _touch_first_response(self, obj, now_value):
+        if not obj.first_response_at:
+            obj.first_response_at = now_value
+
+    def save_model(self, request, obj, form, change):
+        now_value = timezone.now()
+        if obj.work_status in {'in_progress', 'done', 'rejected'}:
+            if not obj.assigned_admin_id and request.user.is_staff:
+                obj.assigned_admin = request.user
+            self._touch_first_response(obj, now_value)
+        if obj.work_status in {'done', 'rejected'} and not obj.closed_at:
+            obj.closed_at = now_value
+        if obj.work_status in {'new', 'in_progress'}:
+            obj.closed_at = None
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description='Take in work')
+    def take_in_work(self, request, queryset):
+        now_value = timezone.now()
         for req in queryset:
-            if req.status == 'approved':
-                continue
-            req.status = 'approved'
-            req.save(update_fields=['status'])
-            req.user.balance += req.package
-            req.user.save(update_fields=['balance'])
-            BalanceTransaction.objects.create(
-                user=req.user,
-                direction='credit',
-                amount=req.package,
-                note='Пополнение по заявке',
-            )
-    mark_approved.short_description = 'Отметить как одобрено'
+            req.work_status = 'in_progress'
+            if not req.assigned_admin_id and request.user.is_staff:
+                req.assigned_admin = request.user
+            self._touch_first_response(req, now_value)
+            req.closed_at = None
+            req.save(update_fields=['work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
 
+    @admin.action(description='Mark approved')
+    def mark_approved(self, request, queryset):
+        now_value = timezone.now()
+        for req in queryset:
+            should_credit = req.status != 'approved'
+            req.status = 'approved'
+            req.work_status = 'done'
+            if not req.assigned_admin_id and request.user.is_staff:
+                req.assigned_admin = request.user
+            self._touch_first_response(req, now_value)
+            req.closed_at = now_value
+            req.save(update_fields=['status', 'work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
+            if should_credit:
+                req.user.balance += req.package
+                req.user.save(update_fields=['balance'])
+                BalanceTransaction.objects.create(
+                    user=req.user,
+                    direction='credit',
+                    amount=req.package,
+                    note='Top-up approved by admin',
+                )
+
+    @admin.action(description='Mark rejected')
     def mark_rejected(self, request, queryset):
-        queryset.update(status='rejected')
-    mark_rejected.short_description = 'Отметить как отклонено'
+        now_value = timezone.now()
+        for req in queryset:
+            req.status = 'rejected'
+            req.work_status = 'rejected'
+            if not req.assigned_admin_id and request.user.is_staff:
+                req.assigned_admin = request.user
+            self._touch_first_response(req, now_value)
+            req.closed_at = now_value
+            req.save(update_fields=['status', 'work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
 
 
 @admin.register(Subject)

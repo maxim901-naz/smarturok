@@ -113,15 +113,40 @@ class BalanceTopUpRequest(models.Model):
         ('approved', 'Одобрено'),
         ('rejected', 'Отклонено'),
     )
+    WORK_STATUS_CHOICES = (
+        ('new', 'Новая'),
+        ('in_progress', 'В работе'),
+        ('done', 'Закрыта'),
+        ('rejected', 'Отклонена'),
+    )
 
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='balance_topup_requests')
     package = models.PositiveIntegerField(choices=PACKAGE_CHOICES)
     comment = models.CharField(max_length=255, blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    work_status = models.CharField(max_length=20, choices=WORK_STATUS_CHOICES, default='new', db_index=True)
+    assigned_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_topup_requests',
+        limit_choices_to={'is_staff': True},
+    )
+    first_response_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user} → {self.package} ({self.get_status_display()})"
+
+    def is_sla_overdue(self, response_minutes=5):
+        if self.work_status != 'new':
+            return False
+        if not self.created_at:
+            return False
+        return timezone.now() >= (self.created_at + timedelta(minutes=response_minutes))
+
 
 class TeacherFinanceEntry(models.Model):
     STATUS_CHOICES = (
@@ -401,6 +426,13 @@ class Lesson(models.Model):
 
 
 class TrialRequest(models.Model):
+    WORK_STATUS_CHOICES = (
+        ('new', 'Новая'),
+        ('in_progress', 'В работе'),
+        ('done', 'Закрыта'),
+        ('rejected', 'Отклонена'),
+    )
+
     name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
@@ -418,6 +450,17 @@ class TrialRequest(models.Model):
     consent_ip = models.GenericIPAddressField(null=True, blank=True)
     consent_user_agent = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    work_status = models.CharField(max_length=20, choices=WORK_STATUS_CHOICES, default='new', db_index=True)
+    assigned_admin = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_trial_requests',
+        limit_choices_to={'is_staff': True},
+    )
+    first_response_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
 
     assigned_teacher = models.ForeignKey(
         CustomUser,
@@ -431,6 +474,14 @@ class TrialRequest(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.subject})"
+
+    def is_sla_overdue(self, response_minutes=5):
+        if self.work_status != 'new':
+            return False
+        if not self.created_at:
+            return False
+        return timezone.now() >= (self.created_at + timedelta(minutes=response_minutes))
+
 class TeacherApplication(models.Model):
     name = models.CharField("ФИО", max_length=100)
     email = models.EmailField("Email")
