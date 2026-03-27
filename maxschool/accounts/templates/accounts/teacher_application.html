@@ -1,10 +1,10 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Vacancies | SmartUrok</title>
+    <title>Открытые вакансии преподавателей | SmartUrok</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900">
@@ -14,24 +14,21 @@
                 <img src="{% static 'images/logo3.png' %}" alt="SmartUrok" class="h-10 w-auto">
                 <span class="text-xl font-bold">SmartUrok</span>
             </a>
-            <a href="{% url 'home' %}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100">Back to home</a>
+            <a href="{% url 'home' %}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100">На главную</a>
         </div>
     </header>
 
     <main class="mx-auto max-w-6xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
         <section class="rounded-3xl bg-gradient-to-r from-orange-500 to-amber-400 p-8 text-white shadow-xl">
-            <p class="mb-2 text-sm uppercase tracking-[0.18em] text-white/80">SmartUrok Team</p>
-            <h1 class="text-3xl font-bold sm:text-4xl">Open teacher vacancies</h1>
-            <p class="mt-3 max-w-3xl text-white/90">
-                Choose an open position, fill in your details, and send an application.
-                The admin team will review it and contact you.
-            </p>
+            <p class="mb-2 text-sm uppercase tracking-[0.18em] text-white/80">Команда SmartUrok</p>
+            <h1 class="text-3xl font-bold sm:text-4xl">Открытые вакансии преподавателей</h1>
+            <p class="mt-3 max-w-3xl text-white/90">Выберите вакансию, заполните форму и отправьте отклик. Мы свяжемся с вами после рассмотрения заявки.</p>
         </section>
 
         <section class="space-y-5">
             <div class="flex items-center justify-between gap-4">
-                <h2 class="text-2xl font-bold">Current open positions</h2>
-                <span class="rounded-full bg-slate-200 px-3 py-1 text-sm font-medium text-slate-700">{{ vacancies|length }} open</span>
+                <h2 class="text-2xl font-bold">Сейчас открыто</h2>
+                <span class="rounded-full bg-slate-200 px-3 py-1 text-sm font-medium text-slate-700">{{ vacancies|length }} вакансий</span>
             </div>
 
             {% if vacancies %}
@@ -45,104 +42,56 @@
 
                     {% if vacancy.requirements %}
                     <div class="mt-4">
-                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Requirements</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Требования</p>
                         <p class="mt-1 whitespace-pre-line text-sm text-slate-700">{{ vacancy.requirements }}</p>
                     </div>
                     {% endif %}
 
                     {% if vacancy.conditions %}
                     <div class="mt-4">
-                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Conditions</p>
+                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Условия</p>
                         <p class="mt-1 whitespace-pre-line text-sm text-slate-700">{{ vacancy.conditions }}</p>
                     </div>
                     {% endif %}
 
-                    <a href="?vacancy={{ vacancy.id }}#application-form" class="mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-                        Apply to this vacancy
-                    </a>
+                    <a href="?vacancy={{ vacancy.id }}#application-form" class="mt-6 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">Откликнуться на вакансию</a>
                 </article>
                 {% endfor %}
             </div>
             {% else %}
             <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-                <p class="text-lg font-semibold text-slate-800">No open vacancies right now.</p>
-                <p class="mt-2 text-sm text-slate-600">Please check this page later.</p>
+                <p class="text-lg font-semibold text-slate-800">Сейчас открытых вакансий нет.</p>
+                <p class="mt-2 text-sm text-slate-600">Проверьте страницу позже.</p>
             </div>
             {% endif %}
         </section>
 
         <section id="application-form" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <h2 class="text-2xl font-bold">Application form</h2>
-            <p class="mt-2 text-sm text-slate-600">Fill in all required fields and submit your request.</p>
+            <h2 class="text-2xl font-bold">Форма отклика</h2>
+            <p class="mt-2 text-sm text-slate-600">Заполните поля и отправьте заявку.</p>
 
             {% if has_open_vacancies %}
             <form method="post" class="mt-6 space-y-5">
                 {% csrf_token %}
-
                 {% if form.non_field_errors %}
-                <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                    {{ form.non_field_errors }}
-                </div>
+                <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700">{{ form.non_field_errors }}</div>
                 {% endif %}
 
                 <div class="grid gap-5 md:grid-cols-2">
-                    <div class="md:col-span-2">
-                        <label for="{{ form.vacancy.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Vacancy</label>
-                        {{ form.vacancy }}
-                        {% for error in form.vacancy.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div>
-                        <label for="{{ form.first_name.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">First name</label>
-                        {{ form.first_name }}
-                        {% for error in form.first_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div>
-                        <label for="{{ form.last_name.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Last name</label>
-                        {{ form.last_name }}
-                        {% for error in form.last_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div>
-                        <label for="{{ form.email.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Email</label>
-                        {{ form.email }}
-                        {% for error in form.email.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div>
-                        <label for="{{ form.phone.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Phone</label>
-                        {{ form.phone }}
-                        {% for error in form.phone.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label for="{{ form.years_experience.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Experience in years</label>
-                        {{ form.years_experience }}
-                        {% for error in form.years_experience.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label for="{{ form.experience.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Experience details</label>
-                        {{ form.experience }}
-                        {% for error in form.experience.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label for="{{ form.motivation.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Motivation</label>
-                        {{ form.motivation }}
-                        {% for error in form.motivation.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
-                    </div>
+                    <div class="md:col-span-2"><label for="{{ form.vacancy.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Вакансия</label>{{ form.vacancy }}{% for error in form.vacancy.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div><label for="{{ form.first_name.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Имя</label>{{ form.first_name }}{% for error in form.first_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div><label for="{{ form.last_name.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Фамилия</label>{{ form.last_name }}{% for error in form.last_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div><label for="{{ form.email.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Email</label>{{ form.email }}{% for error in form.email.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div><label for="{{ form.phone.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Телефон</label>{{ form.phone }}{% for error in form.phone.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div class="md:col-span-2"><label for="{{ form.years_experience.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Опыт (лет)</label>{{ form.years_experience }}{% for error in form.years_experience.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div class="md:col-span-2"><label for="{{ form.experience.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Опыт работы</label>{{ form.experience }}{% for error in form.experience.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
+                    <div class="md:col-span-2"><label for="{{ form.motivation.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">Мотивация</label>{{ form.motivation }}{% for error in form.motivation.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}</div>
                 </div>
 
-                <button type="submit" class="inline-flex rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white hover:bg-orange-600">
-                    Send application
-                </button>
+                <button type="submit" class="inline-flex rounded-xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white hover:bg-orange-600">Отправить заявку</button>
             </form>
             {% else %}
-            <div class="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                There are no open vacancies yet, so the form is temporarily disabled.
-            </div>
+            <div class="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">Сейчас нет активных вакансий, поэтому форма временно недоступна.</div>
             {% endif %}
         </section>
     </main>

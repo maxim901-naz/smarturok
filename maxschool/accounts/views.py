@@ -540,17 +540,17 @@ def teacher_application_view(request):
         if form.is_valid():
             application = form.save()
             vacancy_title = application.vacancy.title if application.vacancy_id else application.specialization
-            subject = 'New teacher vacancy application'
+            subject = 'Новая заявка на вакансию преподавателя'
             body_lines = [
-                f'Vacancy: {vacancy_title}',
-                f'First name: {application.first_name}',
-                f'Last name: {application.last_name}',
-                f'Full name: {application.name}',
+                f'Вакансия: {vacancy_title}',
+                f'Имя: {application.first_name}',
+                f'Фамилия: {application.last_name}',
+                f'ФИО: {application.name}',
                 f'Email: {application.email}',
-                f'Phone: {application.phone}',
-                f'Experience (years): {application.years_experience or ""}',
-                f'Experience details: {application.experience}',
-                f'Motivation: {application.motivation}',
+                f'Телефон: {application.phone}',
+                f'Опыт (лет): {application.years_experience or ""}',
+                f'Опыт работы: {application.experience}',
+                f'Мотивация: {application.motivation}',
             ]
             body = '\n'.join(body_lines)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [settings.ADMIN_EMAIL], fail_silently=True)

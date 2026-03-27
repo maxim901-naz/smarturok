@@ -138,20 +138,20 @@ class TeacherApplicationForm(forms.ModelForm):
         base_class = 'w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-secondary focus:ring-2 focus:ring-secondary/30'
         textarea_class = base_class + ' min-h-[120px]'
 
-        self.fields['vacancy'].empty_label = 'Select vacancy'
+        self.fields['vacancy'].empty_label = 'Выберите вакансию'
         self.fields['vacancy'].widget.attrs.update({'class': base_class})
-        self.fields['first_name'].widget.attrs.update({'class': base_class, 'placeholder': 'First name'})
-        self.fields['last_name'].widget.attrs.update({'class': base_class, 'placeholder': 'Last name'})
+        self.fields['first_name'].widget.attrs.update({'class': base_class, 'placeholder': 'Имя'})
+        self.fields['last_name'].widget.attrs.update({'class': base_class, 'placeholder': 'Фамилия'})
         self.fields['email'].widget.attrs.update({'class': base_class, 'placeholder': 'Email'})
         self.fields['phone'].widget.attrs.update({'class': base_class, 'placeholder': '+7 (___) ___-__-__'})
-        self.fields['years_experience'].widget.attrs.update({'class': base_class, 'min': 0, 'placeholder': 'Years'})
-        self.fields['experience'].widget.attrs.update({'class': textarea_class, 'placeholder': 'Describe teaching experience'})
-        self.fields['motivation'].widget.attrs.update({'class': textarea_class, 'placeholder': 'Why do you want to work with us?'})
+        self.fields['years_experience'].widget.attrs.update({'class': base_class, 'min': 0, 'placeholder': 'Сколько лет'})
+        self.fields['experience'].widget.attrs.update({'class': textarea_class, 'placeholder': 'Расскажите об опыте преподавания'})
+        self.fields['motivation'].widget.attrs.update({'class': textarea_class, 'placeholder': 'Почему хотите работать с нами?'})
 
     def clean_vacancy(self):
         vacancy = self.cleaned_data.get('vacancy')
         if vacancy and not vacancy.is_active:
-            raise forms.ValidationError('Selected vacancy is not active.')
+            raise forms.ValidationError('Выбранная вакансия уже неактивна.')
         return vacancy
 
     def save(self, commit=True):
@@ -162,7 +162,7 @@ class TeacherApplicationForm(forms.ModelForm):
         if application.vacancy_id:
             application.specialization = application.vacancy.title[:100]
         if not application.specialization:
-            application.specialization = 'Teacher application'
+            application.specialization = 'Заявка преподавателя'
         if commit:
             application.save()
         return application

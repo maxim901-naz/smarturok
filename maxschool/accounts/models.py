@@ -483,20 +483,20 @@ class TrialRequest(models.Model):
         return timezone.now() >= (self.created_at + timedelta(minutes=response_minutes))
 
 class Vacancy(models.Model):
-    title = models.CharField("Vacancy title", max_length=150)
-    short_description = models.CharField("Short description", max_length=255, blank=True)
-    responsibilities = models.TextField("Responsibilities", blank=True)
-    requirements = models.TextField("Requirements", blank=True)
-    conditions = models.TextField("Conditions", blank=True)
-    is_active = models.BooleanField("Is active", default=True)
-    order = models.PositiveSmallIntegerField("Display order", default=0)
-    created_at = models.DateTimeField("Created at", auto_now_add=True)
-    updated_at = models.DateTimeField("Updated at", auto_now=True)
+    title = models.CharField("Название вакансии", max_length=150)
+    short_description = models.CharField("Краткое описание", max_length=255, blank=True)
+    responsibilities = models.TextField("Обязанности", blank=True)
+    requirements = models.TextField("Требования", blank=True)
+    conditions = models.TextField("Условия", blank=True)
+    is_active = models.BooleanField("Активна", default=True)
+    order = models.PositiveSmallIntegerField("Порядок", default=0)
+    created_at = models.DateTimeField("Создана", auto_now_add=True)
+    updated_at = models.DateTimeField("Обновлена", auto_now=True)
 
     class Meta:
         ordering = ("order", "title")
-        verbose_name = "Vacancy"
-        verbose_name_plural = "Vacancies"
+        verbose_name = "Вакансия"
+        verbose_name_plural = "Вакансии"
 
     def __str__(self):
         return self.title
@@ -509,23 +509,23 @@ class TeacherApplication(models.Model):
         null=True,
         blank=True,
         related_name="applications",
-        verbose_name="Vacancy",
+        verbose_name="Вакансия",
     )
-    name = models.CharField("Full name", max_length=100)
-    first_name = models.CharField("First name", max_length=60, blank=True, default="")
-    last_name = models.CharField("Last name", max_length=80, blank=True, default="")
+    name = models.CharField("ФИО", max_length=100)
+    first_name = models.CharField("Имя", max_length=60, blank=True, default="")
+    last_name = models.CharField("Фамилия", max_length=80, blank=True, default="")
     email = models.EmailField("Email")
-    phone = models.CharField("Phone", max_length=20)
-    specialization = models.CharField("Subject/Specialization", max_length=100)
-    years_experience = models.PositiveSmallIntegerField("Experience years", null=True, blank=True)
-    experience = models.TextField("Experience details")
-    motivation = models.TextField("Motivation")
+    phone = models.CharField("Телефон", max_length=20)
+    specialization = models.CharField("Предмет/специализация", max_length=100)
+    years_experience = models.PositiveSmallIntegerField("Опыт (лет)", null=True, blank=True)
+    experience = models.TextField("Опыт работы")
+    motivation = models.TextField("Мотивация")
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ("-submitted_at",)
-        verbose_name = "Teacher application"
-        verbose_name_plural = "Teacher applications"
+        verbose_name = "Заявка преподавателя"
+        verbose_name_plural = "Заявки преподавателей"
 
     def __str__(self):
         vacancy_title = self.vacancy.title if self.vacancy_id else self.specialization
