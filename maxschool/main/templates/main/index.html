@@ -1822,7 +1822,6 @@
                     <input type="hidden" name="yclid">
                     <input type="hidden" name="landing_path">
                     <input type="hidden" name="referrer">
-                    <input type="hidden" name="subject" id="promo-subject-id">
                     <input type="hidden" name="pricing_subject_id" id="promo-pricing-subject-id">
                     <input type="hidden" name="pricing_subject_name" id="promo-pricing-subject-name">
                     <input type="hidden" name="pricing_lessons_count" id="promo-pricing-lessons-count">
@@ -2601,7 +2600,6 @@
                 if (field) field.value = String(value ?? '');
             };
 
-            assign('promo-subject-id', state.subjectId);
             assign('promo-pricing-subject-id', state.subjectId);
             assign('promo-pricing-subject-name', state.subjectName);
             assign('promo-pricing-lessons-count', state.lessonsCount);

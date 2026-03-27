@@ -241,7 +241,9 @@ def home_lead(request):
     client_ip = _get_client_ip(request) or 'unknown'
     user_agent = (request.META.get('HTTP_USER_AGENT') or '')[:255]
 
-    if not subject_id and pricing_subject_id.isdigit():
+    # Promo modal may carry calculator pricing context, but it should not
+    # silently bind request to calculator subject.
+    if lead_form != 'promo_modal' and not subject_id and pricing_subject_id.isdigit():
         subject_id = pricing_subject_id
 
     subject = None
