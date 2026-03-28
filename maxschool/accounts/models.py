@@ -440,6 +440,7 @@ class TrialRequest(models.Model):
     preferred_time = models.CharField(max_length=100, blank=True)
     message = models.TextField(blank=True)
     lead_form = models.CharField(max_length=64, blank=True, default='')
+    promo_interest = models.CharField(max_length=120, blank=True, default='')
     pricing_subject_name = models.CharField(max_length=120, blank=True, default='')
     pricing_lessons_count = models.PositiveIntegerField(null=True, blank=True)
     pricing_discount_percent = models.PositiveIntegerField(null=True, blank=True)

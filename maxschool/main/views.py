@@ -216,6 +216,7 @@ def home_lead(request):
     preferred_time = (request.POST.get('preferred_time') or '').strip()
     message = (request.POST.get('message') or '').strip()
     subject_id = (request.POST.get('subject') or '').strip()
+    promo_interest = _clean_tracking_value(request.POST.get('promo_interest'), max_length=120)
     pricing_subject_id = (request.POST.get('pricing_subject_id') or '').strip()
     pricing_subject_name = _clean_tracking_value(request.POST.get('pricing_subject_name'), max_length=120)
     pricing_lessons_count = _parse_positive_int(request.POST.get('pricing_lessons_count'))
@@ -241,10 +242,19 @@ def home_lead(request):
     client_ip = _get_client_ip(request) or 'unknown'
     user_agent = (request.META.get('HTTP_USER_AGENT') or '')[:255]
 
-    # Promo modal may carry calculator pricing context, but it should not
-    # silently bind request to calculator subject.
-    if lead_form != 'promo_modal' and not subject_id and pricing_subject_id.isdigit():
-        subject_id = pricing_subject_id
+    # Promo modal should keep only explicit interest from popup chips.
+    # Calculator pricing context is ignored here to avoid ambiguous leads.
+    if lead_form == 'promo_modal':
+        subject_id = ''
+        pricing_subject_name = ''
+        pricing_lessons_count = None
+        pricing_discount_percent = None
+        pricing_total_price = None
+        pricing_old_price = None
+    else:
+        promo_interest = ''
+        if not subject_id and pricing_subject_id.isdigit():
+            subject_id = pricing_subject_id
 
     subject = None
     if subject_id.isdigit():
@@ -289,6 +299,7 @@ def home_lead(request):
         preferred_time=preferred_time,
         message=message,
         lead_form=lead_form,
+        promo_interest=promo_interest,
         pricing_subject_name=pricing_subject_name,
         pricing_lessons_count=pricing_lessons_count,
         pricing_discount_percent=pricing_discount_percent,
