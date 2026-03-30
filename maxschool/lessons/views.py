@@ -354,9 +354,29 @@ def delete_availability_view(request, slot_id):
 from datetime import datetime, timedelta
 
 
+def _normalize_jaas_key_id(app_id, key_id):
+    """Accept short tenant/key format and normalize it to <app_id>/<key>."""
+    if not key_id:
+        return ''
+
+    key_id = key_id.strip()
+    if key_id.startswith(f'{app_id}/'):
+        return key_id
+
+    tenant_id = app_id.removeprefix('vpaas-magic-cookie-')
+    if key_id.startswith(f'{tenant_id}/'):
+        return f'{app_id}/{key_id.split("/", 1)[1]}'
+
+    # If only the key suffix is provided, prepend the app id.
+    if '/' not in key_id:
+        return f'{app_id}/{key_id}'
+
+    return key_id
+
+
 def _build_jaas_jwt(*, user, is_teacher):
     app_id = (settings.JAAAS_APP_ID or '').strip()
-    key_id = (settings.JAAAS_KEY_ID or '').strip()
+    key_id = _normalize_jaas_key_id(app_id, (settings.JAAAS_KEY_ID or '').strip())
     private_key = settings.JAAAS_PRIVATE_KEY or ''
     issuer = (settings.JAAAS_JWT_ISSUER or 'chat').strip()
 
@@ -376,7 +396,17 @@ def _build_jaas_jwt(*, user, is_teacher):
                 'name': user.get_full_name() or user.username,
                 'email': user.email or '',
                 'moderator': 'true' if is_teacher else 'false',
-            }
+            },
+            # JaaS expects this object in the JWT payload.
+            'features': {
+                'livestreaming': False,
+                'recording': False,
+                'transcription': False,
+                'inbound-call': False,
+                'outbound-call': False,
+                'sip-inbound-call': False,
+                'sip-outbound-call': False,
+            },
         },
     }
     headers = {'kid': key_id, 'typ': 'JWT'}
