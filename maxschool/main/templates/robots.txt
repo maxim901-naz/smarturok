@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Host: smarturok.ru
+Sitemap: https://smarturok.ru/sitemap.xml
