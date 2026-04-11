@@ -58,8 +58,48 @@ def home(request):
 
 
 def teachers_list(request):
-    teachers = CustomUser.objects.filter(role='teacher', is_approved=True)
-    return render(request, 'main/teachers_list.html', {'teachers': teachers})
+    teachers = (
+        CustomUser.objects
+        .filter(role='teacher', is_approved=True)
+        .prefetch_related('subjects_taught', 'desired_subject')
+    )
+
+    subjects = (
+        Subject.objects
+        .filter(
+            Q(teachers__role='teacher', teachers__is_approved=True)
+            | Q(customuser__role='teacher', customuser__is_approved=True)
+        )
+        .distinct()
+        .order_by('name')
+    )
+
+    selected_subject = (request.GET.get('subject') or '').strip()
+    search_query = (request.GET.get('q') or '').strip()
+
+    if selected_subject and selected_subject.isdigit():
+        subject_id = int(selected_subject)
+        teachers = teachers.filter(
+            Q(subjects_taught__id=subject_id) | Q(desired_subject__id=subject_id)
+        )
+    else:
+        selected_subject = ''
+
+    if search_query:
+        teachers = teachers.filter(
+            Q(first_name__icontains=search_query)
+            | Q(last_name__icontains=search_query)
+            | Q(username__icontains=search_query)
+            | Q(email__icontains=search_query)
+        )
+
+    teachers = teachers.distinct()
+    return render(request, 'main/teachers_list.html', {
+        'teachers': teachers,
+        'subjects': subjects,
+        'selected_subject': selected_subject,
+        'search_query': search_query,
+    })
 
 
 def materials_list(request):
