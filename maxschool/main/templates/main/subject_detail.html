@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <title>{{ page_title }}</title>
     <meta name="description" content="{{ page_description }}">
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <link rel="canonical" href="https://smarturok.ru{{ request.path }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ page_title }}">
@@ -77,6 +77,11 @@
             max-width: 1400px;
             margin: 0 auto;
         }
+        .site-header {
+            background: rgba(255, 255, 255, 0.84);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        }
         .hover-scale {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
@@ -122,6 +127,23 @@
             box-shadow: 0 18px 35px rgba(15, 23, 42, 0.07);
             border-radius: 18px;
             background: #fff;
+            transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+        }
+        .surface-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 42px rgba(2, 6, 23, 0.1);
+            border-color: rgba(14, 165, 233, 0.24);
+        }
+        .page-anchor {
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(255, 255, 255, 0.88);
+            color: #334155;
+            transition: all 0.2s ease;
+        }
+        .page-anchor:hover {
+            color: #0f172a;
+            border-color: rgba(14, 165, 233, 0.35);
+            transform: translateY(-1px);
         }
         .metric-card {
             position: relative;
@@ -264,7 +286,7 @@
     </noscript>
     {% endif %}
 
-    <header class="bg-white shadow-sm fixed top-0 left-0 w-full z-40">
+    <header class="site-header shadow-sm fixed top-0 left-0 w-full z-40">
         <div class="content-container flex justify-between items-center py-4 px-4 sm:px-6 lg:px-8">
             <div class="flex items-center space-x-3">
                 <a href="{% url 'home' %}">
@@ -281,6 +303,18 @@
     </header>
 
     <main class="pt-24">
+        <section class="border-b border-slate-200/80 bg-white/85">
+            <div class="content-container px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center gap-2">
+                <a href="#subject-results" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Результат</a>
+                <a href="#subject-benefits" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">План обучения</a>
+                <a href="#subject-progress" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Прогресс</a>
+                {% if teachers %}
+                <a href="#subject-teachers" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Преподаватели</a>
+                {% endif %}
+                <a href="#lead-form" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Оставить заявку</a>
+            </div>
+        </section>
+
         <section class="relative overflow-hidden bg-gradient-to-r from-primary to-accent text-white">
             <div class="hero-orb hero-orb-1"></div>
             <div class="hero-orb hero-orb-2"></div>
@@ -344,7 +378,7 @@
             </div>
         </section>
 
-        <section class="pb-14">
+        <section id="subject-results" class="pb-14">
             <div class="content-container px-4 sm:px-6 lg:px-8">
                 <div class="grid lg:grid-cols-3 gap-7">
                     <article class="surface-card lg:col-span-2 p-6 sm:p-8">
@@ -379,7 +413,7 @@
             </div>
         </section>
 
-        <section class="pb-14">
+        <section id="subject-benefits" class="pb-14">
             <div class="content-container px-4 sm:px-6 lg:px-8">
                 <div class="grid lg:grid-cols-2 gap-7">
                     <div class="surface-card p-6 sm:p-8">
@@ -405,7 +439,7 @@
             </div>
         </section>
 
-        <section class="pb-14">
+        <section id="subject-progress" class="pb-14">
             <div class="content-container px-4 sm:px-6 lg:px-8">
                 <div class="surface-card p-6 sm:p-8">
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -429,7 +463,7 @@
         </section>
 
         {% if teachers %}
-        <section class="pb-14">
+        <section id="subject-teachers" class="pb-14">
             <div class="content-container px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold section-header">Преподаватели по предмету</h2>
@@ -475,13 +509,12 @@
                                 <img src="{% static 'images/logo4-round.png' %}" alt="Преподаватель {{ teacher.get_full_name|default:teacher.username }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                             {% endif %}
                         </div>
-                        <div class="mt-4 flex items-center justify-center space-x-1">
+                        <div class="mt-4 flex justify-center space-x-1">
                             {% for _ in "12345" %}
                             <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
                             {% endfor %}
-                            <span class="text-gray-600 ml-2">{{ teacher.rating|default_if_none:"5.0" }} ({{ teacher.reviews_count|default_if_none:24 }} отзывов)</span>
                         </div>
                     </div>
                     <div class="md:w-2/3">
@@ -498,15 +531,15 @@
 
                         <div class="mb-4">
                             <h4 class="font-semibold mb-2">Образование:</h4>
-                            <p class="text-gray-700">{{ teacher.education|default:"МГУ им. М.В. Ломоносова, профильное педагогическое направление." }}</p>
+                            <p class="text-gray-700">МГУ им. М.В. Ломоносова, профильное педагогическое направление.</p>
                         </div>
                         <div class="mb-4">
                             <h4 class="font-semibold mb-2">Опыт работы:</h4>
-                            <p class="text-gray-700">{{ teacher.experience_years|default_if_none:5 }}+ лет преподавания, {{ teacher.students_count|default_if_none:50 }}+ учеников, успешных работ {{ teacher.success_rate|default_if_none:95 }}%.</p>
+                            <p class="text-gray-700">Практика индивидуальных онлайн-занятий и подготовка к контрольным и экзаменам.</p>
                         </div>
                         <div class="mb-6">
                             <h4 class="font-semibold mb-2">Подход:</h4>
-                            <p class="text-gray-700">{{ teacher.methodology|default:"Понятное объяснение сложных тем, системная практика и обратная связь для родителей." }}</p>
+                            <p class="text-gray-700">Понятное объяснение сложных тем, системная практика и обратная связь для родителей.</p>
                         </div>
 
                         <div class="flex flex-col sm:flex-row gap-3">
@@ -582,6 +615,12 @@
             </div>
         </section>
     </main>
+
+    <div class="fixed right-5 bottom-5 z-40 hidden lg:block">
+        <a href="#lead-form" data-cta="subject_lead_open" class="btn-primary text-white px-6 py-3 rounded-xl font-semibold shadow-lg">
+            Получить консультацию
+        </a>
+    </div>
 
     <div class="sticky-mobile-cta fixed bottom-3 left-3 right-3 sm:hidden z-40 bg-white rounded-xl p-2 border border-gray-200">
         <div class="grid grid-cols-2 gap-2">

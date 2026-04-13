@@ -8,40 +8,99 @@
     <meta name="description" content="Публичная оферта SmartUrok на оказание образовательных и консультационных услуг.">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0f172a',
+                        accent: '#0ea5e9',
+                        warm: '#f97316'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                }
+            }
+        };
+    </script>
+    <style>
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 35%),
+                radial-gradient(circle at bottom left, rgba(249, 115, 22, 0.14), transparent 32%),
+                #f8fafc;
+        }
+        .glass {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.72);
+        }
+        .offer-card {
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+        }
+        .offer-section {
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
+        }
+        .offer-section h2 {
+            letter-spacing: -0.01em;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
-    <main class="max-w-4xl mx-auto px-4 py-10 sm:py-14">
-        <a href="{% url 'home' %}" class="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 mb-6">← На главную</a>
-        <h1 class="text-3xl sm:text-4xl font-bold mb-6">Договор-оферта</h1>
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 leading-relaxed">
-            <p><strong>Дата публикации:</strong> 11 марта 2026 года</p>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">1. Предмет оферты</h2>
+<body class="text-slate-900">
+    <main class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
+        <header class="glass rounded-2xl border border-white/60 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <a href="{% url 'home' %}" class="inline-flex items-center text-sm text-slate-600 hover:text-slate-900 transition">
+                    ← На главную
+                </a>
+                <span class="text-xs sm:text-sm text-slate-500">Редакция от 11 марта 2026</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-primary">Договор-оферта</h1>
+            <p class="mt-3 text-slate-600 max-w-3xl">
+                Настоящий документ определяет правила оказания услуг онлайн-школы SmartUrok и условия взаимодействия с пользователем.
+            </p>
+        </header>
+
+        <div class="offer-card bg-white rounded-3xl p-4 sm:p-8 space-y-4 sm:space-y-5 leading-relaxed">
+            <section class="offer-section rounded-2xl p-5 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2">1. Предмет оферты</h2>
                 <p>Исполнитель предоставляет пользователю услуги по организации и проведению онлайн-занятий в рамках программ SmartUrok, а пользователь принимает и оплачивает услуги на условиях настоящей оферты.</p>
             </section>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">2. Порядок акцепта</h2>
+
+            <section class="offer-section rounded-2xl p-5 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2">2. Порядок акцепта</h2>
                 <p>Акцептом оферты считается совершение пользователем действий, свидетельствующих о согласии с условиями: заполнение формы заявки, запись на занятие, оплата услуг.</p>
             </section>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">3. Стоимость и оплата</h2>
-                <p>Стоимость услуг определяется действующими тарифами и выбранным пакетом занятий. Оплата производится способами, указанными на сайте или согласованными с менеджером.</p>
+
+            <section class="offer-section rounded-2xl p-5 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2">3. Стоимость и оплата</h2>
+                <p>Стоимость услуг определяется действующими тарифами и выбранным пакетом занятий. Оплата производится способами, указанными на сайте, либо согласованными с менеджером.</p>
             </section>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">4. Права и обязанности сторон</h2>
+
+            <section class="offer-section rounded-2xl p-5 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2">4. Права и обязанности сторон</h2>
                 <p>Исполнитель обязуется оказать услуги надлежащего качества, а пользователь — предоставить корректные данные, соблюдать расписание и своевременно оплачивать занятия.</p>
             </section>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">5. Отмена и перенос занятий</h2>
+
+            <section class="offer-section rounded-2xl p-5 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2">5. Отмена и перенос занятий</h2>
                 <p>Порядок отмены и переноса занятий определяется правилами школы и условиями выбранного тарифа.</p>
             </section>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">6. Ответственность сторон</h2>
+
+            <section class="offer-section rounded-2xl p-5 sm:p-6">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-2">6. Ответственность сторон</h2>
                 <p>Стороны несут ответственность в соответствии с применимым законодательством и условиями настоящей оферты.</p>
             </section>
-            <section>
-                <h2 class="text-xl font-semibold mb-2">7. Контакты</h2>
-                <p>По вопросам исполнения оферты: <a href="mailto:smarturok.ru@gmail.com" class="underline">smarturok.ru@gmail.com</a>, телефон <a href="tel:+37496801410" class="underline">+374 96 801 410</a>.</p>
+
+            <section class="rounded-2xl p-5 sm:p-6 bg-gradient-to-r from-primary to-slate-700 text-white">
+                <h2 class="text-xl sm:text-2xl font-semibold mb-3">7. Контакты</h2>
+                <p class="text-white/90">По вопросам исполнения оферты:</p>
+                <div class="mt-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                    <a href="mailto:smarturok.ru@gmail.com" class="underline decoration-white/60 hover:decoration-white">smarturok.ru@gmail.com</a>
+                    <a href="tel:+37496801410" class="underline decoration-white/60 hover:decoration-white">+374 96 801 410</a>
+                </div>
             </section>
         </div>
     </main>
