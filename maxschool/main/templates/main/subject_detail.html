@@ -530,18 +530,21 @@
                         </p>
 
                         <div class="mb-4">
+                            <h4 class="font-semibold mb-2">О преподавателе:</h4>
+                            <p class="text-gray-700">{{ teacher.bio|default:"Информация о преподавателе обновляется." }}</p>
+                        </div>
+                        <div class="mb-4">
                             <h4 class="font-semibold mb-2">Образование:</h4>
-                            <p class="text-gray-700">МГУ им. М.В. Ломоносова, профильное педагогическое направление.</p>
+                            <p class="text-gray-700">{{ teacher.education|default:"Данные об образовании уточняются." }}</p>
                         </div>
                         <div class="mb-4">
                             <h4 class="font-semibold mb-2">Опыт работы:</h4>
-                            <p class="text-gray-700">Практика индивидуальных онлайн-занятий и подготовка к контрольным и экзаменам.</p>
+                            <p class="text-gray-700">{{ teacher.experience_years|default_if_none:5 }}+ лет преподавания, {{ teacher.students_count|default_if_none:50 }}+ учеников, успешных работ {{ teacher.success_rate|default_if_none:95 }}%</p>
                         </div>
                         <div class="mb-6">
-                            <h4 class="font-semibold mb-2">Подход:</h4>
-                            <p class="text-gray-700">Понятное объяснение сложных тем, системная практика и обратная связь для родителей.</p>
+                            <h4 class="font-semibold mb-2">Методика преподавания:</h4>
+                            <p class="text-gray-700">{{ teacher.methodology|default:"Индивидуальный подход и системная практика." }}</p>
                         </div>
-
                         <div class="flex flex-col sm:flex-row gap-3">
                             <a href="{% url 'book_lesson' teacher.id %}" data-cta="subject_teacher_book_open" class="px-6 py-3 btn-primary text-white rounded-lg font-semibold text-center">
                                 Записаться к преподавателю
