@@ -56,6 +56,8 @@ REGISTER_RATE_WINDOW_SECONDS = 60 * 60  # 1 hour
 LOGIN_IP_RATE_LIMIT = 20
 LOGIN_USER_RATE_LIMIT = 10
 LOGIN_RATE_WINDOW_SECONDS = 15 * 60  # 15 minutes
+RESEND_VERIFY_RATE_LIMIT = 8
+RESEND_VERIFY_RATE_WINDOW_SECONDS = 15 * 60  # 15 minutes
 REGISTER_CAPTCHA_ANSWER_KEY = 'register_captcha_answer'
 REGISTER_CAPTCHA_LABEL_KEY = 'register_captcha_label'
 logger = logging.getLogger(__name__)
@@ -264,6 +266,53 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     return render(request, 'accounts/login.html', {'form': form})
+
+
+def resend_verification_view(request):
+    prefill_email = ''
+    if request.method == 'POST':
+        prefill_email = (request.POST.get('email') or '').strip().lower()
+        ip = _client_ip(request)
+        limit_key = _rate_limit_key('verify_resend:ip', ip)
+
+        if _rate_limit_exceeded(limit_key, RESEND_VERIFY_RATE_LIMIT):
+            messages.error(request, 'Слишком много запросов. Повторите через 15 минут.')
+            return render(
+                request,
+                'accounts/resend_verification.html',
+                {'prefill_email': prefill_email},
+            )
+
+        _rate_limit_hit(limit_key, RESEND_VERIFY_RATE_WINDOW_SECONDS)
+
+        if not prefill_email:
+            messages.error(request, 'Укажите email для повторной отправки ссылки.')
+            return render(
+                request,
+                'accounts/resend_verification.html',
+                {'prefill_email': prefill_email},
+            )
+
+        user = (
+            CustomUser.objects
+            .filter(email__iexact=prefill_email, role='student', is_active=True)
+            .first()
+        )
+        if user and not user.is_email_verified:
+            _send_email_verification(request, user)
+
+        # Do not reveal whether email/account exists.
+        messages.success(
+            request,
+            'Если аккаунт с таким email найден и ещё не подтверждён, мы отправили новую ссылку.',
+        )
+        return redirect('login')
+
+    return render(
+        request,
+        'accounts/resend_verification.html',
+        {'prefill_email': prefill_email},
+    )
 
 
 def verify_email_view(request, uidb64, token):

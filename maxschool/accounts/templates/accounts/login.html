@@ -253,6 +253,15 @@
                         Зарегистрируйтесь
                     </a>
                 </div>
+
+                <div class="text-sm flex items-center justify-center gap-4">
+                    <a href="{% url 'password_reset' %}" class="text-slate-600 hover:text-slate-900 hover:underline transition">
+                        Забыли пароль?
+                    </a>
+                    <a href="{% url 'resend_verification' %}" class="text-orange-600 hover:text-orange-700 hover:underline transition">
+                        Подтвердить email
+                    </a>
+                </div>
                 
                 <div class="border-t border-gray-200 pt-4">
                     <a href="{% url 'trial' %}" class="inline-flex items-center text-accent font-semibold hover:underline transition">
