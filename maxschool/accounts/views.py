@@ -156,6 +156,21 @@ def register_view(request):
         form = CustomUserCreationForm(request.POST)
         _apply_register_captcha_label(form, request)
 
+        requested_role = (request.POST.get('role') or '').strip().lower()
+        if requested_role and requested_role != 'student':
+            form.add_error(
+                None,
+                'Самостоятельная регистрация преподавателя отключена. '
+                'Для преподавателя нужно отправить заявку на вакансию.'
+            )
+            _refresh_register_captcha(request)
+            _apply_register_captcha_label(form, request)
+            return render(
+                request,
+                'accounts/register.html',
+                {'form': form, 'default_time_zone': default_time_zone},
+            )
+
         if _rate_limit_exceeded(register_key, REGISTER_RATE_LIMIT):
             form.add_error(None, 'Слишком много попыток регистрации. Повторите позже.')
             return render(request, 'accounts/register.html', {'form': form, 'default_time_zone': default_time_zone})
@@ -172,20 +187,16 @@ def register_view(request):
         form_valid = form.is_valid()
         if form_valid and captcha_ok:
             user = form.save(commit=False)
-            if user.role == 'teacher':
-                user.time_zone = TEACHER_TZ_NAME
-                user.is_approved = False
-            else:
-                browser_tz = (request.POST.get('time_zone') or '').strip()
-                if browser_tz:
-                    try:
-                        ZoneInfo(browser_tz)
-                        user.time_zone = browser_tz
-                    except Exception:
-                        user.time_zone = default_time_zone
-                else:
+            browser_tz = (request.POST.get('time_zone') or '').strip()
+            if browser_tz:
+                try:
+                    ZoneInfo(browser_tz)
+                    user.time_zone = browser_tz
+                except Exception:
                     user.time_zone = default_time_zone
-                user.is_approved = True
+            else:
+                user.time_zone = default_time_zone
+            user.is_approved = True
             user.is_email_verified = False
             user.save()
             email_sent = _send_email_verification(request, user)
