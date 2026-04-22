@@ -337,6 +337,7 @@ def verify_email_view(request, uidb64, token):
         if not user.is_email_verified:
             user.is_email_verified = True
             user.save(update_fields=['is_email_verified'])
+            request.session['show_welcome_onboarding'] = True
         messages.success(request, 'Email подтвержден. Теперь вы можете войти в аккаунт.')
     else:
         messages.error(request, 'Ссылка подтверждения недействительна или устарела.')
@@ -435,6 +436,25 @@ def student_dashboard_view(request):
     week_end = week_start + timedelta(days=6)
     lessons_week = [l for l in upcoming_lessons if week_start <= l.display_date <= week_end]
     total_upcoming_week = len(lessons_week)
+    total_lessons_count = len(upcoming_lessons) + len(completed_lessons)
+
+    show_welcome_onboarding = bool(request.session.pop('show_welcome_onboarding', False))
+    show_onboarding = show_welcome_onboarding or total_lessons_count == 0
+
+    payment_reminder_level = None
+    payment_reminder_text = None
+    if request.user.balance <= 0:
+        payment_reminder_level = 'critical'
+        payment_reminder_text = 'Баланс пуст. Пополните его сейчас, чтобы запись на уроки проходила без пауз.'
+    elif request.user.balance <= 2:
+        payment_reminder_level = 'warning'
+        payment_reminder_text = f'На балансе осталось {request.user.balance} урока(ов). Рекомендуем пополнить заранее.'
+    elif total_upcoming_week and request.user.balance < total_upcoming_week:
+        payment_reminder_level = 'info'
+        payment_reminder_text = (
+            f'На этой неделе запланировано {total_upcoming_week} уроков, '
+            f'а на балансе {request.user.balance}. Пополните баланс, чтобы избежать переносов.'
+        )
 
     from lessons.models import HomeworkSubmission
 
@@ -482,6 +502,10 @@ def student_dashboard_view(request):
         'total_upcoming': total_upcoming_week,
         'now': now_local,
         'balance_warning': balance_warning,
+        'payment_reminder_level': payment_reminder_level,
+        'payment_reminder_text': payment_reminder_text,
+        'show_welcome_onboarding': show_welcome_onboarding,
+        'show_onboarding': show_onboarding,
         'balance_history': balance_history,
         'next_lesson': next_lesson,
         'completed_lessons': len(completed_lessons),
