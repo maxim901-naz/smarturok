@@ -1,6 +1,8 @@
 from typing import Literal
 from django.contrib import admin
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -234,6 +236,7 @@ class CustomUserAdmin(UserAdmin):
     )
     list_editable = ('balance', 'teacher_payout_percent', 'teacher_payout_fixed')
     list_filter = ('role', 'is_approved', 'is_email_verified', 'is_active', 'desired_subject')
+    readonly_fields = ('manual_credit_buttons',)
 
     # --- ВАЖНО: НЕ НАСЛЕДУЕМ UserAdmin.fieldsets ---
     fieldsets = (
@@ -246,6 +249,9 @@ class CustomUserAdmin(UserAdmin):
         ("Роли и доступ", {
             "fields": ("role", "is_approved", "is_email_verified", "is_active", "is_staff",
                        "is_superuser", "groups", "user_permissions")
+        }),
+        ("Баланс ученика", {
+            "fields": ("balance", "manual_credit_buttons")
         }),
         ("Дополнительно", {
             "fields": ("desired_subject", "subjects_taught", "teachers")
@@ -285,6 +291,56 @@ class CustomUserAdmin(UserAdmin):
         self.message_user(request, f"Одобрено преподавателей: {updated}")
 
     approve_teachers.short_description = "Одобрить выбранных преподавателей"
+
+    def get_urls(self):
+        custom_urls = [
+            path(
+                '<int:user_id>/manual-credit/<int:lessons>/',
+                self.admin_site.admin_view(self.manual_credit_view),
+                name='accounts_customuser_manual_credit',
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    @admin.display(description='Ручное начисление уроков')
+    def manual_credit_buttons(self, obj):
+        if not obj or obj.role != 'student':
+            return '—'
+
+        buttons = []
+        for lessons in (1, 4, 8, 12):
+            url = reverse('admin:accounts_customuser_manual_credit', args=[obj.pk, lessons])
+            buttons.append(
+                f"<a class='button' href='{url}' style='margin-right:8px;'>+{lessons}</a>"
+            )
+        return format_html(''.join(buttons))
+
+    def manual_credit_view(self, request, user_id, lessons):
+        user = get_object_or_404(CustomUser, pk=user_id)
+
+        if not self.has_change_permission(request, user):
+            return HttpResponseRedirect(reverse('admin:accounts_customuser_changelist'))
+
+        if user.role != 'student':
+            self.message_user(request, 'Ручное начисление доступно только для учеников.')
+            return HttpResponseRedirect(reverse('admin:accounts_customuser_change', args=[user.pk]))
+
+        allowed = {1, 4, 8, 12}
+        if lessons not in allowed:
+            self.message_user(request, 'Недопустимое количество уроков для начисления.')
+            return HttpResponseRedirect(reverse('admin:accounts_customuser_change', args=[user.pk]))
+
+        user.balance += lessons
+        user.save(update_fields=['balance'])
+
+        BalanceTransaction.objects.create(
+            user=user,
+            direction='credit',
+            amount=lessons,
+            note=f'Manual admin credit ({lessons} lessons) by {request.user.username}',
+        )
+        self.message_user(request, f'Начислено {lessons} урок(ов) пользователю {user.username}.')
+        return HttpResponseRedirect(reverse('admin:accounts_customuser_change', args=[user.pk]))
 
 # Админка для доступности учителей
 @admin.register(TeacherAvailability)
