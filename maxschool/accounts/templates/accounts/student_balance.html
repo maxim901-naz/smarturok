@@ -27,9 +27,14 @@
                         <div class="flex justify-between py-2 border-b last:border-b-0">
                             <div>
                                 <div class="font-medium">{% if t.direction == 'credit' %}Пополнение{% else %}Списание{% endif %}</div>
+                                {% if t.note %}
+                                <div class="text-sm text-gray-700">{{ t.note }}</div>
+                                {% endif %}
                                 <div class="text-sm text-gray-600">{{ t.created_at|date:"d.m.Y H:i" }}</div>
                             </div>
-                            <div class="font-semibold">{% if t.direction == 'credit' %}+{% else %}-{% endif %}{{ t.amount }}</div>
+                            <div class="font-semibold {% if t.direction == 'credit' %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if t.direction == 'credit' %}+{% else %}-{% endif %}{{ t.amount }}
+                            </div>
                         </div>
                     {% endfor %}
                 </div>

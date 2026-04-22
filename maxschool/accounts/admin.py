@@ -2,6 +2,7 @@ from typing import Literal
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html
@@ -330,17 +331,37 @@ class CustomUserAdmin(UserAdmin):
             self.message_user(request, 'Недопустимое количество уроков для начисления.')
             return HttpResponseRedirect(reverse('admin:accounts_customuser_change', args=[user.pk]))
 
-        user.balance += lessons
-        user.save(update_fields=['balance'])
+        if request.method == 'POST':
+            comment = (request.POST.get('comment') or '').strip() or 'Бонусный урок'
+            user.balance += lessons
+            user.save(update_fields=['balance'])
 
-        BalanceTransaction.objects.create(
-            user=user,
-            direction='credit',
-            amount=lessons,
-            note=f'Manual admin credit ({lessons} lessons) by {request.user.username}',
+            BalanceTransaction.objects.create(
+                user=user,
+                direction='credit',
+                amount=lessons,
+                note=f'Ручное начисление: {comment} (админ: {request.user.username})',
+            )
+            self.message_user(
+                request,
+                f'Начислено {lessons} урок(ов) пользователю {user.username}. Комментарий: {comment}',
+            )
+            return HttpResponseRedirect(reverse('admin:accounts_customuser_change', args=[user.pk]))
+
+        context = {
+            **self.admin_site.each_context(request),
+            'opts': self.model._meta,
+            'title': f'Ручное начисление +{lessons} урок(ов)',
+            'user_obj': user,
+            'lessons': lessons,
+            'default_comment': 'Бонусный урок',
+            'cancel_url': reverse('admin:accounts_customuser_change', args=[user.pk]),
+        }
+        return TemplateResponse(
+            request,
+            'admin/accounts/manual_credit_form.html',
+            context,
         )
-        self.message_user(request, f'Начислено {lessons} урок(ов) пользователю {user.username}.')
-        return HttpResponseRedirect(reverse('admin:accounts_customuser_change', args=[user.pk]))
 
 # Админка для доступности учителей
 @admin.register(TeacherAvailability)

@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div style="max-width: 760px;">
+    <h1>{{ title }}</h1>
+    <div class="module" style="padding: 16px;">
+        <p><strong>Ученик:</strong> {{ user_obj.get_full_name|default:user_obj.username }} ({{ user_obj.username }})</p>
+        <p><strong>Текущий баланс:</strong> {{ user_obj.balance }}</p>
+        <p><strong>Начислить:</strong> +{{ lessons }} урок(ов)</p>
+
+        <form method="post" style="margin-top: 16px;">
+            {% csrf_token %}
+            <div style="margin-bottom: 12px;">
+                <label for="id_comment"><strong>Комментарий для истории баланса</strong></label>
+                <textarea id="id_comment" name="comment" rows="3" required style="width: 100%; margin-top: 6px;">{{ default_comment }}</textarea>
+                <p class="help">Этот текст увидят админ и ученик в истории баланса.</p>
+            </div>
+
+            <div class="submit-row">
+                <input type="submit" value="Начислить" class="default">
+                <a href="{{ cancel_url }}" class="button cancel-link">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
