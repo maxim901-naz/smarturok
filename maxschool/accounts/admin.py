@@ -337,12 +337,44 @@ class BalanceTopUpRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
     )
     actions = ['take_in_work', 'mark_approved', 'mark_rejected']
 
+    def _topup_credit_note(self, req):
+        return f'Top-up approved by admin (request #{req.pk})'
+
+    def _credit_topup_if_needed(self, req):
+        credit_note = self._topup_credit_note(req)
+        already_credited = BalanceTransaction.objects.filter(
+            user=req.user,
+            direction='credit',
+            note=credit_note,
+        ).exists()
+        if already_credited:
+            return False
+
+        req.user.balance += req.package
+        req.user.save(update_fields=['balance'])
+        BalanceTransaction.objects.create(
+            user=req.user,
+            direction='credit',
+            amount=req.package,
+            note=credit_note,
+        )
+        return True
+
     def _touch_first_response(self, obj, now_value):
         if not obj.first_response_at:
             obj.first_response_at = now_value
 
     def save_model(self, request, obj, form, change):
         now_value = timezone.now()
+        previous_status = None
+        if change and obj.pk:
+            previous_status = (
+                BalanceTopUpRequest.objects
+                .filter(pk=obj.pk)
+                .values_list('status', flat=True)
+                .first()
+            )
+
         if obj.work_status in {'in_progress', 'done', 'rejected'}:
             if not obj.assigned_admin_id and request.user.is_staff:
                 obj.assigned_admin = request.user
@@ -352,6 +384,12 @@ class BalanceTopUpRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         if obj.work_status in {'new', 'in_progress'}:
             obj.closed_at = None
         super().save_model(request, obj, form, change)
+
+        # Credit balance on any transition to approved, not only via admin action.
+        became_approved = obj.status == 'approved' and previous_status != 'approved'
+        created_as_approved = not change and obj.status == 'approved'
+        if became_approved or created_as_approved:
+            self._credit_topup_if_needed(obj)
 
     @admin.action(description='Take in work')
     def take_in_work(self, request, queryset):
@@ -377,14 +415,7 @@ class BalanceTopUpRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
             req.closed_at = now_value
             req.save(update_fields=['status', 'work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
             if should_credit:
-                req.user.balance += req.package
-                req.user.save(update_fields=['balance'])
-                BalanceTransaction.objects.create(
-                    user=req.user,
-                    direction='credit',
-                    amount=req.package,
-                    note='Top-up approved by admin',
-                )
+                self._credit_topup_if_needed(req)
 
     @admin.action(description='Mark rejected')
     def mark_rejected(self, request, queryset):
