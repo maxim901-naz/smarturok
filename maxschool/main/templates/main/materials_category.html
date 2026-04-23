@@ -4,6 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% if category.description %}{{ category.description|striptags|truncatechars:160 }}{% else %}Материалы SmartUrok по разделу {{ category.title }}.{% endif %}">
+    <meta name="robots" content="{% if selected_subject or selected_grade %}noindex, follow{% else %}index, follow{% endif %}">
+    <link rel="canonical" href="https://smarturok.ru{% url 'materials_category' category.slug %}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SmartUrok">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:title" content="{{ category.title }} — материалы SmartUrok">
+    <meta property="og:description" content="{% if category.description %}{{ category.description|striptags|truncatechars:160 }}{% else %}Подборка материалов по разделу {{ category.title }}.{% endif %}">
+    <meta property="og:url" content="https://smarturok.ru{% url 'materials_category' category.slug %}">
+    <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ category.title }} — материалы SmartUrok">
+    <meta name="twitter:description" content="{% if category.description %}{{ category.description|striptags|truncatechars:160 }}{% else %}Материалы по разделу {{ category.title }}.{% endif %}">
+    <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <title>{{ category.title }} | Материалы</title>
     <script src="https://cdn.tailwindcss.com"></script>

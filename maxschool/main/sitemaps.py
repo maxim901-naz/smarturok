@@ -2,7 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
 from accounts.models import Subject
-from .models import MaterialCategory
+from .models import MaterialCategory, MaterialItem
 
 
 class StaticViewSitemap(Sitemap):
@@ -34,6 +34,15 @@ class SubjectSitemap(Sitemap):
     def location(self, item):
         return reverse("subject_detail", kwargs={"slug": item.slug})
 
+    def lastmod(self, item):
+        return (
+            MaterialItem.objects
+            .filter(is_published=True, subject=item)
+            .order_by("-created_at")
+            .values_list("created_at", flat=True)
+            .first()
+        )
+
 
 class MaterialCategorySitemap(Sitemap):
     changefreq = "weekly"
@@ -44,3 +53,12 @@ class MaterialCategorySitemap(Sitemap):
 
     def location(self, item):
         return reverse("materials_category", kwargs={"slug": item.slug})
+
+    def lastmod(self, item):
+        return (
+            item.materials
+            .filter(is_published=True)
+            .order_by("-created_at")
+            .values_list("created_at", flat=True)
+            .first()
+        )
