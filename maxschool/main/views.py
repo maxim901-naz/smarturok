@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.core.cache import cache
@@ -6,7 +7,9 @@ from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from accounts.models import CustomUser, TrialRequest, Subject
+from django.urls import reverse
+
+from accounts.models import BalanceTopUpRequest, CustomUser, TrialRequest, Subject
 from .models import Review, MaterialCategory, MaterialItem
 
 
@@ -43,6 +46,67 @@ def _split_delimited_lines(text, parts_count):
             continue
         rows.append(parts)
     return rows
+
+
+def _published_materials_qs():
+    return (
+        MaterialItem.objects
+        .filter(status='published')
+        .select_related('category', 'subject')
+    )
+
+
+def _user_has_paid_material_access(user):
+    if not user.is_authenticated:
+        return False
+
+    user_role = getattr(user, 'role', '')
+    if user.is_staff or user_role in ('admin', 'teacher'):
+        return True
+
+    if getattr(user, 'balance', 0) > 0:
+        return True
+
+    return BalanceTopUpRequest.objects.filter(user=user, status='approved').exists()
+
+
+def _material_is_accessible(user, material):
+    if material.access_level == 'public':
+        return True
+    if material.access_level == 'authenticated':
+        return user.is_authenticated
+    if material.access_level == 'paid':
+        return _user_has_paid_material_access(user)
+    return False
+
+
+def _material_video_embed_url(video_url):
+    if not video_url:
+        return ''
+
+    parsed = urlparse(video_url.strip())
+    host = (parsed.netloc or '').lower()
+    path = (parsed.path or '').strip('/')
+
+    if 'youtu.be' in host:
+        video_id = path.split('/')[0]
+        return f'https://www.youtube.com/embed/{video_id}' if video_id else ''
+
+    if 'youtube.com' in host:
+        if path.startswith('shorts/'):
+            parts = path.split('/')
+            if len(parts) >= 2:
+                return f'https://www.youtube.com/embed/{parts[1]}'
+        query = parse_qs(parsed.query)
+        video_id = (query.get('v') or [''])[0]
+        return f'https://www.youtube.com/embed/{video_id}' if video_id else ''
+
+    if 'vimeo.com' in host:
+        video_id = path.split('/')[0]
+        if video_id.isdigit():
+            return f'https://player.vimeo.com/video/{video_id}'
+
+    return ''
 
 
 def home(request):
@@ -104,14 +168,14 @@ def teachers_list(request):
 
 def materials_list(request):
     categories = MaterialCategory.objects.filter(is_active=True).order_by('sort_order', 'title')
-    latest_items = MaterialItem.objects.filter(is_published=True).select_related('category', 'subject')[:12]
+    latest_items = _published_materials_qs().order_by('-published_at', '-created_at')[:12]
     subjects = Subject.objects.all()
     return render(request, 'main/materials_list.html', {'categories': categories, 'latest_items': latest_items, 'subjects': subjects})
 
 
 def materials_category(request, slug):
     category = get_object_or_404(MaterialCategory, slug=slug, is_active=True)
-    items = MaterialItem.objects.filter(category=category, is_published=True).select_related('subject').order_by('-created_at')
+    items = _published_materials_qs().filter(category=category).order_by('-published_at', '-created_at')
     subjects = Subject.objects.all()
 
     subject_id = request.GET.get('subject')
@@ -129,6 +193,27 @@ def materials_category(request, slug):
         'selected_subject': subject_id or '',
         'selected_grade': grade or '',
         'grade_options': [4, 5, 6, 7, 8],
+    })
+
+
+def material_detail(request, slug):
+    material = get_object_or_404(_published_materials_qs(), slug=slug)
+
+    if not _material_is_accessible(request.user, material):
+        if not request.user.is_authenticated:
+            messages.info(request, 'Войдите в аккаунт, чтобы открыть этот материал.')
+            return redirect(f"{reverse('login')}?next={request.path}")
+
+        if material.access_level == 'paid':
+            messages.warning(request, 'Материал доступен только после оплаты пакета занятий.')
+            return redirect('student_balance')
+
+        messages.warning(request, 'Недостаточно прав доступа к материалу.')
+        return redirect('materials_list')
+
+    return render(request, 'main/material_detail.html', {
+        'material': material,
+        'video_embed_url': _material_video_embed_url(material.video_url),
     })
 
 
