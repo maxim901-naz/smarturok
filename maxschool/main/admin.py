@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Review, MaterialCategory, MaterialItem
+
+from .models import MaterialCategory, MaterialItem, MaterialTestAttempt, Review
 
 
 @admin.register(Review)
@@ -30,6 +31,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'access_level',
         'status',
         'is_published',
+        'test_attempts_total',
         'updated_at',
     )
     list_filter = (
@@ -48,7 +50,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
     list_editable = ('status', 'access_level')
 
     fieldsets = (
-        ('Основное', {
+        ('Main', {
             'fields': (
                 'title',
                 'slug',
@@ -62,13 +64,50 @@ class MaterialItemAdmin(admin.ModelAdmin):
         ('SEO', {
             'fields': ('description', 'meta_description')
         }),
-        ('Контент', {
+        ('Content', {
             'fields': ('video_url', 'article_markdown', 'file', 'external_url', 'test_payload')
         }),
-        ('Публикация и доступ', {
+        ('Publishing and access', {
             'fields': ('status', 'access_level', 'is_published', 'published_at')
         }),
-        ('Служебное', {
+        ('Service', {
             'fields': ('created_at', 'updated_at')
         }),
     )
+
+    def test_attempts_total(self, obj):
+        return obj.test_attempts.count()
+
+    test_attempts_total.short_description = 'Test attempts'
+
+
+@admin.register(MaterialTestAttempt)
+class MaterialTestAttemptAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'material',
+        'user',
+        'attempt_no',
+        'score_points',
+        'max_points',
+        'score_percent',
+        'passed',
+        'submitted_at',
+    )
+    list_filter = ('passed', 'material', 'material__subject', 'submitted_at')
+    search_fields = ('material__title', 'user__username', 'user__email', 'session_key')
+    readonly_fields = (
+        'material',
+        'user',
+        'session_key',
+        'attempt_no',
+        'max_points',
+        'score_points',
+        'score_percent',
+        'passed',
+        'duration_seconds',
+        'answers_payload',
+        'result_payload',
+        'started_at',
+        'submitted_at',
+    )

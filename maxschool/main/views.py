@@ -3,14 +3,20 @@ from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Max, Q
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
 
 from accounts.models import BalanceTopUpRequest, CustomUser, TrialRequest, Subject
-from .models import Review, MaterialCategory, MaterialItem
+from .models import MaterialCategory, MaterialItem, MaterialTestAttempt, Review
+from .test_engine import (
+    build_public_questions,
+    evaluate_answers,
+    extract_answers,
+    parse_test_payload,
+)
 
 
 def _get_client_ip(request):
@@ -109,6 +115,19 @@ def _material_video_embed_url(video_url):
     return ''
 
 
+
+def _next_test_attempt_no(material, user=None, session_key=''):
+    queryset = MaterialTestAttempt.objects.filter(material=material)
+    if user is not None:
+        queryset = queryset.filter(user=user)
+    elif session_key:
+        queryset = queryset.filter(user__isnull=True, session_key=session_key)
+    else:
+        return 1
+
+    last_no = queryset.aggregate(max_no=Max('attempt_no'))['max_no'] or 0
+    return last_no + 1
+
 def home(request):
     teachers = CustomUser.objects.filter(role='teacher', is_approved=True).prefetch_related('subjects_taught', 'desired_subject')
     subjects = Subject.objects.all()
@@ -201,21 +220,129 @@ def material_detail(request, slug):
 
     if not _material_is_accessible(request.user, material):
         if not request.user.is_authenticated:
-            messages.info(request, 'Войдите в аккаунт, чтобы открыть этот материал.')
+            messages.info(request, 'Sign in to open this material.')
             return redirect(f"{reverse('login')}?next={request.path}")
 
         if material.access_level == 'paid':
-            messages.warning(request, 'Материал доступен только после оплаты пакета занятий.')
+            messages.warning(request, 'This material is available only after paid package activation.')
             return redirect('student_balance')
 
-        messages.warning(request, 'Недостаточно прав доступа к материалу.')
+        messages.warning(request, 'You do not have enough permissions to access this material.')
         return redirect('materials_list')
+
+    test_config = {}
+    test_questions = []
+    selected_attempt = None
+    selected_attempt_results = []
+    latest_attempts = []
+
+    if material.content_type == 'test':
+        test_config, parsed_questions = parse_test_payload(material.test_payload)
+        test_questions = build_public_questions(parsed_questions)
+
+        if request.user.is_authenticated:
+            latest_attempts = list(
+                MaterialTestAttempt.objects
+                .filter(material=material, user=request.user)
+                .order_by('-submitted_at')[:10]
+            )
+        else:
+            if not request.session.session_key:
+                request.session.save()
+            latest_attempts = list(
+                MaterialTestAttempt.objects
+                .filter(material=material, user__isnull=True, session_key=request.session.session_key)
+                .order_by('-submitted_at')[:5]
+            )
+
+        if request.method == 'POST':
+            if not parsed_questions:
+                messages.error(request, 'This test is not configured yet. Add questions in admin.')
+                return redirect(request.path)
+
+            started_ts = request.POST.get('test_started_ts', '').strip()
+            duration_seconds = 0
+            if started_ts:
+                try:
+                    started_float = float(started_ts)
+                    duration_seconds = max(0, int(timezone.now().timestamp() - started_float))
+                except (TypeError, ValueError):
+                    duration_seconds = 0
+
+            answers = extract_answers(request.POST, parsed_questions)
+            result = evaluate_answers(
+                questions=parsed_questions,
+                answers=answers,
+                passing_score_percent=int(test_config.get('passing_score_percent', 70)),
+            )
+
+            session_key = ''
+            user = request.user if request.user.is_authenticated else None
+            if user is None:
+                if not request.session.session_key:
+                    request.session.save()
+                session_key = request.session.session_key or ''
+
+            attempt = MaterialTestAttempt.objects.create(
+                material=material,
+                user=user,
+                session_key=session_key,
+                attempt_no=_next_test_attempt_no(material, user=user, session_key=session_key),
+                max_points=result['max_points'],
+                score_points=result['earned_points'],
+                score_percent=result['score_percent'],
+                passed=result['passed'],
+                duration_seconds=duration_seconds,
+                answers_payload=answers,
+                result_payload={
+                    'config': test_config,
+                    'questions': result['question_results'],
+                },
+            )
+
+            if result['passed']:
+                messages.success(
+                    request,
+                    f"Test passed: {result['earned_points']} of {result['max_points']} ({result['score_percent']}%).",
+                )
+            else:
+                messages.warning(
+                    request,
+                    f"Result: {result['earned_points']} of {result['max_points']} ({result['score_percent']}%). You can try again.",
+                )
+
+            return redirect(f"{request.path}?attempt={attempt.id}")
+
+        attempt_id = request.GET.get('attempt', '').strip()
+        if attempt_id.isdigit():
+            attempts_qs = MaterialTestAttempt.objects.filter(material=material, id=int(attempt_id))
+            if request.user.is_authenticated:
+                if request.user.is_staff or getattr(request.user, 'role', '') in ('admin', 'teacher'):
+                    selected_attempt = attempts_qs.first()
+                else:
+                    selected_attempt = attempts_qs.filter(user=request.user).first()
+            elif request.session.session_key:
+                selected_attempt = attempts_qs.filter(
+                    user__isnull=True,
+                    session_key=request.session.session_key,
+                ).first()
+        elif latest_attempts:
+            selected_attempt = latest_attempts[0]
+
+        if selected_attempt:
+            payload = selected_attempt.result_payload if isinstance(selected_attempt.result_payload, dict) else {}
+            if isinstance(payload.get('questions'), list):
+                selected_attempt_results = payload['questions']
 
     return render(request, 'main/material_detail.html', {
         'material': material,
         'video_embed_url': _material_video_embed_url(material.video_url),
+        'test_config': test_config,
+        'test_questions': test_questions,
+        'test_attempt': selected_attempt,
+        'test_attempt_results': selected_attempt_results,
+        'latest_attempts': latest_attempts,
     })
-
 
 def subject_detail(request, slug):
     subject = get_object_or_404(Subject, slug=slug)

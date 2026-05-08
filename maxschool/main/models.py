@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.text import slugify
@@ -112,3 +113,41 @@ class MaterialItem(models.Model):
             self.is_published = False
 
         super().save(*args, **kwargs)
+
+
+class MaterialTestAttempt(models.Model):
+    material = models.ForeignKey(
+        MaterialItem,
+        on_delete=models.CASCADE,
+        related_name='test_attempts',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='material_test_attempts',
+    )
+    session_key = models.CharField(max_length=64, blank=True, default='')
+    attempt_no = models.PositiveIntegerField(default=1)
+    max_points = models.PositiveIntegerField(default=0)
+    score_points = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    score_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    passed = models.BooleanField(default=False)
+    duration_seconds = models.PositiveIntegerField(default=0)
+    answers_payload = models.JSONField(default=dict, blank=True)
+    result_payload = models.JSONField(default=dict, blank=True)
+    started_at = models.DateTimeField(default=timezone.now)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+        indexes = [
+            models.Index(fields=['material', 'submitted_at'], name='main_mtat_mat_sub_idx'),
+            models.Index(fields=['user', 'submitted_at'], name='main_mtat_usr_sub_idx'),
+            models.Index(fields=['material', 'user', 'attempt_no'], name='main_mtat_mat_usr_no_idx'),
+        ]
+
+    def __str__(self):
+        user_part = self.user.username if self.user_id else 'guest'
+        return f'{self.material.title} | {user_part} | attempt #{self.attempt_no}'
