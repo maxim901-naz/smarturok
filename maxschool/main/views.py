@@ -128,6 +128,82 @@ def _next_test_attempt_no(material, user=None, session_key=''):
     last_no = queryset.aggregate(max_no=Max('attempt_no'))['max_no'] or 0
     return last_no + 1
 
+
+def _build_test_from_bank(material):
+    test_bank = getattr(material, 'test_bank', None)
+    if not test_bank or not test_bank.is_active:
+        return {}, []
+
+    questions = []
+    question_queryset = (
+        test_bank.questions
+        .filter(is_active=True)
+        .order_by('order', 'id')
+        .prefetch_related('options')
+    )
+    for idx, question in enumerate(question_queryset, start=1):
+        q_type = question.question_type
+        item = {
+            'id': question.code or f'q{idx}',
+            'order': idx,
+            'type': q_type,
+            'prompt': question.prompt,
+            'points': max(1, int(question.points or 1)),
+            'required': bool(question.required),
+            'explanation': (question.explanation or '').strip(),
+        }
+
+        if q_type in {'single', 'multiple'}:
+            options = list(
+                question.options
+                .filter(is_active=True)
+                .order_by('order', 'id')
+            )
+            if len(options) < 2:
+                continue
+            correct_values = {option.value for option in options if option.is_correct}
+            if not correct_values:
+                continue
+            item['options'] = [{'value': option.value, 'label': option.label} for option in options]
+            item['correct_values'] = correct_values
+
+        elif q_type == 'number':
+            if question.correct_number is None:
+                continue
+            item['correct_number'] = float(question.correct_number)
+            item['tolerance'] = float(question.number_tolerance or 0)
+
+        else:
+            correct_texts = _split_lines(question.correct_text)
+            if not correct_texts:
+                continue
+            item['case_sensitive'] = bool(question.case_sensitive)
+            item['correct_texts'] = correct_texts
+            item['placeholder'] = question.placeholder or ''
+
+        questions.append(item)
+
+    config = {
+        'title': (test_bank.title or material.title).strip(),
+        'passing_score_percent': max(1, min(100, int(test_bank.passing_score_percent or 70))),
+        'duration_minutes': max(0, int(test_bank.duration_minutes or 0)),
+        'show_correct_after_submit': bool(test_bank.show_correct_after_submit),
+        'max_attempts': int(test_bank.max_attempts) if test_bank.max_attempts else None,
+        'source': 'bank',
+    }
+    return config, questions
+
+
+def _load_material_test_content(material):
+    bank_config, bank_questions = _build_test_from_bank(material)
+    if bank_questions:
+        return bank_config, bank_questions
+
+    payload_config, payload_questions = parse_test_payload(material.test_payload)
+    payload_config['source'] = 'payload'
+    return payload_config, payload_questions
+
+
 def home(request):
     teachers = CustomUser.objects.filter(role='teacher', is_approved=True).prefetch_related('subjects_taught', 'desired_subject')
     subjects = Subject.objects.all()
@@ -237,7 +313,7 @@ def material_detail(request, slug):
     latest_attempts = []
 
     if material.content_type == 'test':
-        test_config, parsed_questions = parse_test_payload(material.test_payload)
+        test_config, parsed_questions = _load_material_test_content(material)
         test_questions = build_public_questions(parsed_questions)
 
         if request.user.is_authenticated:
@@ -283,11 +359,17 @@ def material_detail(request, slug):
                     request.session.save()
                 session_key = request.session.session_key or ''
 
+            next_attempt_no = _next_test_attempt_no(material, user=user, session_key=session_key)
+            max_attempts = test_config.get('max_attempts')
+            if max_attempts and next_attempt_no > int(max_attempts):
+                messages.warning(request, 'Attempt limit reached for this test.')
+                return redirect(request.path)
+
             attempt = MaterialTestAttempt.objects.create(
                 material=material,
                 user=user,
                 session_key=session_key,
-                attempt_no=_next_test_attempt_no(material, user=user, session_key=session_key),
+                attempt_no=next_attempt_no,
                 max_points=result['max_points'],
                 score_points=result['earned_points'],
                 score_percent=result['score_percent'],
@@ -342,6 +424,7 @@ def material_detail(request, slug):
         'test_attempt': selected_attempt,
         'test_attempt_results': selected_attempt_results,
         'latest_attempts': latest_attempts,
+        'test_source': test_config.get('source', ''),
     })
 
 def subject_detail(request, slug):

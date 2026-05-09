@@ -1,6 +1,14 @@
-from django.contrib import admin
+﻿from django.contrib import admin
 
-from .models import MaterialCategory, MaterialItem, MaterialTestAttempt, Review
+from .models import (
+    MaterialCategory,
+    MaterialItem,
+    MaterialTest,
+    MaterialTestAttempt,
+    MaterialTestOption,
+    MaterialTestQuestion,
+    Review,
+)
 
 
 @admin.register(Review)
@@ -31,6 +39,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'access_level',
         'status',
         'is_published',
+        'has_test_bank',
         'test_attempts_total',
         'updated_at',
     )
@@ -78,7 +87,56 @@ class MaterialItemAdmin(admin.ModelAdmin):
     def test_attempts_total(self, obj):
         return obj.test_attempts.count()
 
+    def has_test_bank(self, obj):
+        return MaterialTest.objects.filter(material=obj).exists()
+
     test_attempts_total.short_description = 'Test attempts'
+    has_test_bank.short_description = 'Test bank'
+    has_test_bank.boolean = True
+
+
+class MaterialTestOptionInline(admin.TabularInline):
+    model = MaterialTestOption
+    extra = 1
+    fields = ('order', 'label', 'value', 'is_correct', 'is_active')
+
+
+@admin.register(MaterialTestQuestion)
+class MaterialTestQuestionAdmin(admin.ModelAdmin):
+    list_display = ('code', 'test', 'question_type', 'points', 'order', 'is_active', 'updated_at')
+    list_filter = ('question_type', 'is_active', 'test__material__subject')
+    search_fields = ('code', 'prompt', 'test__material__title')
+    list_editable = ('points', 'order', 'is_active')
+    inlines = [MaterialTestOptionInline]
+
+
+class MaterialTestQuestionInline(admin.TabularInline):
+    model = MaterialTestQuestion
+    extra = 1
+    fields = ('order', 'code', 'question_type', 'points', 'required', 'is_active', 'prompt')
+    show_change_link = True
+
+
+@admin.register(MaterialTest)
+class MaterialTestAdmin(admin.ModelAdmin):
+    list_display = (
+        'material',
+        'title',
+        'passing_score_percent',
+        'duration_minutes',
+        'max_attempts',
+        'is_active',
+        'questions_total',
+        'updated_at',
+    )
+    list_filter = ('is_active', 'material__subject', 'material__exam_type')
+    search_fields = ('title', 'material__title', 'material__slug')
+    inlines = [MaterialTestQuestionInline]
+
+    def questions_total(self, obj):
+        return obj.questions.count()
+
+    questions_total.short_description = 'Questions'
 
 
 @admin.register(MaterialTestAttempt)
@@ -110,4 +168,4 @@ class MaterialTestAttemptAdmin(admin.ModelAdmin):
         'result_payload',
         'started_at',
         'submitted_at',
-    )
+    )

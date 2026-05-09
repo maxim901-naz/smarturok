@@ -106,8 +106,16 @@
                         <p class="text-sm text-indigo-800 mt-1">
                             Порог прохождения: {{ test_config.passing_score_percent|default:70 }}%.
                             {% if test_config.duration_minutes %}Рекомендуемое время: {{ test_config.duration_minutes }} минут.{% endif %}
+                            {% if test_config.max_attempts %}Лимит попыток: {{ test_config.max_attempts }}.{% endif %}
                         </p>
                     </div>
+
+                    {% if test_source == 'payload' %}
+                    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4 text-sm">
+                        Тест работает в режиме совместимости (JSON из <code>test_payload</code>).
+                        Для большой базы заданий используйте отдельный банк вопросов в админке.
+                    </div>
+                    {% endif %}
 
                     {% if test_questions %}
                     <form method="post" class="space-y-4" id="material-test-form">

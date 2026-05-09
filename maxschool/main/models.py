@@ -151,3 +151,105 @@ class MaterialTestAttempt(models.Model):
     def __str__(self):
         user_part = self.user.username if self.user_id else 'guest'
         return f'{self.material.title} | {user_part} | attempt #{self.attempt_no}'
+
+
+class MaterialTest(models.Model):
+    material = models.OneToOneField(
+        MaterialItem,
+        on_delete=models.CASCADE,
+        related_name='test_bank',
+    )
+    title = models.CharField(max_length=180, blank=True, default='')
+    passing_score_percent = models.PositiveSmallIntegerField(default=70)
+    duration_minutes = models.PositiveIntegerField(default=0)
+    show_correct_after_submit = models.BooleanField(default=True)
+    shuffle_questions = models.BooleanField(default=False)
+    shuffle_options = models.BooleanField(default=False)
+    max_attempts = models.PositiveSmallIntegerField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return self.title or f'Test for {self.material.title}'
+
+
+class MaterialTestQuestion(models.Model):
+    QUESTION_TYPE_CHOICES = (
+        ('single', 'Single choice'),
+        ('multiple', 'Multiple choice'),
+        ('text', 'Text answer'),
+        ('number', 'Number answer'),
+    )
+
+    test = models.ForeignKey(
+        MaterialTest,
+        on_delete=models.CASCADE,
+        related_name='questions',
+    )
+    code = models.CharField(max_length=40, blank=True, default='')
+    prompt = models.TextField()
+    question_type = models.CharField(max_length=12, choices=QUESTION_TYPE_CHOICES, default='text')
+    points = models.PositiveIntegerField(default=1)
+    required = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    explanation = models.TextField(blank=True, default='')
+    placeholder = models.CharField(max_length=160, blank=True, default='')
+    case_sensitive = models.BooleanField(default=False)
+    correct_text = models.TextField(
+        blank=True,
+        default='',
+        help_text='For text questions: one acceptable answer per line.',
+    )
+    correct_number = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    number_tolerance = models.DecimalField(max_digits=10, decimal_places=4, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        constraints = [
+            models.UniqueConstraint(fields=['test', 'code'], name='main_mtq_test_code_uniq'),
+        ]
+        indexes = [
+            models.Index(fields=['test', 'order'], name='main_mtq_test_order_idx'),
+            models.Index(fields=['question_type', 'is_active'], name='main_mtq_type_act_idx'),
+        ]
+
+    def __str__(self):
+        code = self.code or f'q{self.pk}'
+        return f'{self.test} · {code}'
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = f'q-{uuid.uuid4().hex[:8]}'
+        super().save(*args, **kwargs)
+
+
+class MaterialTestOption(models.Model):
+    question = models.ForeignKey(
+        MaterialTestQuestion,
+        on_delete=models.CASCADE,
+        related_name='options',
+    )
+    value = models.CharField(max_length=140)
+    label = models.CharField(max_length=255)
+    is_correct = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        constraints = [
+            models.UniqueConstraint(fields=['question', 'value'], name='main_mto_q_val_uniq'),
+        ]
+        indexes = [
+            models.Index(fields=['question', 'order'], name='main_mto_q_order_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.question} · {self.label}'
