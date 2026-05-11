@@ -111,8 +111,16 @@ def _auto_fence_code_blocks(text: str) -> str:
 
 
 def _normalize_markdown_input(value: str) -> str:
-    # Decode copied HTML entities like &quot; and normalize line endings.
-    text = html.unescape(value).replace("\r\n", "\n").replace("\r", "\n")
+    # Decode copied HTML entities like &quot; and handle double-escaped text.
+    text = value
+    for _ in range(3):
+        decoded = html.unescape(text)
+        if decoded == text:
+            break
+        text = decoded
+
+    # Normalize line endings.
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = text.replace("\xa0", " ")
     # Normalize typographic quotes from messengers/docs to plain quotes.
     text = text.translate(
