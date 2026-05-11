@@ -44,6 +44,67 @@ _ALLOWED_PROTOCOLS = set(bleach.sanitizer.ALLOWED_PROTOCOLS) | {"mailto"}
 
 _INLINE_HEADING_RE = re.compile(r"(?<!\n)[ \t]+(#{1,6}\s)")
 _INLINE_FENCE_RE = re.compile(r"(?<!\n)```")
+_CODE_LINE_RE = re.compile(
+    r"^\s*(?:"
+    r"print\(|"
+    r"for\s+\w+|while\s+|if\s+|elif\s+|else:|"
+    r"def\s+\w+|class\s+\w+|return\b|"
+    r"import\b|from\b|"
+    r"[A-Za-z_][A-Za-z0-9_]*\s*=|"
+    r"console\.log\(|let\s+|const\s+|var\s+"
+    r")"
+)
+
+
+def _auto_fence_code_blocks(text: str) -> str:
+    lines = text.split("\n")
+    out: list[str] = []
+    in_fence = False
+    i = 0
+
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            out.append(line)
+            i += 1
+            continue
+
+        if not in_fence and _CODE_LINE_RE.match(line):
+            block: list[str] = []
+            while i < len(lines):
+                current = lines[i]
+                current_stripped = current.strip()
+
+                if current_stripped.startswith("```"):
+                    break
+
+                if current_stripped == "":
+                    # Keep empty lines inside block only if another code line follows.
+                    if i + 1 < len(lines) and _CODE_LINE_RE.match(lines[i + 1]):
+                        block.append(current)
+                        i += 1
+                        continue
+                    break
+
+                if _CODE_LINE_RE.match(current):
+                    block.append(current)
+                    i += 1
+                    continue
+                break
+
+            if block:
+                out.append("```python")
+                out.extend(block)
+                out.append("```")
+            continue
+
+        out.append(line)
+        i += 1
+
+    return "\n".join(out)
 
 
 def _normalize_markdown_input(value: str) -> str:
@@ -54,6 +115,7 @@ def _normalize_markdown_input(value: str) -> str:
     # If headings/fences were pasted inline in one paragraph, force line breaks.
     text = _INLINE_HEADING_RE.sub(r"\n\n\1", text)
     text = _INLINE_FENCE_RE.sub("\n```", text)
+    text = _auto_fence_code_blocks(text)
 
     return text
 
