@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import bleach
+import html
 import markdown as md
+import re
 from django import template
 from django.utils.safestring import mark_safe
 
@@ -40,13 +42,31 @@ _ALLOWED_ATTRIBUTES = {
 _ALLOWED_PROTOCOLS = set(bleach.sanitizer.ALLOWED_PROTOCOLS) | {"mailto"}
 
 
+_INLINE_HEADING_RE = re.compile(r"(?<!\n)[ \t]+(#{1,6}\s)")
+_INLINE_FENCE_RE = re.compile(r"(?<!\n)```")
+
+
+def _normalize_markdown_input(value: str) -> str:
+    # Decode copied HTML entities like &quot; and normalize line endings.
+    text = html.unescape(value).replace("\r\n", "\n").replace("\r", "\n")
+    text = text.replace("\xa0", " ")
+
+    # If headings/fences were pasted inline in one paragraph, force line breaks.
+    text = _INLINE_HEADING_RE.sub(r"\n\n\1", text)
+    text = _INLINE_FENCE_RE.sub("\n```", text)
+
+    return text
+
+
 @register.filter(name="render_markdown")
 def render_markdown(value: str) -> str:
     if not value:
         return ""
 
+    prepared = _normalize_markdown_input(str(value))
+
     html = md.markdown(
-        value,
+        prepared,
         extensions=[
             "extra",
             "sane_lists",
