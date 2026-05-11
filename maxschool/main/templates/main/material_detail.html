@@ -135,7 +135,7 @@
             </p>
 
             {% if material.description %}
-            <div class="text-gray-700 mb-6">{{ material.description|linebreaks }}</div>
+            <div class="lesson-content mb-6">{{ material.description|render_markdown }}</div>
             {% endif %}
 
             {% if material.content_type == 'video' %}
