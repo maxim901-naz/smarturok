@@ -10,6 +10,7 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 _ALLOWED_TAGS = set(bleach.sanitizer.ALLOWED_TAGS) | {
+    "div",
     "p",
     "pre",
     "code",
@@ -33,6 +34,7 @@ _ALLOWED_TAGS = set(bleach.sanitizer.ALLOWED_TAGS) | {
 _ALLOWED_ATTRIBUTES = {
     **bleach.sanitizer.ALLOWED_ATTRIBUTES,
     "a": ["href", "title", "rel"],
+    "div": ["class"],
     "code": ["class"],
     "span": ["class"],
     "th": ["colspan", "rowspan", "align"],
@@ -44,6 +46,7 @@ _ALLOWED_PROTOCOLS = set(bleach.sanitizer.ALLOWED_PROTOCOLS) | {"mailto"}
 
 _INLINE_HEADING_RE = re.compile(r"(?<!\n)[ \t]+(#{1,6}\s)")
 _INLINE_FENCE_RE = re.compile(r"(?<!\n)```")
+_DIV_OPEN_RE = re.compile(r"<div(?![^>]*\bmarkdown=)([^>]*)>", flags=re.IGNORECASE)
 _CODE_LINE_RE = re.compile(
     r"^\s*(?:"
     r"print\(|"
@@ -115,6 +118,8 @@ def _normalize_markdown_input(value: str) -> str:
     # If headings/fences were pasted inline in one paragraph, force line breaks.
     text = _INLINE_HEADING_RE.sub(r"\n\n\1", text)
     text = _INLINE_FENCE_RE.sub("\n```", text)
+    # Enable markdown parsing inside user HTML blocks (cards/grids from Tailwind).
+    text = _DIV_OPEN_RE.sub(r'<div\1 markdown="1">', text)
     text = _auto_fence_code_blocks(text)
 
     return text
@@ -135,6 +140,7 @@ def render_markdown(value: str) -> str:
             "fenced_code",
             "tables",
             "nl2br",
+            "md_in_html",
         ],
     )
     cleaned = bleach.clean(
