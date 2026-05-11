@@ -13,3 +13,5 @@ python-dotenv==1.0.1
 
 # PostgreSQL driver for production
 psycopg[binary]==3.2.1
+Markdown==3.7
+bleach==6.1.0

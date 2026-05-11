@@ -1,22 +1,22 @@
-{% load static %}
+{% load static main_content %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok: {{ material.title }}.{% endif %}">
+    <meta name="description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}РњР°С‚РµСЂРёР°Р» SmartUrok: {{ material.title }}.{% endif %}">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://smarturok.ru{% url 'material_detail' material.slug %}">
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="SmartUrok">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:title" content="{{ material.title }} | SmartUrok">
-    <meta property="og:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok{% endif %}">
+    <meta property="og:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}РњР°С‚РµСЂРёР°Р» SmartUrok{% endif %}">
     <meta property="og:url" content="https://smarturok.ru{% url 'material_detail' material.slug %}">
     <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ material.title }} | SmartUrok">
-    <meta name="twitter:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok{% endif %}">
+    <meta name="twitter:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}РњР°С‚РµСЂРёР°Р» SmartUrok{% endif %}">
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <title>{{ material.title }} | SmartUrok</title>
@@ -27,6 +27,75 @@
         .card { border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
         .badge { border-radius: 9999px; padding: 4px 10px; font-size: 12px; line-height: 1; }
         .question-card { border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px; }
+        .lesson-content {
+            color: #1f2937;
+            line-height: 1.75;
+            font-size: 1rem;
+        }
+        .lesson-content h1, .lesson-content h2, .lesson-content h3,
+        .lesson-content h4, .lesson-content h5, .lesson-content h6 {
+            color: #111827;
+            font-weight: 700;
+            margin-top: 1.4em;
+            margin-bottom: 0.6em;
+            line-height: 1.3;
+        }
+        .lesson-content h2 { font-size: 1.5rem; }
+        .lesson-content h3 { font-size: 1.25rem; }
+        .lesson-content p { margin: 0.85em 0; }
+        .lesson-content ul, .lesson-content ol {
+            margin: 0.85em 0;
+            padding-left: 1.5rem;
+        }
+        .lesson-content li { margin: 0.35em 0; }
+        .lesson-content a {
+            color: #ea580c;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .lesson-content blockquote {
+            border-left: 4px solid #fdba74;
+            background: #fff7ed;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+        .lesson-content code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.92em;
+            background: #f3f4f6;
+            color: #111827;
+            padding: 0.08rem 0.35rem;
+            border-radius: 0.35rem;
+        }
+        .lesson-content pre {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .lesson-content pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .lesson-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.95rem;
+        }
+        .lesson-content th, .lesson-content td {
+            border: 1px solid #e5e7eb;
+            padding: 0.55rem 0.65rem;
+            vertical-align: top;
+        }
+        .lesson-content th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -34,7 +103,7 @@
         <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
             <a href="{% url 'home' %}" class="font-semibold text-lg">SmartUrok</a>
             <nav class="space-x-4 text-sm">
-                <a href="{% url 'materials_list' %}" class="text-gray-700 hover:text-orange-500">Материалы</a>
+                <a href="{% url 'materials_list' %}" class="text-gray-700 hover:text-orange-500">РњР°С‚РµСЂРёР°Р»С‹</a>
                 {% if material.category %}
                 <a href="{% url 'materials_category' material.category.slug %}" class="text-gray-700 hover:text-orange-500">{{ material.category.title }}</a>
                 {% endif %}
@@ -61,8 +130,8 @@
             <h1 class="text-2xl md:text-3xl font-bold mb-2">{{ material.title }}</h1>
             <p class="text-sm text-gray-500 mb-6">
                 {% if material.subject %}{{ material.subject.name }}{% endif %}
-                {% if material.grade %}{% if material.subject %} · {% endif %}{{ material.grade }} класс{% endif %}
-                {% if material.published_at %} · Обновлено {{ material.published_at|date:"d.m.Y H:i" }}{% endif %}
+                {% if material.grade %}{% if material.subject %} В· {% endif %}{{ material.grade }} РєР»Р°СЃСЃ{% endif %}
+                {% if material.published_at %} В· РћР±РЅРѕРІР»РµРЅРѕ {{ material.published_at|date:"d.m.Y H:i" }}{% endif %}
             </p>
 
             {% if material.description %}
@@ -83,37 +152,37 @@
                 </div>
                 {% endif %}
                 {% if material.video_url %}
-                <a href="{{ material.video_url }}" target="_blank" rel="noopener" class="inline-block text-orange-600 font-medium hover:underline">Открыть видео в новом окне</a>
+                <a href="{{ material.video_url }}" target="_blank" rel="noopener" class="inline-block text-orange-600 font-medium hover:underline">РћС‚РєСЂС‹С‚СЊ РІРёРґРµРѕ РІ РЅРѕРІРѕРј РѕРєРЅРµ</a>
                 {% endif %}
             {% elif material.content_type == 'article' %}
                 {% if material.article_markdown %}
-                <div class="prose max-w-none text-gray-800">{{ material.article_markdown|linebreaks }}</div>
+                <div class="lesson-content">{{ material.article_markdown|render_markdown }}</div>
                 {% else %}
-                <p class="text-gray-500">Текст статьи пока не добавлен.</p>
+                <p class="text-gray-500">РўРµРєСЃС‚ СЃС‚Р°С‚СЊРё РїРѕРєР° РЅРµ РґРѕР±Р°РІР»РµРЅ.</p>
                 {% endif %}
             {% elif material.content_type == 'pdf' %}
                 {% if material.file %}
-                <a href="{{ material.file.url }}" target="_blank" rel="noopener" class="inline-block px-4 py-2 bg-orange-500 text-white rounded-lg font-medium">Открыть PDF/файл</a>
+                <a href="{{ material.file.url }}" target="_blank" rel="noopener" class="inline-block px-4 py-2 bg-orange-500 text-white rounded-lg font-medium">РћС‚РєСЂС‹С‚СЊ PDF/С„Р°Р№Р»</a>
                 {% elif material.external_url %}
-                <a href="{{ material.external_url }}" target="_blank" rel="noopener" class="inline-block px-4 py-2 bg-orange-500 text-white rounded-lg font-medium">Открыть внешний источник</a>
+                <a href="{{ material.external_url }}" target="_blank" rel="noopener" class="inline-block px-4 py-2 bg-orange-500 text-white rounded-lg font-medium">РћС‚РєСЂС‹С‚СЊ РІРЅРµС€РЅРёР№ РёСЃС‚РѕС‡РЅРёРє</a>
                 {% else %}
-                <p class="text-gray-500">Файл пока не добавлен.</p>
+                <p class="text-gray-500">Р¤Р°Р№Р» РїРѕРєР° РЅРµ РґРѕР±Р°РІР»РµРЅ.</p>
                 {% endif %}
             {% elif material.content_type == 'test' %}
                 <section class="space-y-6">
                     <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4">
-                        <h2 class="text-lg font-semibold text-indigo-900">Онлайн-тест</h2>
+                        <h2 class="text-lg font-semibold text-indigo-900">РћРЅР»Р°Р№РЅ-С‚РµСЃС‚</h2>
                         <p class="text-sm text-indigo-800 mt-1">
-                            Порог прохождения: {{ test_config.passing_score_percent|default:70 }}%.
-                            {% if test_config.duration_minutes %}Рекомендуемое время: {{ test_config.duration_minutes }} минут.{% endif %}
-                            {% if test_config.max_attempts %}Лимит попыток: {{ test_config.max_attempts }}.{% endif %}
+                            РџРѕСЂРѕРі РїСЂРѕС…РѕР¶РґРµРЅРёСЏ: {{ test_config.passing_score_percent|default:70 }}%.
+                            {% if test_config.duration_minutes %}Р РµРєРѕРјРµРЅРґСѓРµРјРѕРµ РІСЂРµРјСЏ: {{ test_config.duration_minutes }} РјРёРЅСѓС‚.{% endif %}
+                            {% if test_config.max_attempts %}Р›РёРјРёС‚ РїРѕРїС‹С‚РѕРє: {{ test_config.max_attempts }}.{% endif %}
                         </p>
                     </div>
 
                     {% if test_source == 'payload' %}
                     <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4 text-sm">
-                        Тест работает в режиме совместимости (JSON из <code>test_payload</code>).
-                        Для большой базы заданий используйте отдельный банк вопросов в админке.
+                        РўРµСЃС‚ СЂР°Р±РѕС‚Р°РµС‚ РІ СЂРµР¶РёРјРµ СЃРѕРІРјРµСЃС‚РёРјРѕСЃС‚Рё (JSON РёР· <code>test_payload</code>).
+                        Р”Р»СЏ Р±РѕР»СЊС€РѕР№ Р±Р°Р·С‹ Р·Р°РґР°РЅРёР№ РёСЃРїРѕР»СЊР·СѓР№С‚Рµ РѕС‚РґРµР»СЊРЅС‹Р№ Р±Р°РЅРє РІРѕРїСЂРѕСЃРѕРІ РІ Р°РґРјРёРЅРєРµ.
                     </div>
                     {% endif %}
 
@@ -126,7 +195,7 @@
                         <div class="question-card">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <h3 class="font-semibold">{{ q.order }}. {{ q.prompt }}</h3>
-                                <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{{ q.points }} балл(ов)</span>
+                                <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">{{ q.points }} Р±Р°Р»Р»(РѕРІ)</span>
                             </div>
 
                             {% if q.type == 'single' %}
@@ -148,34 +217,34 @@
                                     {% endfor %}
                                 </div>
                             {% elif q.type == 'number' %}
-                                <input type="number" step="any" name="answer_{{ q.id }}" class="w-full max-w-sm border border-gray-300 rounded-lg px-3 py-2" placeholder="Введите число">
+                                <input type="number" step="any" name="answer_{{ q.id }}" class="w-full max-w-sm border border-gray-300 rounded-lg px-3 py-2" placeholder="Р’РІРµРґРёС‚Рµ С‡РёСЃР»Рѕ">
                             {% else %}
-                                <input type="text" name="answer_{{ q.id }}" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="{% if q.placeholder %}{{ q.placeholder }}{% else %}Введите ответ{% endif %}">
+                                <input type="text" name="answer_{{ q.id }}" class="w-full border border-gray-300 rounded-lg px-3 py-2" placeholder="{% if q.placeholder %}{{ q.placeholder }}{% else %}Р’РІРµРґРёС‚Рµ РѕС‚РІРµС‚{% endif %}">
                             {% endif %}
                         </div>
                         {% endfor %}
 
                         <button type="submit" class="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition">
-                            Проверить ответы и сохранить результат
+                            РџСЂРѕРІРµСЂРёС‚СЊ РѕС‚РІРµС‚С‹ Рё СЃРѕС…СЂР°РЅРёС‚СЊ СЂРµР·СѓР»СЊС‚Р°С‚
                         </button>
                     </form>
                     {% else %}
                     <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4">
-                        Тест пока не настроен. Добавьте вопросы в админке в поле <code>test_payload</code>.
+                        РўРµСЃС‚ РїРѕРєР° РЅРµ РЅР°СЃС‚СЂРѕРµРЅ. Р”РѕР±Р°РІСЊС‚Рµ РІРѕРїСЂРѕСЃС‹ РІ Р°РґРјРёРЅРєРµ РІ РїРѕР»Рµ <code>test_payload</code>.
                     </div>
                     {% endif %}
 
                     {% if test_attempt %}
                     <section class="border border-gray-200 rounded-xl p-4 bg-gray-50">
-                        <h3 class="text-lg font-semibold mb-2">Результат попытки №{{ test_attempt.attempt_no }}</h3>
+                        <h3 class="text-lg font-semibold mb-2">Р РµР·СѓР»СЊС‚Р°С‚ РїРѕРїС‹С‚РєРё в„–{{ test_attempt.attempt_no }}</h3>
                         <p class="text-sm text-gray-700 mb-3">
-                            Баллы: <strong>{{ test_attempt.score_points }}</strong> / {{ test_attempt.max_points }}
-                            · Процент: <strong>{{ test_attempt.score_percent }}%</strong>
-                            · Статус:
+                            Р‘Р°Р»Р»С‹: <strong>{{ test_attempt.score_points }}</strong> / {{ test_attempt.max_points }}
+                            В· РџСЂРѕС†РµРЅС‚: <strong>{{ test_attempt.score_percent }}%</strong>
+                            В· РЎС‚Р°С‚СѓСЃ:
                             {% if test_attempt.passed %}
-                                <span class="text-green-700 font-semibold">пройдено</span>
+                                <span class="text-green-700 font-semibold">РїСЂРѕР№РґРµРЅРѕ</span>
                             {% else %}
-                                <span class="text-red-700 font-semibold">не пройдено</span>
+                                <span class="text-red-700 font-semibold">РЅРµ РїСЂРѕР№РґРµРЅРѕ</span>
                             {% endif %}
                         </p>
 
@@ -186,12 +255,12 @@
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
                                         <div class="font-medium">{{ forloop.counter }}. {{ row.prompt }}</div>
-                                        <div class="text-sm text-gray-600 mt-1">Ваш ответ: {{ row.answer_display|default:'—' }}</div>
+                                        <div class="text-sm text-gray-600 mt-1">Р’Р°С€ РѕС‚РІРµС‚: {{ row.answer_display|default:'вЂ”' }}</div>
                                         {% if row.correct_display and test_config.show_correct_after_submit %}
-                                        <div class="text-sm text-gray-600">Правильный ответ: {{ row.correct_display }}</div>
+                                        <div class="text-sm text-gray-600">РџСЂР°РІРёР»СЊРЅС‹Р№ РѕС‚РІРµС‚: {{ row.correct_display }}</div>
                                         {% endif %}
                                         {% if row.explanation %}
-                                        <div class="text-sm text-gray-600">Пояснение: {{ row.explanation }}</div>
+                                        <div class="text-sm text-gray-600">РџРѕСЏСЃРЅРµРЅРёРµ: {{ row.explanation }}</div>
                                         {% endif %}
                                     </div>
                                     <div class="text-right text-sm">
@@ -200,7 +269,7 @@
                                         {% else %}
                                             <div class="text-red-700 font-semibold">0</div>
                                         {% endif %}
-                                        <div class="text-gray-500">из {{ row.points }}</div>
+                                        <div class="text-gray-500">РёР· {{ row.points }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -212,11 +281,11 @@
 
                     {% if latest_attempts %}
                     <section>
-                        <h3 class="text-base font-semibold mb-2">История попыток</h3>
+                        <h3 class="text-base font-semibold mb-2">РСЃС‚РѕСЂРёСЏ РїРѕРїС‹С‚РѕРє</h3>
                         <div class="flex flex-wrap gap-2">
                             {% for a in latest_attempts %}
                             <a href="?attempt={{ a.id }}" class="px-3 py-2 text-sm rounded-lg border {% if test_attempt and test_attempt.id == a.id %}border-orange-400 bg-orange-50 text-orange-700{% else %}border-gray-300 bg-white text-gray-700 hover:bg-gray-50{% endif %}">
-                                №{{ a.attempt_no }} · {{ a.score_percent }}%
+                                в„–{{ a.attempt_no }} В· {{ a.score_percent }}%
                             </a>
                             {% endfor %}
                         </div>
