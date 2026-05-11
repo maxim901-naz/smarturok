@@ -114,6 +114,23 @@ def _normalize_markdown_input(value: str) -> str:
     # Decode copied HTML entities like &quot; and normalize line endings.
     text = html.unescape(value).replace("\r\n", "\n").replace("\r", "\n")
     text = text.replace("\xa0", " ")
+    # Normalize typographic quotes from messengers/docs to plain quotes.
+    text = text.translate(
+        str.maketrans(
+            {
+                "«": '"',
+                "»": '"',
+                "“": '"',
+                "”": '"',
+                "„": '"',
+                "‟": '"',
+                "‘": "'",
+                "’": "'",
+                "‚": "'",
+                "‛": "'",
+            }
+        )
+    )
 
     # If headings/fences were pasted inline in one paragraph, force line breaks.
     text = _INLINE_HEADING_RE.sub(r"\n\n\1", text)
