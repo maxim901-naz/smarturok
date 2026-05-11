@@ -193,5 +193,4 @@ def render_markdown(value: str) -> str:
         protocols=_ALLOWED_PROTOCOLS,
         strip=True,
     )
-    cleaned = bleach.linkify(cleaned, skip_tags=["pre", "code"])
     return mark_safe(cleaned)
