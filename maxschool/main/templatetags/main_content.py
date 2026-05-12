@@ -68,14 +68,31 @@ def _auto_fence_code_blocks(text: str) -> str:
     lines = text.split("\n")
     out: list[str] = []
     in_fence = False
+    in_math_block = False
     i = 0
 
     while i < len(lines):
         line = lines[i]
         stripped = line.strip()
 
+        if not in_fence and stripped in {"$$", r"\[", r"\]"}:
+            if stripped == "$$":
+                in_math_block = not in_math_block
+            elif stripped == r"\[":
+                in_math_block = True
+            elif stripped == r"\]":
+                in_math_block = False
+            out.append(line)
+            i += 1
+            continue
+
         if stripped.startswith("```"):
             in_fence = not in_fence
+            out.append(line)
+            i += 1
+            continue
+
+        if in_math_block:
             out.append(line)
             i += 1
             continue
@@ -85,6 +102,9 @@ def _auto_fence_code_blocks(text: str) -> str:
             while i < len(lines):
                 current = lines[i]
                 current_stripped = current.strip()
+
+                if current_stripped in {"$$", r"\[", r"\]"}:
+                    break
 
                 if current_stripped.startswith("```"):
                     break
