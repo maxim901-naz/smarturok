@@ -62,3 +62,28 @@ class MaterialCategorySitemap(Sitemap):
             .values_list("created_at", flat=True)
             .first()
         )
+
+
+class MaterialItemSitemap(Sitemap):
+    changefreq = "weekly"
+
+    def items(self):
+        return (
+            MaterialItem.objects
+            .filter(status="published", access_level="public")
+            .exclude(slug__isnull=True)
+            .exclude(slug="")
+            .order_by("-published_at", "-created_at")
+        )
+
+    def location(self, obj):
+        return reverse("material_detail", kwargs={"slug": obj.slug})
+
+    def lastmod(self, obj):
+        return obj.updated_at or obj.published_at or obj.created_at
+
+    def priority(self, obj):
+        # Keep exam materials slightly higher and boost fresh publications.
+        if obj.exam_type in {"oge", "ege"}:
+            return 0.9
+        return 0.8 if obj.published_at else 0.7

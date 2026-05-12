@@ -21,13 +21,19 @@ from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import TemplateView
 
-from main.sitemaps import StaticViewSitemap, SubjectSitemap, MaterialCategorySitemap
+from main.sitemaps import (
+    MaterialCategorySitemap,
+    MaterialItemSitemap,
+    StaticViewSitemap,
+    SubjectSitemap,
+)
 
 
 sitemaps = {
     'static': StaticViewSitemap,
     'subjects': SubjectSitemap,
     'materials': MaterialCategorySitemap,
+    'material_items': MaterialItemSitemap,
 }
 
 urlpatterns = [
