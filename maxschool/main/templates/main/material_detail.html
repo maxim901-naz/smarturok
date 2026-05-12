@@ -22,6 +22,9 @@
     <title>{{ material.title }} | SmartUrok</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .card { border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
@@ -337,6 +340,36 @@
             {% endif %}
         </article>
     </main>
+
+    <script>
+        (function () {
+            function renderMath() {
+                if (!window.renderMathInElement) {
+                    return;
+                }
+                var blocks = document.querySelectorAll('.lesson-content, .question-card');
+                blocks.forEach(function (block) {
+                    window.renderMathInElement(block, {
+                        delimiters: [
+                            {left: "$$", right: "$$", display: true},
+                            {left: "\\[", right: "\\]", display: true},
+                            {left: "$", right: "$", display: false},
+                            {left: "\\(", right: "\\)", display: false}
+                        ],
+                        throwOnError: false,
+                        strict: "warn",
+                        ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code", "option"]
+                    });
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', renderMath);
+            } else {
+                renderMath();
+            }
+        })();
+    </script>
 
     <script>
         (function () {
