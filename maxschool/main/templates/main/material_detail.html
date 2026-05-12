@@ -151,10 +151,30 @@
                 {% if material.subject %}{{ material.subject.name }}{% endif %}
                 {% if material.grade %}{% if material.subject %} · {% endif %}{{ material.grade }} класс{% endif %}
                 {% if material.published_at %} · Обновлено {{ material.published_at|date:"d.m.Y H:i" }}{% endif %}
+                В· Просмотры: {{ material.views_count }}
             </p>
 
             {% if material.description %}
             <div class="lesson-content mb-6">{{ material.description|render_markdown }}</div>
+            {% endif %}
+
+            {% if related_theory or related_test %}
+            <section class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+                {% if related_theory %}
+                <a href="{% url 'material_detail' related_theory.slug %}" class="block rounded-xl border border-emerald-200 bg-emerald-50 p-4 hover:bg-emerald-100 transition">
+                    <div class="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Теория к теме</div>
+                    <div class="text-base font-semibold text-gray-900 mt-1">{{ related_theory.title }}</div>
+                    <div class="text-sm text-emerald-800 mt-1">Изучить теорию</div>
+                </a>
+                {% endif %}
+                {% if related_test %}
+                <a href="{% url 'material_detail' related_test.slug %}" class="block rounded-xl border border-indigo-200 bg-indigo-50 p-4 hover:bg-indigo-100 transition">
+                    <div class="text-xs uppercase tracking-wide text-indigo-700 font-semibold">Практика по теме</div>
+                    <div class="text-base font-semibold text-gray-900 mt-1">{{ related_test.title }}</div>
+                    <div class="text-sm text-indigo-800 mt-1">Перейти к тесту</div>
+                </a>
+                {% endif %}
+            </section>
             {% endif %}
 
             {% if material.content_type == 'video' %}

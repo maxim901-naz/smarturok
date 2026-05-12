@@ -41,7 +41,7 @@
     <main class="max-w-6xl mx-auto px-4 py-10">
         <div class="mb-8">
             <h1 class="text-3xl font-bold">Учебные материалы</h1>
-            <p class="text-gray-600 mt-2">Актуальные материалы от школы — учебники, тесты, подборки и файлы.</p>
+            <p class="text-gray-600 mt-2">Актуальные материалы от школы: теория, практика, тесты и пробники.</p>
         </div>
 
         <section class="mb-10">
@@ -75,6 +75,9 @@
                         {% if item.subject %}{{ item.subject.name }}{% endif %}
                         {% if item.grade %}{% if item.subject %} · {% endif %}{{ item.grade }} класс{% endif %}
                     </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        {% if item.task_number %}Задание №{{ item.task_number }} · {% endif %}Просмотры: {{ item.views_count }}
+                    </div>
                     <div class="text-xs text-gray-500 mt-2">
                         Тип: {{ item.get_content_type_display }} · Доступ: {{ item.get_access_level_display }}
                     </div>
@@ -83,7 +86,9 @@
                     {% endif %}
                     <div class="mt-3">
                         {% if item.slug %}
-                            <a href="{% url 'material_detail' item.slug %}" class="text-orange-600 font-medium">Открыть материал</a>
+                            <a href="{% url 'material_detail' item.slug %}" class="text-orange-600 font-medium">
+                                {% if item.content_type == 'test' %}Пройти тест{% else %}Открыть материал{% endif %}
+                            </a>
                         {% elif item.file %}
                             <a href="{{ item.file.url }}" class="text-orange-600 font-medium" target="_blank" rel="noopener">Открыть файл</a>
                         {% elif item.external_url %}

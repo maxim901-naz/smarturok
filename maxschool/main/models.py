@@ -68,11 +68,29 @@ class MaterialItem(models.Model):
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='published', db_index=True)
     access_level = models.CharField(max_length=16, choices=ACCESS_LEVEL_CHOICES, default='public', db_index=True)
     exam_type = models.CharField(max_length=16, choices=EXAM_TYPE_CHOICES, default='general', db_index=True)
+    task_number = models.PositiveSmallIntegerField(null=True, blank=True, db_index=True)
     video_url = models.URLField(blank=True)
     article_markdown = models.TextField(blank=True)
     file = models.FileField(upload_to='materials/', blank=True, null=True)
     external_url = models.URLField(blank=True)
     test_payload = models.JSONField(blank=True, null=True)
+    related_theory = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='practice_materials',
+        limit_choices_to={'content_type__in': ('article', 'video', 'pdf')},
+    )
+    related_test = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='theory_materials',
+        limit_choices_to={'content_type': 'test'},
+    )
+    views_count = models.PositiveIntegerField(default=0, db_index=True)
     is_published = models.BooleanField(default=True)
     published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Max, Q
+from django.db.models import F, Max, Q
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -58,8 +58,59 @@ def _published_materials_qs():
     return (
         MaterialItem.objects
         .filter(status='published')
-        .select_related('category', 'subject')
+        .select_related('category', 'subject', 'related_theory', 'related_test')
     )
+
+
+THEORY_CONTENT_TYPES = ('article', 'video', 'pdf')
+MATERIAL_SECTION_CHOICES = {'all', 'theory', 'practice', 'tests', 'mock'}
+
+
+def _normalize_material_section(section):
+    normalized = (section or 'all').strip().lower()
+    return normalized if normalized in MATERIAL_SECTION_CHOICES else 'all'
+
+
+def _apply_material_section_filter(queryset, section):
+    if section == 'theory':
+        return queryset.filter(content_type__in=THEORY_CONTENT_TYPES)
+    if section == 'practice':
+        return queryset.filter(
+            content_type__in=THEORY_CONTENT_TYPES,
+            exam_type__in=('oge', 'ege', 'school'),
+        )
+    if section == 'tests':
+        return queryset.filter(content_type='test')
+    if section == 'mock':
+        return queryset.filter(content_type='test', exam_type__in=('oge', 'ege'))
+    return queryset
+
+
+def _order_materials(queryset):
+    return queryset.order_by(F('task_number').asc(nulls_last=True), '-published_at', '-created_at')
+
+
+def _pick_related_material(material, target='test'):
+    queryset = _published_materials_qs().exclude(pk=material.pk)
+
+    if material.category_id:
+        queryset = queryset.filter(category_id=material.category_id)
+    if material.subject_id:
+        queryset = queryset.filter(subject_id=material.subject_id)
+    if material.exam_type:
+        queryset = queryset.filter(exam_type=material.exam_type)
+
+    if target == 'test':
+        queryset = queryset.filter(content_type='test')
+    else:
+        queryset = queryset.filter(content_type__in=THEORY_CONTENT_TYPES)
+
+    if material.task_number is not None:
+        same_task_qs = queryset.filter(task_number=material.task_number)
+        if same_task_qs.exists():
+            queryset = same_task_qs
+
+    return _order_materials(queryset).first()
 
 
 def _user_has_paid_material_access(user):
@@ -273,23 +324,34 @@ def teachers_list(request):
 
 def materials_list(request):
     categories = MaterialCategory.objects.filter(is_active=True).order_by('sort_order', 'title')
-    latest_items = _published_materials_qs().order_by('-published_at', '-created_at')[:12]
+    latest_items = _order_materials(_published_materials_qs())[:12]
     subjects = Subject.objects.all()
     return render(request, 'main/materials_list.html', {'categories': categories, 'latest_items': latest_items, 'subjects': subjects})
 
 
 def materials_category(request, slug):
     category = get_object_or_404(MaterialCategory, slug=slug, is_active=True)
-    items = _published_materials_qs().filter(category=category).order_by('-published_at', '-created_at')
+    base_items = _published_materials_qs().filter(category=category)
     subjects = Subject.objects.all()
 
     subject_id = request.GET.get('subject')
     grade = request.GET.get('grade')
+    selected_section = _normalize_material_section(request.GET.get('section'))
 
     if subject_id and subject_id.isdigit():
-        items = items.filter(subject_id=int(subject_id))
+        base_items = base_items.filter(subject_id=int(subject_id))
     if grade and grade.isdigit():
-        items = items.filter(grade=int(grade))
+        base_items = base_items.filter(grade=int(grade))
+
+    section_counts = {
+        'all': base_items.count(),
+        'theory': _apply_material_section_filter(base_items, 'theory').count(),
+        'practice': _apply_material_section_filter(base_items, 'practice').count(),
+        'tests': _apply_material_section_filter(base_items, 'tests').count(),
+        'mock': _apply_material_section_filter(base_items, 'mock').count(),
+    }
+
+    items = _order_materials(_apply_material_section_filter(base_items, selected_section))
 
     return render(request, 'main/materials_category.html', {
         'category': category,
@@ -297,6 +359,8 @@ def materials_category(request, slug):
         'subjects': subjects,
         'selected_subject': subject_id or '',
         'selected_grade': grade or '',
+        'selected_section': selected_section,
+        'section_counts': section_counts,
         'grade_options': [4, 5, 6, 7, 8],
     })
 
@@ -315,6 +379,29 @@ def material_detail(request, slug):
 
         messages.warning(request, 'You do not have enough permissions to access this material.')
         return redirect('materials_list')
+
+    MaterialItem.objects.filter(pk=material.pk).update(views_count=F('views_count') + 1)
+    material.views_count = (material.views_count or 0) + 1
+
+    related_theory = None
+    related_test = None
+
+    if material.related_theory and material.related_theory.status == 'published':
+        if _material_is_accessible(request.user, material.related_theory):
+            related_theory = material.related_theory
+
+    if material.related_test and material.related_test.status == 'published':
+        if _material_is_accessible(request.user, material.related_test):
+            related_test = material.related_test
+
+    if material.content_type == 'test' and not related_theory:
+        related_candidate = _pick_related_material(material, target='theory')
+        if related_candidate and _material_is_accessible(request.user, related_candidate):
+            related_theory = related_candidate
+    elif material.content_type in THEORY_CONTENT_TYPES and not related_test:
+        related_candidate = _pick_related_material(material, target='test')
+        if related_candidate and _material_is_accessible(request.user, related_candidate):
+            related_test = related_candidate
 
     test_config = {}
     test_questions = []
@@ -435,6 +522,8 @@ def material_detail(request, slug):
         'test_attempt_results': selected_attempt_results,
         'latest_attempts': latest_attempts,
         'test_source': test_config.get('source', ''),
+        'related_theory': related_theory,
+        'related_test': related_test,
     })
 
 def subject_detail(request, slug):

@@ -36,11 +36,13 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'slug',
         'category',
         'subject',
+        'task_number',
         'content_type',
         'exam_type',
         'access_level',
         'status',
         'is_published',
+        'views_count',
         'has_test_bank',
         'test_attempts_total',
         'updated_at',
@@ -56,9 +58,17 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'is_published',
     )
     search_fields = ('title', 'slug', 'description', 'meta_description', 'article_markdown')
-    readonly_fields = ('is_published', 'published_at', 'created_at', 'updated_at', 'image_workflow_note')
+    readonly_fields = (
+        'is_published',
+        'published_at',
+        'views_count',
+        'created_at',
+        'updated_at',
+        'image_workflow_note',
+    )
     prepopulated_fields = {'slug': ('title',)}
     list_editable = ('status', 'access_level')
+    raw_id_fields = ('related_theory', 'related_test')
 
     fieldsets = (
         ('Main', {
@@ -68,6 +78,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
                 'category',
                 'subject',
                 'grade',
+                'task_number',
                 'content_type',
                 'exam_type',
             )
@@ -78,8 +89,11 @@ class MaterialItemAdmin(admin.ModelAdmin):
         ('Content', {
             'fields': ('video_url', 'article_markdown', 'file', 'external_url', 'test_payload', 'image_workflow_note')
         }),
+        ('Learning flow', {
+            'fields': ('related_theory', 'related_test')
+        }),
         ('Publishing and access', {
-            'fields': ('status', 'access_level', 'is_published', 'published_at')
+            'fields': ('status', 'access_level', 'is_published', 'published_at', 'views_count')
         }),
         ('Service', {
             'fields': ('created_at', 'updated_at')
