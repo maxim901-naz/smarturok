@@ -52,6 +52,7 @@ _INLINE_HEADING_RE = re.compile(r"(?<!\n)[ \t]+(#{1,6}\s)")
 _INLINE_FENCE_RE = re.compile(r"(?<!\n)```")
 _INLINE_FENCE_WITH_CODE_RE = re.compile(r"^```([a-zA-Z0-9_+-]+)?[ \t]+(.+)$")
 _DIV_OPEN_RE = re.compile(r"<div(?![^>]*\bmarkdown=)([^>]*)>", flags=re.IGNORECASE)
+_DISPLAY_MATH_BLOCK_RE = re.compile(r"(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])")
 _CODE_LINE_RE = re.compile(
     r"^\s*(?:"
     r"print\(|"
@@ -151,6 +152,22 @@ def _normalize_inline_fence_lines(text: str) -> str:
     return "\n".join(normalized)
 
 
+def _escape_html_chars_in_math_blocks(text: str) -> str:
+    def _escape_math_body(body: str) -> str:
+        return body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    def _replace(match: re.Match[str]) -> str:
+        block = match.group(0)
+        if block.startswith("$$"):
+            body = block[2:-2]
+            return f"$${_escape_math_body(body)}$$"
+
+        body = block[2:-2]
+        return rf"\[{_escape_math_body(body)}\]"
+
+    return _DISPLAY_MATH_BLOCK_RE.sub(_replace, text)
+
+
 def _normalize_markdown_input(value: str) -> str:
     # Decode copied HTML entities like &quot; and handle double-escaped text.
     text = value
@@ -185,6 +202,7 @@ def _normalize_markdown_input(value: str) -> str:
     text = _INLINE_HEADING_RE.sub(r"\n\n\1", text)
     text = _INLINE_FENCE_RE.sub("\n```", text)
     text = _normalize_inline_fence_lines(text)
+    text = _escape_html_chars_in_math_blocks(text)
     # Enable markdown parsing inside user HTML blocks (cards/grids from Tailwind).
     text = _DIV_OPEN_RE.sub(r'<div\1 markdown="1">', text)
     text = _auto_fence_code_blocks(text)
