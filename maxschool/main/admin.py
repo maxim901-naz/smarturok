@@ -1,7 +1,9 @@
-﻿from django.contrib import admin
+from django.contrib import admin
+from django.utils.html import format_html
 
 from .models import (
     MaterialCategory,
+    MaterialImage,
     MaterialItem,
     MaterialTest,
     MaterialTestAttempt,
@@ -54,7 +56,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'is_published',
     )
     search_fields = ('title', 'slug', 'description', 'meta_description', 'article_markdown')
-    readonly_fields = ('is_published', 'published_at', 'created_at', 'updated_at')
+    readonly_fields = ('is_published', 'published_at', 'created_at', 'updated_at', 'image_workflow_note')
     prepopulated_fields = {'slug': ('title',)}
     list_editable = ('status', 'access_level')
 
@@ -74,7 +76,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
             'fields': ('description', 'meta_description')
         }),
         ('Content', {
-            'fields': ('video_url', 'article_markdown', 'file', 'external_url', 'test_payload')
+            'fields': ('video_url', 'article_markdown', 'file', 'external_url', 'test_payload', 'image_workflow_note')
         }),
         ('Publishing and access', {
             'fields': ('status', 'access_level', 'is_published', 'published_at')
@@ -95,10 +97,64 @@ class MaterialItemAdmin(admin.ModelAdmin):
     has_test_bank.boolean = True
 
 
+    def image_workflow_note(self, obj):
+        return format_html(
+            "<b>How to use images:</b><br>"
+            "1) Upload files in the <i>Material images</i> block below.<br>"
+            "2) For article markdown use snippet <code>![alt](/media/...)</code>.<br>"
+            "3) For tests in <code>test_payload</code> use <code>image_url</code> / <code>image_alt</code> "
+            "for question and options.<br>"
+            "4) For the test bank use image fields directly in question and option rows."
+        )
+
+    image_workflow_note.short_description = 'Image workflow'
+
+
+class MaterialImageInline(admin.TabularInline):
+    model = MaterialImage
+    extra = 0
+    fields = (
+        'preview',
+        'image',
+        'title',
+        'alt_text',
+        'usage',
+        'sort_order',
+        'markdown_for_article',
+        'snippet_for_test',
+    )
+    readonly_fields = ('preview', 'markdown_for_article', 'snippet_for_test')
+    ordering = ('sort_order', 'id')
+
+    def preview(self, obj):
+        if not obj.pk or not obj.image:
+            return '-'
+        return format_html(
+            '<img src="{}" alt="{}" style="max-width: 140px; max-height: 80px; border-radius: 6px;"/>',
+            obj.image.url,
+            obj.alt_text or obj.title or 'preview',
+        )
+
+    preview.short_description = 'Preview'
+
+    def markdown_for_article(self, obj):
+        return obj.markdown_snippet if obj.pk else ''
+
+    markdown_for_article.short_description = 'Markdown for article'
+
+    def snippet_for_test(self, obj):
+        return obj.test_json_snippet if obj.pk else ''
+
+    snippet_for_test.short_description = 'JSON for payload test'
+
+
+MaterialItemAdmin.inlines = (MaterialImageInline,)
+
+
 class MaterialTestOptionInline(admin.TabularInline):
     model = MaterialTestOption
     extra = 1
-    fields = ('order', 'label', 'value', 'is_correct', 'is_active')
+    fields = ('order', 'label', 'value', 'image', 'image_alt', 'is_correct', 'is_active')
 
 
 @admin.register(MaterialTestQuestion)
@@ -113,7 +169,7 @@ class MaterialTestQuestionAdmin(admin.ModelAdmin):
 class MaterialTestQuestionInline(admin.TabularInline):
     model = MaterialTestQuestion
     extra = 1
-    fields = ('order', 'code', 'question_type', 'points', 'required', 'is_active', 'prompt')
+    fields = ('order', 'code', 'question_type', 'points', 'required', 'is_active', 'prompt', 'image', 'image_alt')
     show_change_link = True
 
 

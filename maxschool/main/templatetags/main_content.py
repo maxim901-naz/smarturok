@@ -29,6 +29,9 @@ _ALLOWED_TAGS = set(bleach.sanitizer.ALLOWED_TAGS) | {
     "td",
     "blockquote",
     "span",
+    "img",
+    "figure",
+    "figcaption",
 }
 
 _ALLOWED_ATTRIBUTES = {
@@ -37,6 +40,7 @@ _ALLOWED_ATTRIBUTES = {
     "div": ["class"],
     "code": ["class"],
     "span": ["class"],
+    "img": ["src", "alt", "title", "width", "height", "loading", "class"],
     "th": ["colspan", "rowspan", "align"],
     "td": ["colspan", "rowspan", "align"],
 }

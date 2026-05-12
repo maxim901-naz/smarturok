@@ -71,6 +71,8 @@ def parse_test_payload(payload: Any) -> tuple[dict[str, Any], list[dict[str, Any
             'order': idx,
             'type': qtype,
             'prompt': prompt,
+            'image_url': _clean_text(raw.get('image_url') or raw.get('image')),
+            'image_alt': _clean_text(raw.get('image_alt')),
             'points': points,
             'required': bool(raw.get('required', True)),
             'explanation': _clean_text(raw.get('explanation')),
@@ -84,11 +86,20 @@ def parse_test_payload(payload: Any) -> tuple[dict[str, Any], list[dict[str, Any
                     if isinstance(opt, dict):
                         value = _clean_text(opt.get('value') or opt.get('id') or opt.get('label') or opt.get('text'))
                         label = _clean_text(opt.get('label') or opt.get('text') or value)
+                        image_url = _clean_text(opt.get('image_url') or opt.get('image'))
+                        image_alt = _clean_text(opt.get('image_alt'))
                     else:
                         value = _clean_text(opt)
                         label = value
+                        image_url = ''
+                        image_alt = ''
                     if value:
-                        options.append({'value': value, 'label': label})
+                        options.append({
+                            'value': value,
+                            'label': label,
+                            'image_url': image_url,
+                            'image_alt': image_alt,
+                        })
 
             if len(options) < 2:
                 continue
@@ -148,6 +159,8 @@ def build_public_questions(questions: list[dict[str, Any]]) -> list[dict[str, An
             'order': q['order'],
             'type': q['type'],
             'prompt': q['prompt'],
+            'image_url': q.get('image_url', ''),
+            'image_alt': q.get('image_alt', ''),
             'points': q['points'],
             'required': q.get('required', True),
         }

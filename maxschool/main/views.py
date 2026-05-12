@@ -148,6 +148,8 @@ def _build_test_from_bank(material):
             'order': idx,
             'type': q_type,
             'prompt': question.prompt,
+            'image_url': question.image.url if question.image else '',
+            'image_alt': (question.image_alt or '').strip(),
             'points': max(1, int(question.points or 1)),
             'required': bool(question.required),
             'explanation': (question.explanation or '').strip(),
@@ -164,7 +166,15 @@ def _build_test_from_bank(material):
             correct_values = {option.value for option in options if option.is_correct}
             if not correct_values:
                 continue
-            item['options'] = [{'value': option.value, 'label': option.label} for option in options]
+            item['options'] = [
+                {
+                    'value': option.value,
+                    'label': option.label,
+                    'image_url': option.image.url if option.image else '',
+                    'image_alt': (option.image_alt or '').strip(),
+                }
+                for option in options
+            ]
             item['correct_values'] = correct_values
 
         elif q_type == 'number':

@@ -115,6 +115,42 @@ class MaterialItem(models.Model):
         super().save(*args, **kwargs)
 
 
+class MaterialImage(models.Model):
+    USAGE_CHOICES = (
+        ('article', 'Article'),
+        ('test', 'Test'),
+        ('both', 'Article and test'),
+    )
+
+    material = models.ForeignKey(MaterialItem, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='materials/images/%Y/%m/')
+    title = models.CharField(max_length=120, blank=True)
+    alt_text = models.CharField(max_length=255, blank=True)
+    usage = models.CharField(max_length=16, choices=USAGE_CHOICES, default='both', db_index=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+
+    def __str__(self):
+        return self.title or self.image.name
+
+    @property
+    def markdown_snippet(self):
+        if not self.image:
+            return ''
+        alt = self.alt_text or self.title or 'image'
+        return f'![{alt}]({self.image.url})'
+
+    @property
+    def test_json_snippet(self):
+        if not self.image:
+            return ''
+        alt = (self.alt_text or self.title or '').replace('"', '\\"')
+        return f'"image_url": "{self.image.url}", "image_alt": "{alt}"'
+
+
 class MaterialTestAttempt(models.Model):
     material = models.ForeignKey(
         MaterialItem,
@@ -192,6 +228,8 @@ class MaterialTestQuestion(models.Model):
     )
     code = models.CharField(max_length=40, blank=True, default='')
     prompt = models.TextField()
+    image = models.ImageField(upload_to='materials/tests/questions/', blank=True, null=True)
+    image_alt = models.CharField(max_length=255, blank=True, default='')
     question_type = models.CharField(max_length=12, choices=QUESTION_TYPE_CHOICES, default='text')
     points = models.PositiveIntegerField(default=1)
     required = models.BooleanField(default=True)
@@ -238,6 +276,8 @@ class MaterialTestOption(models.Model):
     )
     value = models.CharField(max_length=140)
     label = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='materials/tests/options/', blank=True, null=True)
+    image_alt = models.CharField(max_length=255, blank=True, default='')
     is_correct = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
