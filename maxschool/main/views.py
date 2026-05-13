@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
@@ -64,6 +65,14 @@ def _published_materials_qs():
 
 THEORY_CONTENT_TYPES = ('article', 'video', 'pdf')
 MATERIAL_SECTION_CHOICES = {'all', 'theory', 'practice', 'tests', 'mock'}
+EXAM_SEARCH_ALIASES = {
+    'огэ': 'oge',
+    'oge': 'oge',
+    'егэ': 'ege',
+    'ege': 'ege',
+    'впр': 'school',
+    'мцко': 'school',
+}
 
 
 def _normalize_material_section(section):
@@ -88,6 +97,47 @@ def _apply_material_section_filter(queryset, section):
 
 def _order_materials(queryset):
     return queryset.order_by(F('task_number').asc(nulls_last=True), '-published_at', '-created_at')
+
+
+def _material_search_token_q(token):
+    token = token.strip().lower()
+    if not token:
+        return Q()
+
+    token_q = (
+        Q(title__icontains=token)
+        | Q(description__icontains=token)
+        | Q(meta_description__icontains=token)
+        | Q(article_markdown__icontains=token)
+        | Q(subject__name__icontains=token)
+        | Q(category__title__icontains=token)
+        | Q(category__slug__icontains=token)
+    )
+
+    alias_exam_type = EXAM_SEARCH_ALIASES.get(token)
+    if alias_exam_type:
+        token_q |= Q(exam_type=alias_exam_type)
+
+    if token.isdigit():
+        value = int(token)
+        token_q |= Q(grade=value) | Q(task_number=value)
+
+    return token_q
+
+
+def _apply_material_search_filter(queryset, search_query):
+    query = (search_query or '').strip()
+    if not query:
+        return queryset
+
+    tokens = [token for token in re.split(r'\s+', query.lower()) if token]
+    if not tokens:
+        return queryset
+
+    # Keep AND semantics between tokens, while each token can match multiple fields.
+    for token in tokens:
+        queryset = queryset.filter(_material_search_token_q(token))
+    return queryset
 
 
 def _pick_related_material(material, target='test'):
@@ -323,10 +373,21 @@ def teachers_list(request):
 
 
 def materials_list(request):
+    search_query = (request.GET.get('q') or '').strip()
     categories = MaterialCategory.objects.filter(is_active=True).order_by('sort_order', 'title')
-    latest_items = _order_materials(_published_materials_qs())[:12]
+    items_qs = _published_materials_qs()
+    if search_query:
+        items_qs = _apply_material_search_filter(items_qs, search_query)
+    search_total = items_qs.count() if search_query else 0
+    latest_items = _order_materials(items_qs)[:24]
     subjects = Subject.objects.all()
-    return render(request, 'main/materials_list.html', {'categories': categories, 'latest_items': latest_items, 'subjects': subjects})
+    return render(request, 'main/materials_list.html', {
+        'categories': categories,
+        'latest_items': latest_items,
+        'subjects': subjects,
+        'search_query': search_query,
+        'search_total': search_total,
+    })
 
 
 def materials_category(request, slug):
@@ -336,12 +397,15 @@ def materials_category(request, slug):
 
     subject_id = request.GET.get('subject')
     grade = request.GET.get('grade')
+    search_query = (request.GET.get('q') or '').strip()
     selected_section = _normalize_material_section(request.GET.get('section'))
 
     if subject_id and subject_id.isdigit():
         base_items = base_items.filter(subject_id=int(subject_id))
     if grade and grade.isdigit():
         base_items = base_items.filter(grade=int(grade))
+    if search_query:
+        base_items = _apply_material_search_filter(base_items, search_query)
 
     section_counts = {
         'all': base_items.count(),
@@ -359,6 +423,7 @@ def materials_category(request, slug):
         'subjects': subjects,
         'selected_subject': subject_id or '',
         'selected_grade': grade or '',
+        'search_query': search_query,
         'selected_section': selected_section,
         'section_counts': section_counts,
         'grade_options': [4, 5, 6, 7, 8],

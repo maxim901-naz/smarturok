@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% if category.description %}{{ category.description|striptags|truncatechars:160 }}{% else %}Материалы SmartUrok по разделу {{ category.title }}.{% endif %}">
-    <meta name="robots" content="{% if selected_subject or selected_grade or selected_section != 'all' %}noindex, follow{% else %}index, follow{% endif %}">
+    <meta name="robots" content="{% if selected_subject or selected_grade or search_query or selected_section != 'all' %}noindex, follow{% else %}index, follow{% endif %}">
     <link rel="canonical" href="https://smarturok.ru{% url 'materials_category' category.slug %}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="SmartUrok">
@@ -113,7 +113,7 @@
         </section>
 
         <section class="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 shadow-soft mb-5">
-            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                 <input type="hidden" name="section" value="{{ selected_section|default:'all' }}">
 
                 <div>
@@ -138,33 +138,48 @@
                 </div>
                 {% endif %}
 
+                <div class="md:col-span-2">
+                    <label class="text-sm text-slate-600">Поиск по материалам</label>
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Например: ОГЭ 9, система уравнений, задание 10"
+                        class="w-full mt-1 rounded-xl border border-slate-300 px-3 py-2.5 focus:ring-2 focus:ring-orange-400 focus:outline-none">
+                </div>
+
                 <div>
                     <button type="submit" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">
                         Применить фильтр
                     </button>
                 </div>
             </form>
+            {% if search_query %}
+            <p class="text-sm text-slate-600 mt-3">
+                Поиск: <span class="font-semibold">«{{ search_query }}»</span> · найдено {{ section_counts.all }}.
+            </p>
+            {% endif %}
         </section>
 
         <section class="mb-6">
             <div class="flex flex-wrap gap-2">
-                <a href="?section=all{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}"
+                <a href="?section=all{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                    class="px-3 py-2 rounded-xl border text-sm font-medium {% if selected_section == 'all' %}tab-active{% else %}tab hover:bg-slate-50{% endif %}">
                     Все ({{ section_counts.all }})
                 </a>
-                <a href="?section=theory{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}"
+                <a href="?section=theory{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                    class="px-3 py-2 rounded-xl border text-sm font-medium {% if selected_section == 'theory' %}tab-active{% else %}tab hover:bg-slate-50{% endif %}">
                     Теория ({{ section_counts.theory }})
                 </a>
-                <a href="?section=practice{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}"
+                <a href="?section=practice{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                    class="px-3 py-2 rounded-xl border text-sm font-medium {% if selected_section == 'practice' %}tab-active{% else %}tab hover:bg-slate-50{% endif %}">
                     Практика ({{ section_counts.practice }})
                 </a>
-                <a href="?section=tests{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}"
+                <a href="?section=tests{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                    class="px-3 py-2 rounded-xl border text-sm font-medium {% if selected_section == 'tests' %}tab-active{% else %}tab hover:bg-slate-50{% endif %}">
                     Тесты ({{ section_counts.tests }})
                 </a>
-                <a href="?section=mock{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}"
+                <a href="?section=mock{% if selected_subject %}&subject={{ selected_subject }}{% endif %}{% if selected_grade %}&grade={{ selected_grade }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                    class="px-3 py-2 rounded-xl border text-sm font-medium {% if selected_section == 'mock' %}tab-active{% else %}tab hover:bg-slate-50{% endif %}">
                     Пробники ({{ section_counts.mock }})
                 </a>
@@ -217,7 +232,11 @@
                 </article>
                 {% empty %}
                 <div class="col-span-full rounded-2xl border border-dashed border-slate-300 p-6 bg-white text-slate-500">
+                    {% if search_query %}
+                    По запросу ничего не найдено в этой категории. Уточните запрос или уберите часть слов.
+                    {% else %}
                     По выбранным фильтрам пока нет материалов. Попробуйте изменить предмет или раздел.
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Учебные материалы SmartUrok: теория, практика и тесты по школьным предметам для детей и взрослых.">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{% if search_query %}noindex, follow{% else %}index, follow{% endif %}">
     <link rel="canonical" href="https://smarturok.ru/materials/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="SmartUrok">
@@ -133,6 +133,32 @@
             </div>
         </section>
 
+        <section class="mb-8 fade-up" style="animation-delay:.04s">
+            <form method="get" action="{% url 'materials_list' %}" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-soft">
+                <div class="flex flex-col md:flex-row gap-3">
+                    <input
+                        type="text"
+                        name="q"
+                        value="{{ search_query }}"
+                        placeholder="Например: ОГЭ 9, ЕГЭ математика, задание 10"
+                        class="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-orange-400 focus:outline-none">
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">
+                        Найти материал
+                    </button>
+                    {% if search_query %}
+                    <a href="{% url 'materials_list' %}" class="px-5 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition text-center">
+                        Сбросить
+                    </a>
+                    {% endif %}
+                </div>
+                {% if search_query %}
+                <p class="text-sm text-slate-600 mt-3">
+                    Результат по запросу <span class="font-semibold">«{{ search_query }}»</span>: найдено {{ search_total }}.
+                </p>
+                {% endif %}
+            </form>
+        </section>
+
         <section id="materials-catalog" class="mb-10 fade-up" style="animation-delay:.08s">
             <div class="flex items-end justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Разделы</h2>
@@ -159,7 +185,9 @@
 
         <section class="fade-up" style="animation-delay:.14s">
             <div class="flex items-end justify-between gap-4 mb-4">
-                <h2 class="text-2xl font-bold">Свежие материалы</h2>
+                <h2 class="text-2xl font-bold">
+                    {% if search_query %}Найденные материалы{% else %}Свежие материалы{% endif %}
+                </h2>
                 <button type="button" data-open-lead-modal class="text-sm font-semibold text-orange-700 hover:text-orange-800">Не знаете, с чего начать? Поможем →</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -210,7 +238,11 @@
                 </article>
                 {% empty %}
                 <div class="col-span-full rounded-2xl border border-dashed border-slate-300 p-6 bg-white text-slate-500">
+                    {% if search_query %}
+                    По запросу ничего не найдено. Попробуйте: <span class="font-medium">ОГЭ 9</span>, <span class="font-medium">ЕГЭ профиль</span>, <span class="font-medium">задание 10</span>.
+                    {% else %}
                     Материалы пока не добавлены.
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>
