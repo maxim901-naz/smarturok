@@ -4,105 +4,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Учебные материалы SmartUrok: полезные файлы, разборы и подборки по школьным предметам для детей и взрослых.">
+    <meta name="description" content="Учебные материалы SmartUrok: теория, практика и тесты по школьным предметам для детей и взрослых.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://smarturok.ru/materials/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="SmartUrok">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:title" content="Учебные материалы SmartUrok">
-    <meta property="og:description" content="База материалов по предметам: тесты, файлы и полезные учебные подборки.">
+    <meta property="og:description" content="База материалов по предметам: теория, практика, тесты и разборы заданий.">
     <meta property="og:url" content="https://smarturok.ru/materials/">
     <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Учебные материалы SmartUrok">
-    <meta name="twitter:description" content="Учебные материалы и полезные подборки по школьным предметам.">
+    <meta name="twitter:description" content="Полезные учебные материалы и тренажеры для уверенного прогресса в учебе.">
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <title>Учебные материалы | SmartUrok</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; }
-        .card { border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        :root {
+            --brand: #f97316;
+            --brand-dark: #c2410c;
+            --ink: #0f172a;
+            --muted: #475569;
+            --soft: #f8fafc;
+            --line: #e2e8f0;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(1200px 600px at 8% -10%, rgba(249, 115, 22, 0.16), transparent 60%),
+                radial-gradient(800px 500px at 100% 0%, rgba(14, 165, 233, 0.14), transparent 60%),
+                #f8fafc;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .shadow-soft {
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+        }
+        .hover-lift {
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 22px 42px rgba(15, 23, 42, 0.11);
+        }
+        .fade-up {
+            animation: fadeUp .45s ease both;
+        }
+        .badge {
+            border-radius: 999px;
+            padding: .3rem .75rem;
+            font-size: .73rem;
+            font-weight: 700;
+            letter-spacing: .01em;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal {
+            display: none;
+        }
+        .modal.active {
+            display: flex;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
-    <header class="bg-white border-b">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="{% url 'home' %}" class="font-semibold text-lg">SmartUrok</a>
-            <nav class="space-x-4 text-sm">
-                <a href="{% url 'home' %}#materials" class="text-gray-700 hover:text-orange-500">Главная</a>
-                <a href="{% url 'teachers_list' %}" class="text-gray-700 hover:text-orange-500">Преподаватели</a>
+<body>
+    <header class="sticky top-0 z-30 border-b border-white/70 glass">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="{% url 'home' %}" class="font-extrabold text-lg tracking-tight">SmartUrok</a>
+            <nav class="hidden sm:flex items-center gap-5 text-sm text-slate-700">
+                <a href="{% url 'home' %}" class="hover:text-orange-600 transition">Главная</a>
+                <a href="{% url 'teachers_list' %}" class="hover:text-orange-600 transition">Преподаватели</a>
+                <a href="{% url 'trial' %}" class="px-4 py-2 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">Пробный урок</a>
             </nav>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-10">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold">Учебные материалы</h1>
-            <p class="text-gray-600 mt-2">Актуальные материалы от школы: теория, практика, тесты и пробники.</p>
-        </div>
+    <main class="max-w-6xl mx-auto px-4 py-8 sm:py-10">
+        <section class="rounded-3xl shadow-soft p-6 sm:p-9 text-white mb-10 fade-up"
+                 style="background: linear-gradient(120deg, #0f172a 0%, #1e293b 38%, #ea580c 100%);">
+            <div class="grid lg:grid-cols-2 gap-8 items-center">
+                <div>
+                    <span class="inline-flex items-center rounded-full bg-white/20 px-3 py-1 text-xs font-semibold mb-4">
+                        База знаний SmartUrok
+                    </span>
+                    <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight mb-3">
+                        Учиться системно проще, чем учиться хаотично
+                    </h1>
+                    <p class="text-slate-100/90 text-base sm:text-lg max-w-xl">
+                        Теория, практика и тесты по ключевым темам. Подход: короткое объяснение, сразу тренировка,
+                        затем закрепление с преподавателем.
+                    </p>
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="#materials-catalog" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">
+                            Выбрать материал
+                        </a>
+                        <button type="button" data-open-lead-modal class="px-5 py-3 rounded-xl border border-white/55 text-white font-semibold hover:bg-white/10 transition">
+                            Записаться с подбором
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div class="rounded-2xl bg-white/12 border border-white/20 p-4">
+                        <div class="text-2xl font-extrabold">{{ categories|length }}+</div>
+                        <div class="text-sm text-white/80 mt-1">разделов материалов</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/12 border border-white/20 p-4">
+                        <div class="text-2xl font-extrabold">{{ latest_items|length }}+</div>
+                        <div class="text-sm text-white/80 mt-1">актуальных материалов</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/12 border border-white/20 p-4">
+                        <div class="text-2xl font-extrabold">1:1</div>
+                        <div class="text-sm text-white/80 mt-1">поддержка с преподавателем</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/12 border border-white/20 p-4">
+                        <div class="text-2xl font-extrabold">24/7</div>
+                        <div class="text-sm text-white/80 mt-1">доступ к базе материалов</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <section class="mb-10">
-            <h2 class="text-xl font-semibold mb-4">Разделы</h2>
+        <section id="materials-catalog" class="mb-10 fade-up" style="animation-delay:.08s">
+            <div class="flex items-end justify-between gap-4 mb-4">
+                <h2 class="text-2xl font-bold">Разделы</h2>
+                <a href="{% url 'trial' %}" class="text-sm font-semibold text-orange-700 hover:text-orange-800">Нужен индивидуальный план →</a>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for c in categories %}
-                <a href="{% url 'materials_category' c.slug %}" class="card bg-white p-5 hover:shadow-lg transition">
-                    <div class="text-lg font-semibold">{{ c.title }}</div>
-                    <div class="text-gray-600 text-sm mt-2">{{ c.description }}</div>
+                <a href="{% url 'materials_category' c.slug %}" class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft hover-lift">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-bold group-hover:text-orange-600 transition">{{ c.title }}</h3>
+                        <span class="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-semibold">Открыть</span>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-3 leading-relaxed">
+                        {{ c.description|default:'Материалы, задания и разборы по теме.'|truncatechars:150 }}
+                    </p>
                 </a>
                 {% empty %}
-                <div class="text-gray-500">Разделы ещё не созданы.</div>
+                <div class="col-span-full rounded-2xl border border-dashed border-slate-300 p-6 bg-white text-slate-500">
+                    Разделы материалов пока не добавлены.
+                </div>
                 {% endfor %}
             </div>
         </section>
 
-        <section>
-            <h2 class="text-xl font-semibold mb-4">Последние материалы</h2>
+        <section class="fade-up" style="animation-delay:.14s">
+            <div class="flex items-end justify-between gap-4 mb-4">
+                <h2 class="text-2xl font-bold">Свежие материалы</h2>
+                <button type="button" data-open-lead-modal class="text-sm font-semibold text-orange-700 hover:text-orange-800">Не знаете, с чего начать? Поможем →</button>
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for item in latest_items %}
-                <div class="card bg-white p-5">
-                    <div class="text-sm text-gray-500">{{ item.category.title }}</div>
-                    <div class="text-lg font-semibold mt-1">
+                <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft hover-lift">
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-slate-100 text-slate-700">{{ item.category.title }}</span>
+                        <span class="badge bg-orange-100 text-orange-700">{{ item.get_content_type_display }}</span>
+                        <span class="badge bg-blue-100 text-blue-700">{{ item.get_access_level_display }}</span>
+                    </div>
+
+                    <h3 class="text-lg font-bold leading-snug">
                         {% if item.slug %}
                             <a href="{% url 'material_detail' item.slug %}" class="hover:text-orange-600 transition">{{ item.title }}</a>
                         {% else %}
                             {{ item.title }}
                         {% endif %}
-                    </div>
-                    <div class="text-sm text-gray-500 mt-1">
+                    </h3>
+
+                    <p class="text-sm text-slate-500 mt-2">
                         {% if item.subject %}{{ item.subject.name }}{% endif %}
                         {% if item.grade %}{% if item.subject %} · {% endif %}{{ item.grade }} класс{% endif %}
-                    </div>
-                    <div class="text-xs text-gray-500 mt-1">
-                        {% if item.task_number %}Задание №{{ item.task_number }} · {% endif %}Просмотры: {{ item.views_count }}
-                    </div>
-                    <div class="text-xs text-gray-500 mt-2">
-                        Тип: {{ item.get_content_type_display }} · Доступ: {{ item.get_access_level_display }}
-                    </div>
-                    {% if item.description %}
-                    <div class="text-gray-600 text-sm mt-2">{{ item.description }}</div>
-                    {% endif %}
-                    <div class="mt-3">
+                        {% if item.task_number %} · Задание №{{ item.task_number }}{% endif %}
+                    </p>
+
+                    <p class="text-sm text-slate-600 mt-3 min-h-[42px]">
+                        {{ item.description|default:'Короткий разбор и полезная практика по теме.'|truncatechars:130 }}
+                    </p>
+
+                    <div class="mt-4 flex items-center justify-between gap-3">
+                        <span class="text-xs text-slate-500">Просмотры: {{ item.views_count }}</span>
                         {% if item.slug %}
-                            <a href="{% url 'material_detail' item.slug %}" class="text-orange-600 font-medium">
+                            <a href="{% url 'material_detail' item.slug %}" class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
                                 {% if item.content_type == 'test' %}Пройти тест{% else %}Открыть материал{% endif %}
                             </a>
                         {% elif item.file %}
-                            <a href="{{ item.file.url }}" class="text-orange-600 font-medium" target="_blank" rel="noopener">Открыть файл</a>
+                            <a href="{{ item.file.url }}" target="_blank" rel="noopener" class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
+                                Открыть файл
+                            </a>
                         {% elif item.external_url %}
-                            <a href="{{ item.external_url }}" class="text-orange-600 font-medium" target="_blank" rel="noopener">Открыть ссылку</a>
+                            <a href="{{ item.external_url }}" target="_blank" rel="noopener" class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
+                                Открыть ссылку
+                            </a>
                         {% else %}
-                            <span class="text-gray-400">Нет вложения</span>
+                            <span class="text-xs text-slate-400">Материал готовится</span>
                         {% endif %}
                     </div>
-                </div>
+                </article>
                 {% empty %}
-                <div class="text-gray-500">Материалы пока не добавлены.</div>
+                <div class="col-span-full rounded-2xl border border-dashed border-slate-300 p-6 bg-white text-slate-500">
+                    Материалы пока не добавлены.
+                </div>
                 {% endfor %}
             </div>
         </section>
+
+        <section class="mt-10 rounded-3xl p-6 sm:p-8 text-white shadow-soft fade-up"
+                 style="animation-delay:.2s; background: linear-gradient(135deg, #f97316 0%, #ea580c 48%, #1e293b 100%);">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold">Нужна стратегия подготовки именно под вашего ребенка?</h2>
+                    <p class="text-white/90 mt-2 max-w-2xl">
+                        За 15 минут подберем преподавателя, определим слабые места и дадим план действий уже после первого урока.
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'trial' %}" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">
+                        Записаться на пробный
+                    </a>
+                    <button type="button" data-open-lead-modal class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">
+                        Получить консультацию
+                    </button>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <div id="materials-lead-modal" class="modal fixed inset-0 z-50 items-center justify-center bg-slate-900/65 p-4" aria-hidden="true">
+        <div class="w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-soft relative">
+            <button type="button" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700" data-close-lead-modal aria-label="Закрыть">✕</button>
+            <h3 class="text-2xl font-extrabold">Подобрать программу и преподавателя</h3>
+            <p class="text-sm text-slate-600 mt-2">Оставьте контакты и мы свяжемся с вами в ближайшее время.</p>
+
+            <form method="post" action="{% url 'home_lead' %}" class="mt-5 space-y-3">
+                {% csrf_token %}
+                <input type="hidden" name="lead_form" value="materials_modal">
+                <input type="hidden" name="landing_path" id="materials-landing-path">
+                <input type="hidden" name="referrer" id="materials-referrer">
+                <input type="hidden" name="message" value="Заявка из раздела материалов: нужен подбор программы обучения.">
+
+                <input type="text" name="name" required class="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-orange-400 focus:outline-none" placeholder="Ваше имя">
+                <input type="tel" name="phone" required class="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-orange-400 focus:outline-none" placeholder="Телефон">
+                <input type="email" name="email" required class="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-orange-400 focus:outline-none" placeholder="Email">
+
+                <label class="flex items-start gap-2 text-xs text-slate-600">
+                    <input type="checkbox" name="privacy_consent" value="1" required class="mt-0.5 accent-orange-600">
+                    <span>Согласен(на) на обработку персональных данных.</span>
+                </label>
+
+                <button type="submit" class="w-full px-5 py-3 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">
+                    Отправить заявку
+                </button>
+                <a href="{% url 'trial' %}" class="block text-center text-sm font-semibold text-slate-700 hover:text-orange-700 transition">
+                    Или перейти к полной форме записи
+                </a>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const modal = document.getElementById('materials-lead-modal');
+            const openers = document.querySelectorAll('[data-open-lead-modal]');
+            const closers = document.querySelectorAll('[data-close-lead-modal]');
+            const landingInput = document.getElementById('materials-landing-path');
+            const referrerInput = document.getElementById('materials-referrer');
+
+            if (landingInput) {
+                landingInput.value = window.location.pathname + window.location.search;
+            }
+            if (referrerInput) {
+                referrerInput.value = document.referrer || '';
+            }
+
+            function openModal() {
+                if (!modal) return;
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                if (!modal) return;
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            openers.forEach((button) => button.addEventListener('click', openModal));
+            closers.forEach((button) => button.addEventListener('click', closeModal));
+
+            if (modal) {
+                modal.addEventListener('click', function (event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
