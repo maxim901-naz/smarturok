@@ -393,7 +393,7 @@
                     <div class="absolute left-0 mt-3 w-80 max-h-80 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg z-50">
                         {% if user_chats %}
                             {% for c in user_chats %}
-                                <a href="{% url 'chat:detail' c.id %}" class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                                <a href="#" onclick="openInlineChatById('{{ c.id }}', '{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}'); return false;" class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
                                     <span class="text-sm text-gray-800">
                                         {% if request.user == c.student %}
                                             {{ c.teacher.get_full_name|default:c.teacher.username }}
@@ -475,7 +475,7 @@
                         <div class="mt-2 ml-3 rounded-lg border border-gray-100 bg-gray-50">
                             {% if user_chats %}
                                 {% for c in user_chats %}
-                                    <a href="{% url 'chat:detail' c.id %}" class="flex items-center justify-between px-3 py-2 text-sm text-gray-700 border-b border-gray-100 last:border-b-0">
+                                    <a href="#" onclick="openInlineChatById('{{ c.id }}', '{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}'); return false;" class="flex items-center justify-between px-3 py-2 text-sm text-gray-700 border-b border-gray-100 last:border-b-0">
                                         <span>
                                             {% if request.user == c.student %}
                                                 {{ c.teacher.get_full_name|default:c.teacher.username }}
@@ -526,7 +526,7 @@
                             <div class="absolute left-0 right-0 mt-2 rounded-xl border border-gray-100 bg-white shadow-lg z-30 max-h-72 overflow-y-auto">
                                 {% if user_chats %}
                                     {% for c in user_chats %}
-                                        <a href="{% url 'chat:detail' c.id %}" class="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                                        <a href="#" onclick="openInlineChatById('{{ c.id }}', '{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}'); return false;" class="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
                                             <span>
                                                 {% if request.user == c.student %}
                                                     {{ c.teacher.get_full_name|default:c.teacher.username }}
@@ -748,7 +748,7 @@
                                 </div>
                             {% endif %}
                             
-                            <a href="{% url 'chat:start' lesson.teacher.id %}" 
+                            <a href="#" onclick="openInlineChatStart('{{ lesson.teacher.id }}', '{{ lesson.teacher.get_full_name|default:lesson.teacher.username|escapejs }}'); return false;"
                                class="w-full text-center px-4 py-2 chat-btn text-white rounded-lg font-semibold hover-scale">
                                 <i class="fas fa-comment-dots mr-2"></i> Написать преподавателю
                             </a>
@@ -842,7 +842,7 @@
                     
                     {% if user_chats %}
                         {% with first_chat=user_chats.0 %}
-                            <a href="{% url 'chat:detail' first_chat.id %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <a href="#" onclick="openInlineChatById('{{ first_chat.id }}', '{% if request.user == first_chat.student %}{{ first_chat.teacher.get_full_name|default:first_chat.teacher.username|escapejs }}{% else %}{{ first_chat.student.get_full_name|default:first_chat.student.username|escapejs }}{% endif %}'); return false;" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                                 <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
                                     <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -956,6 +956,47 @@
         </div>
     </main>
 
+    <div id="inline-chat-modal" class="fixed inset-0 z-[120] hidden">
+        <div class="absolute inset-0 bg-black/45" onclick="closeInlineChat()"></div>
+        <div class="absolute inset-3 md:inset-8 bg-white rounded-2xl shadow-2xl overflow-hidden flex">
+            <aside class="w-72 md:w-80 border-r border-gray-200 bg-gray-50 flex flex-col">
+                <div class="px-4 py-3 border-b border-gray-200 bg-white">
+                    <h3 class="font-semibold text-gray-900">Мои чаты</h3>
+                </div>
+                <div class="overflow-y-auto">
+                    {% if user_chats %}
+                        {% for c in user_chats %}
+                            <button
+                                type="button"
+                                class="inline-chat-contact w-full text-left px-4 py-3 border-b border-gray-200 hover:bg-white transition"
+                                data-chat-id="{{ c.id }}"
+                                data-chat-name="{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-800">{{ c.teacher.get_full_name|default:c.teacher.username }}</span>
+                                    {% if c.unread_count %}
+                                        <span class="inline-flex min-w-6 justify-center rounded-full bg-primary px-2 py-0.5 text-xs text-white">{{ c.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                            </button>
+                        {% endfor %}
+                    {% else %}
+                        <div class="px-4 py-4 text-sm text-gray-500">Пока нет чатов</div>
+                    {% endif %}
+                </div>
+            </aside>
+            <section class="flex-1 flex flex-col min-w-0">
+                <div class="h-14 border-b border-gray-200 px-4 flex items-center justify-between bg-white">
+                    <div id="inline-chat-title" class="font-semibold text-gray-900 truncate">Чат</div>
+                    <button type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none" onclick="closeInlineChat()">&times;</button>
+                </div>
+                <div class="flex-1 bg-white">
+                    <iframe id="inline-chat-frame" class="w-full h-full border-0" src=""></iframe>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <!-- Футер -->
     <footer class="bg-dark text-white py-8 mt-16">
         <div class="content-container px-6 lg:px-8">
@@ -995,6 +1036,66 @@
         burgerBtn.addEventListener('click', () => {
             mobileMenu.classList.toggle('hidden');
         });
+
+        const inlineChatModal = document.getElementById('inline-chat-modal');
+        const inlineChatFrame = document.getElementById('inline-chat-frame');
+        const inlineChatTitle = document.getElementById('inline-chat-title');
+        const inlineChatContacts = document.querySelectorAll('.inline-chat-contact');
+
+        function setActiveInlineContact(chatId) {
+            inlineChatContacts.forEach((btn) => {
+                if (String(btn.dataset.chatId) === String(chatId)) {
+                    btn.classList.add('bg-white');
+                } else {
+                    btn.classList.remove('bg-white');
+                }
+            });
+        }
+
+        function openInlineChat(url, title, chatId = null) {
+            if (!inlineChatModal || !inlineChatFrame || !inlineChatTitle) {
+                window.location.href = url;
+                return;
+            }
+            inlineChatModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            inlineChatTitle.textContent = title || 'Чат';
+            inlineChatFrame.src = url;
+            if (chatId) setActiveInlineContact(chatId);
+        }
+
+        function openInlineChatById(chatId, title) {
+            openInlineChat(`/chats/${chatId}/?embedded=1`, title, chatId);
+        }
+
+        function openInlineChatStart(userId, title) {
+            openInlineChat(`/chats/start/${userId}/?embedded=1`, title, null);
+        }
+
+        function closeInlineChat() {
+            if (!inlineChatModal || !inlineChatFrame) return;
+            inlineChatModal.classList.add('hidden');
+            inlineChatFrame.src = '';
+            document.body.style.overflow = '';
+        }
+
+        inlineChatContacts.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const chatId = btn.dataset.chatId;
+                const title = btn.dataset.chatName || 'Чат';
+                openInlineChatById(chatId, title);
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && inlineChatModal && !inlineChatModal.classList.contains('hidden')) {
+                closeInlineChat();
+            }
+        });
+
+        window.openInlineChatById = openInlineChatById;
+        window.openInlineChatStart = openInlineChatStart;
+        window.closeInlineChat = closeInlineChat;
 
         // Плавная прокрутка
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

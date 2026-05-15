@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from lessons.models import LessonBooking
 
@@ -45,13 +46,16 @@ def chat_detail(request, chat_id):
 
     messages_qs = chat.messages.select_related("sender").all()
     chat.messages.filter(~Q(sender=request.user), is_read=False).update(is_read=True)
+    embedded = request.GET.get("embedded") == "1"
+    template_name = "chat/chat_embed.html" if embedded else "chat/chat_detail.html"
 
     return render(
         request,
-        "chat/chat_detail.html",
+        template_name,
         {
             "chat": chat,
             "messages": messages_qs,
+            "embedded": embedded,
         },
     )
 
@@ -84,5 +88,7 @@ def chat_start(request, user_id):
 
     # Роли фиксированы, создаем (или берем) единственный чат пары.
     chat, _ = Chat.objects.get_or_create(student=student, teacher=teacher)
-
-    return redirect("chat:detail", chat_id=chat.id)
+    target_url = reverse("chat:detail", kwargs={"chat_id": chat.id})
+    if request.GET.get("embedded") == "1":
+        target_url = f"{target_url}?embedded=1"
+    return redirect(target_url)
