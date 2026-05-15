@@ -1,0 +1,225 @@
+{% if user.is_authenticated and user.role == 'student' or user.is_authenticated and user.role == 'teacher' %}
+<style>
+    .global-chat-launcher {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 115;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 18px;
+        background: linear-gradient(130deg, #004E89 0%, #00A6FB 100%);
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 14px 32px rgba(0, 78, 137, 0.36);
+        transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+
+    .global-chat-launcher:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.03);
+        box-shadow: 0 18px 36px rgba(0, 78, 137, 0.42);
+    }
+
+    .global-chat-launcher-badge {
+        min-width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: #FF6B35;
+        color: #fff;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+    }
+
+    .global-chat-shell {
+        width: min(840px, 92vw);
+        height: min(560px, 82vh);
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 28px 50px rgba(0, 0, 0, 0.28);
+        overflow: hidden;
+        display: flex;
+    }
+
+    .global-chat-sidebar {
+        width: 300px;
+        border-right: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .global-chat-contact-active {
+        background: #fff !important;
+        border-left: 3px solid #00A6FB;
+    }
+
+    @media (max-width: 639px) {
+        .global-chat-launcher {
+            right: 12px;
+            bottom: 12px;
+            padding: 11px 14px;
+            gap: 8px;
+        }
+
+        .global-chat-shell {
+            width: 96vw;
+            height: 88vh;
+            border-radius: 14px;
+        }
+
+        .global-chat-sidebar {
+            width: 220px;
+        }
+    }
+</style>
+
+<button id="global-inline-chat-launcher" type="button" class="global-chat-launcher" onclick="openInlineChatLauncher()">
+    <i class="fas fa-comment-dots"></i>
+    <span>Сообщения</span>
+    {% if chat_unread_total %}
+        <span class="global-chat-launcher-badge">{{ chat_unread_total }}</span>
+    {% endif %}
+</button>
+
+<div id="global-inline-chat-modal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-3 md:p-6">
+    <div class="absolute inset-0 bg-black/45" onclick="closeInlineChat()"></div>
+    <div class="global-chat-shell relative z-10">
+        <aside class="global-chat-sidebar flex flex-col">
+            <div class="px-4 py-3 border-b border-gray-200 bg-white">
+                <h3 class="font-semibold text-gray-900">Сообщения</h3>
+            </div>
+            <div class="overflow-y-auto">
+                {% if user_chats %}
+                    {% for c in user_chats %}
+                        {% if request.user == c.student %}
+                            {% with chat_name=c.teacher.get_full_name|default:c.teacher.username %}
+                            <button
+                                type="button"
+                                class="global-chat-contact w-full text-left px-4 py-3 border-b border-gray-200 hover:bg-white transition"
+                                data-chat-id="{{ c.id }}"
+                                data-chat-name="{{ chat_name|escapejs }}"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-800">{{ chat_name }}</span>
+                                    {% if c.unread_count %}
+                                        <span class="inline-flex min-w-6 justify-center rounded-full bg-primary px-2 py-0.5 text-xs text-white">{{ c.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                            </button>
+                            {% endwith %}
+                        {% else %}
+                            {% with chat_name=c.student.get_full_name|default:c.student.username %}
+                            <button
+                                type="button"
+                                class="global-chat-contact w-full text-left px-4 py-3 border-b border-gray-200 hover:bg-white transition"
+                                data-chat-id="{{ c.id }}"
+                                data-chat-name="{{ chat_name|escapejs }}"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <span class="font-medium text-gray-800">{{ chat_name }}</span>
+                                    {% if c.unread_count %}
+                                        <span class="inline-flex min-w-6 justify-center rounded-full bg-primary px-2 py-0.5 text-xs text-white">{{ c.unread_count }}</span>
+                                    {% endif %}
+                                </div>
+                            </button>
+                            {% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <div class="px-4 py-4 text-sm text-gray-500">Пока нет чатов</div>
+                {% endif %}
+            </div>
+        </aside>
+        <section class="flex-1 flex flex-col min-w-0">
+            <div class="h-14 border-b border-gray-200 px-4 flex items-center justify-between bg-white">
+                <div id="global-inline-chat-title" class="font-semibold text-gray-900 truncate">Сообщения</div>
+                <button type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none" onclick="closeInlineChat()">&times;</button>
+            </div>
+            <div class="flex-1 bg-white">
+                <iframe id="global-inline-chat-frame" class="w-full h-full border-0" src=""></iframe>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    (function () {
+        if (window.__smarturokInlineChatInitialized) return;
+        window.__smarturokInlineChatInitialized = true;
+
+        const inlineChatModal = document.getElementById('global-inline-chat-modal');
+        const inlineChatFrame = document.getElementById('global-inline-chat-frame');
+        const inlineChatTitle = document.getElementById('global-inline-chat-title');
+        const inlineChatContacts = Array.from(document.querySelectorAll('.global-chat-contact'));
+
+        function setActiveInlineContact(chatId) {
+            inlineChatContacts.forEach((btn) => {
+                if (chatId && String(btn.dataset.chatId) === String(chatId)) {
+                    btn.classList.add('global-chat-contact-active');
+                } else {
+                    btn.classList.remove('global-chat-contact-active');
+                }
+            });
+        }
+
+        function openInlineChat(url, title, chatId = null) {
+            if (!inlineChatModal || !inlineChatFrame || !inlineChatTitle) {
+                window.location.href = url;
+                return;
+            }
+            inlineChatModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            inlineChatTitle.textContent = title || 'Сообщения';
+            inlineChatFrame.src = url;
+            setActiveInlineContact(chatId);
+        }
+
+        function openInlineChatById(chatId, title) {
+            openInlineChat(`/chats/${chatId}/?embedded=1`, title, chatId);
+        }
+
+        function openInlineChatStart(userId, title) {
+            openInlineChat(`/chats/start/${userId}/?embedded=1`, title, null);
+        }
+
+        function openInlineChatLauncher() {
+            if (inlineChatContacts.length) {
+                const first = inlineChatContacts[0];
+                openInlineChatById(first.dataset.chatId, first.dataset.chatName || 'Сообщения');
+                return;
+            }
+            window.location.href = "{{ chat_empty_url|default:'/' }}";
+        }
+
+        function closeInlineChat() {
+            if (!inlineChatModal || !inlineChatFrame) return;
+            inlineChatModal.classList.add('hidden');
+            inlineChatFrame.src = '';
+            document.body.style.overflow = '';
+            setActiveInlineContact(null);
+        }
+
+        inlineChatContacts.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                openInlineChatById(btn.dataset.chatId, btn.dataset.chatName || 'Сообщения');
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && inlineChatModal && !inlineChatModal.classList.contains('hidden')) {
+                closeInlineChat();
+            }
+        });
+
+        window.openInlineChatById = openInlineChatById;
+        window.openInlineChatStart = openInlineChatStart;
+        window.openInlineChatLauncher = openInlineChatLauncher;
+        window.closeInlineChat = closeInlineChat;
+    })();
+</script>
+{% endif %}

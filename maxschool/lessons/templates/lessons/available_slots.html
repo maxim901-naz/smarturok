@@ -121,7 +121,6 @@
             <nav class="hidden lg:flex space-x-6 items-center">
                 <a href="{% url 'lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
                 <a href="{% url 'my_homeworks' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
-                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
             </nav>
             <div class="hidden lg:flex items-center space-x-4">
                 <div class="flex items-center">
@@ -195,5 +194,6 @@
             </div>
         </div>
     </footer>
+    {% include 'chat/includes/inline_chat_widget.html' %}
 </body>
 </html>

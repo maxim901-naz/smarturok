@@ -460,34 +460,6 @@
                 <a href="{% url 'lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
                 <a href="{% url 'my_homeworks' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
                 <a href="#progress-section" class="text-dark font-medium transition nav-link">Прогресс</a>
-                <details class="relative">
-                    <summary class="list-none cursor-pointer text-dark font-medium transition nav-link flex items-center gap-2">
-                        Сообщения
-                        <i class="fas fa-chevron-down text-xs"></i>
-                    </summary>
-                    <div class="absolute left-0 mt-3 w-80 max-h-80 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg z-50">
-                        {% if user_chats %}
-                            {% for c in user_chats %}
-                                <a href="#" onclick="openInlineChatById('{{ c.id }}', '{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}'); return false;" class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                                    <span class="text-sm text-gray-800">
-                                        {% if request.user == c.student %}
-                                            {{ c.teacher.get_full_name|default:c.teacher.username }}
-                                        {% else %}
-                                            {{ c.student.get_full_name|default:c.student.username }}
-                                        {% endif %}
-                                    </span>
-                                    {% if c.unread_count %}
-                                        <span class="ml-3 inline-flex min-w-6 justify-center rounded-full bg-primary px-2 py-0.5 text-xs text-white">{{ c.unread_count }}</span>
-                                    {% endif %}
-                                </a>
-                            {% endfor %}
-                        {% else %}
-                            <div class="px-4 py-3 text-sm text-gray-500">Чатов пока нет</div>
-                        {% endif %}
-                    </div>
-                </details>
-                
-                
             </nav>
             
             <!-- Профиль ученика -->
@@ -541,34 +513,6 @@
                 <li><a href="{% url 'lesson_history' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">История уроков</a></li>
                 <li><a href="{% url 'my_homeworks' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Домашние задания</a></li>
                 <li><a href="#progress-section" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Прогресс</a></li>
-                <li>
-                    <details>
-                        <summary class="list-none cursor-pointer block px-4 py-2 text-dark rounded transition mobile-menu-link flex items-center justify-between">
-                            <span>Сообщения</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </summary>
-                        <div class="mt-2 ml-3 rounded-lg border border-gray-100 bg-gray-50">
-                            {% if user_chats %}
-                                {% for c in user_chats %}
-                                    <a href="#" onclick="openInlineChatById('{{ c.id }}', '{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}'); return false;" class="flex items-center justify-between px-3 py-2 text-sm text-gray-700 border-b border-gray-100 last:border-b-0">
-                                        <span>
-                                            {% if request.user == c.student %}
-                                                {{ c.teacher.get_full_name|default:c.teacher.username }}
-                                            {% else %}
-                                                {{ c.student.get_full_name|default:c.student.username }}
-                                            {% endif %}
-                                        </span>
-                                        {% if c.unread_count %}
-                                            <span class="ml-2 inline-flex min-w-6 justify-center rounded-full bg-primary px-2 py-0.5 text-xs text-white">{{ c.unread_count }}</span>
-                                        {% endif %}
-                                    </a>
-                                {% endfor %}
-                            {% else %}
-                                <div class="px-3 py-2 text-sm text-gray-500">Чатов пока нет</div>
-                            {% endif %}
-                        </div>
-                    </details>
-                </li>
                 <li><a href="{% url 'student_vacation_request' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Отпуск</a></li>
                 <li class="pt-2 border-t border-gray-200">
                     <a href="{% url 'logout' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Выйти</a>
@@ -593,33 +537,6 @@
                         <a href="{% url 'my_homeworks' %}" class="student-nav-btn hover-scale">
                             <i class="fas fa-tasks"></i> Мои домашние задания
                         </a>
-                        <details class="relative">
-                            <summary class="list-none cursor-pointer student-nav-btn hover-scale flex items-center justify-between gap-2">
-                                <span><i class="fas fa-comments mr-1"></i> Сообщения</span>
-                                <i class="fas fa-chevron-down text-xs"></i>
-                            </summary>
-                            <div class="absolute left-0 right-0 mt-2 rounded-xl border border-gray-100 bg-white shadow-lg z-30 max-h-72 overflow-y-auto">
-                                {% if user_chats %}
-                                    {% for c in user_chats %}
-                                        <a href="#" onclick="openInlineChatById('{{ c.id }}', '{{ c.teacher.get_full_name|default:c.teacher.username|escapejs }}'); return false;" class="flex items-center justify-between px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                                            <span>
-                                                {% if request.user == c.student %}
-                                                    {{ c.teacher.get_full_name|default:c.teacher.username }}
-                                                {% else %}
-                                                    {{ c.student.get_full_name|default:c.student.username }}
-                                                {% endif %}
-                                            </span>
-                                            {% if c.unread_count %}
-                                                <span class="ml-2 inline-flex min-w-6 justify-center rounded-full bg-primary px-2 py-0.5 text-xs text-white">{{ c.unread_count }}</span>
-                                            {% endif %}
-                                        </a>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="px-4 py-3 text-sm text-gray-500">Чатов пока нет</div>
-                                {% endif %}
-                            </div>
-                        </details>
-                        
                         <!-- Новая кнопка для записи на урок -->
                         <a href="{% url 'schedule_lesson' %}" class="student-nav-btn hover-scale" style="background: linear-gradient(90deg, #00A6FB 0%, #004E89 100%);">
                             <i class="fas fa-calendar-plus"></i> Записаться на урок

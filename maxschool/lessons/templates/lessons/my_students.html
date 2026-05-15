@@ -325,7 +325,6 @@
                 <a href="{% url 'teacher_bookings' %}" class="text-dark font-medium transition nav-link">Заявки на уроки</a>
                 <a href="{% url 'teacher_lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
                 <a href="{% url 'teacher_homework_submissions' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
-                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
                 <a href="{% url 'my_students' %}" class="text-primary font-medium transition nav-link">Мои ученики</a>
             </nav>
             
@@ -352,7 +351,6 @@
                 <li><a href="{% url 'teacher_bookings' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Заявки на уроки</a></li>
                 <li><a href="{% url 'teacher_lesson_history' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">История уроков</a></li>
                 <li><a href="{% url 'teacher_homework_submissions' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Домашние задания</a></li>
-                <li><a href="{% url 'chat:list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои чаты</a></li>
                 <li><a href="{% url 'my_students' %}" class="block px-4 py-2 text-primary rounded transition mobile-menu-link">Мои ученики</a></li>
                 <li class="pt-2 border-t border-gray-200">
                     <a href="{% url 'logout' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Выйти</a>
@@ -375,9 +373,6 @@
                         </a>
                         <a href="{% url 'teacher_bookings' %}" class="teacher-nav-btn hover-scale">
                             <i class="fas fa-calendar-plus"></i> Заявки на уроки
-                        </a>
-                        <a href="{% url 'chat:list' %}" class="teacher-nav-btn hover-scale">
-                            <i class="fas fa-comments"></i> Мои чаты
                         </a>
                     </div>
                 </div>
@@ -470,7 +465,7 @@
                     <a href="{% url 'student_profile' student.id %}" class="flex-1 text-center px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-opacity-90 transition">
                         <i class="fas fa-user mr-1"></i> Профиль
                     </a>
-                    <a href="{% url 'chat:start' student.id %}" class="flex-1 text-center px-4 py-2 bg-secondary text-white rounded-lg font-medium hover:bg-opacity-90 transition">
+                    <a href="#" onclick="openInlineChatStart('{{ student.id }}', '{{ student.get_full_name|default:student.username|escapejs }}'); return false;" class="flex-1 text-center px-4 py-2 bg-secondary text-white rounded-lg font-medium hover:bg-opacity-90 transition">
                         <i class="fas fa-comment mr-1"></i> Чат
                     </a>
                 </div>
@@ -560,6 +555,7 @@
             });
         });
     </script>
+    {% include 'chat/includes/inline_chat_widget.html' %}
 </body>
 </html>
 {% comment %} <h2 class="text-xl font-bold mb-4">Мои ученики</h2>

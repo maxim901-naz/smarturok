@@ -282,7 +282,6 @@
                 <a href="{% url 'teacher_bookings' %}" class="text-dark font-medium transition nav-link">Заявки на уроки</a>
                 <a href="{% url 'teacher_lesson_history' %}" class="text-dark font-medium transition nav-link">История уроков</a>
                 <a href="{% url 'teacher_homework_submissions' %}" class="text-dark font-medium transition nav-link">Домашние задания</a>
-                <a href="{% url 'chat:list' %}" class="text-dark font-medium transition nav-link">Мои чаты</a>
                 <a href="{% url 'my_students' %}" class="text-dark font-medium transition nav-link">Мои ученики</a>
             </nav>
             
@@ -309,7 +308,6 @@
                 <li><a href="{% url 'teacher_bookings' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Заявки на уроки</a></li>
                 <li><a href="{% url 'teacher_lesson_history' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">История уроков</a></li>
                 <li><a href="{% url 'teacher_homework_submissions' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Домашние задания</a></li>
-                <li><a href="{% url 'chat:list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои чаты</a></li>
                 <li><a href="{% url 'my_students' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Мои ученики</a></li>
                 <li class="pt-2 border-t border-gray-200">
                     <a href="{% url 'logout' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Выйти</a>
@@ -332,7 +330,7 @@
                     <p class="text-xl mb-6 opacity-90">Подробная информация об ученике и его успехах</p>
                     
                     <div class="flex flex-wrap gap-4">
-                        <a href="{% url 'chat:start' student.id %}" class="teacher-nav-btn hover-scale">
+                        <a href="#" onclick="openInlineChatStart('{{ student.id }}', '{{ student.get_full_name|default:student.username|escapejs }}'); return false;" class="teacher-nav-btn hover-scale">
                             <i class="fas fa-comment mr-2"></i> Написать сообщение
                         </a>
                         <a href="#" class="teacher-nav-btn hover-scale">
@@ -507,7 +505,7 @@
                     </h3>
                     
                     <div class="space-y-3">
-                        <a href="{% url 'chat:start' student.id %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <a href="#" onclick="openInlineChatStart('{{ student.id }}', '{{ student.get_full_name|default:student.username|escapejs }}'); return false;" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                             <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
                                 <i class="fas fa-comment text-primary"></i>
                             </div>
@@ -597,5 +595,6 @@
             });
         });
     </script>
+    {% include 'chat/includes/inline_chat_widget.html' %}
 </body>
 </html>

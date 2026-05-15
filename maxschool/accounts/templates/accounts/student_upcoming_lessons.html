@@ -91,7 +91,7 @@
                             </div>
                         {% endif %}
 
-                        <a href="{% url 'chat:start' lesson.teacher.id %}" class="w-full text-center px-4 py-2 bg-secondary text-white rounded-lg font-semibold hover:opacity-95 transition">
+                        <a href="#" onclick="openInlineChatStart('{{ lesson.teacher.id }}', '{{ lesson.teacher.get_full_name|default:lesson.teacher.username|escapejs }}'); return false;" class="w-full text-center px-4 py-2 bg-secondary text-white rounded-lg font-semibold hover:opacity-95 transition">
                             <i class="fas fa-comment-dots mr-2"></i>РќР°РїРёСЃР°С‚СЊ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЋ
                         </a>
 
@@ -115,6 +115,7 @@
             </div>
         {% endif %}
     </div>
+    {% include 'chat/includes/inline_chat_widget.html' %}
 </body>
 </html>
 

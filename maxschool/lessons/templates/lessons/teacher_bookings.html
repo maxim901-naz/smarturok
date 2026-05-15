@@ -188,7 +188,7 @@
                         <a href="#" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
                             <i class="fas fa-times-circle mr-2"></i> Отклонить
                         </a>
-                        <a href="#" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                        <a href="#" onclick="openInlineChatStart('{{ booking.student.id }}', '{{ booking.student.get_full_name|default:booking.student.username|escapejs }}'); return false;" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
                             <i class="fas fa-comment mr-2"></i> Написать ученику
                         </a>
                     </div>
@@ -214,5 +214,7 @@
             <p class="text-sm text-gray-500">© 2025 MaxSchool. Все права защищены.</p>
         </div>
     </footer>
+    {% include 'chat/includes/inline_chat_widget.html' %}
 </body>
 </html>
+
