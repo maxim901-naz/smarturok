@@ -339,6 +339,64 @@
             box-shadow: 0 6px 12px rgba(0, 166, 251, 0.3);
         }
 
+        .chat-launcher {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 115;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 0;
+            border-radius: 999px;
+            padding: 12px 18px;
+            background: linear-gradient(130deg, #004E89 0%, #00A6FB 100%);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 14px 32px rgba(0, 78, 137, 0.36);
+            transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        }
+
+        .chat-launcher:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.03);
+            box-shadow: 0 18px 36px rgba(0, 78, 137, 0.42);
+        }
+
+        .chat-launcher-badge {
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: #FF6B35;
+            color: #fff;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+        }
+
+        .inline-chat-shell {
+            width: min(840px, 92vw);
+            height: min(560px, 82vh);
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 28px 50px rgba(0, 0, 0, 0.28);
+            overflow: hidden;
+            display: flex;
+        }
+
+        .inline-chat-sidebar {
+            width: 300px;
+            border-right: 1px solid #e5e7eb;
+            background: #f8fafc;
+        }
+
+        .inline-chat-contact-active {
+            background: #fff !important;
+            border-left: 3px solid #00A6FB;
+        }
+
         @media (max-width: 1279px) {
             .student-dashboard-header {
                 padding-top: 96px;
@@ -366,6 +424,23 @@
                 margin-top: 18px;
                 padding: 14px;
             }
+
+            .chat-launcher {
+                right: 12px;
+                bottom: 12px;
+                padding: 11px 14px;
+                gap: 8px;
+            }
+
+            .inline-chat-shell {
+                width: 96vw;
+                height: 88vh;
+                border-radius: 14px;
+            }
+
+            .inline-chat-sidebar {
+                width: 220px;
+            }
         }
     </style>
 </head>
@@ -387,7 +462,7 @@
                 <a href="#progress-section" class="text-dark font-medium transition nav-link">Прогресс</a>
                 <details class="relative">
                     <summary class="list-none cursor-pointer text-dark font-medium transition nav-link flex items-center gap-2">
-                        Мои чаты
+                        Сообщения
                         <i class="fas fa-chevron-down text-xs"></i>
                     </summary>
                     <div class="absolute left-0 mt-3 w-80 max-h-80 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg z-50">
@@ -469,7 +544,7 @@
                 <li>
                     <details>
                         <summary class="list-none cursor-pointer block px-4 py-2 text-dark rounded transition mobile-menu-link flex items-center justify-between">
-                            <span>Мои чаты</span>
+                            <span>Сообщения</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </summary>
                         <div class="mt-2 ml-3 rounded-lg border border-gray-100 bg-gray-50">
@@ -520,7 +595,7 @@
                         </a>
                         <details class="relative">
                             <summary class="list-none cursor-pointer student-nav-btn hover-scale flex items-center justify-between gap-2">
-                                <span><i class="fas fa-comments mr-1"></i> Мои чаты</span>
+                                <span><i class="fas fa-comments mr-1"></i> Сообщения</span>
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </summary>
                             <div class="absolute left-0 right-0 mt-2 rounded-xl border border-gray-100 bg-white shadow-lg z-30 max-h-72 overflow-y-auto">
@@ -849,7 +924,7 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium">Мои чаты</h4>
+                                    <h4 class="font-medium">Сообщения</h4>
                                     <p class="text-sm text-gray-600">Общение с преподавателями</p>
                                 </div>
                             </a>
@@ -862,7 +937,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="font-medium">Мои чаты</h4>
+                                <h4 class="font-medium">Сообщения</h4>
                                 <p class="text-sm text-gray-600">Сначала нужен активный урок</p>
                             </div>
                         </a>
@@ -956,12 +1031,20 @@
         </div>
     </main>
 
-    <div id="inline-chat-modal" class="fixed inset-0 z-[120] hidden">
+    <button id="inline-chat-launcher" type="button" class="chat-launcher" onclick="openInlineChatLauncher()">
+        <i class="fas fa-comment-dots"></i>
+        <span>Сообщения</span>
+        {% if chat_unread_total %}
+            <span class="chat-launcher-badge">{{ chat_unread_total }}</span>
+        {% endif %}
+    </button>
+
+    <div id="inline-chat-modal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-3 md:p-6">
         <div class="absolute inset-0 bg-black/45" onclick="closeInlineChat()"></div>
-        <div class="absolute inset-3 md:inset-8 bg-white rounded-2xl shadow-2xl overflow-hidden flex">
-            <aside class="w-72 md:w-80 border-r border-gray-200 bg-gray-50 flex flex-col">
+        <div class="inline-chat-shell relative z-10">
+            <aside class="inline-chat-sidebar flex flex-col">
                 <div class="px-4 py-3 border-b border-gray-200 bg-white">
-                    <h3 class="font-semibold text-gray-900">Мои чаты</h3>
+                    <h3 class="font-semibold text-gray-900">Сообщения</h3>
                 </div>
                 <div class="overflow-y-auto">
                     {% if user_chats %}
@@ -987,7 +1070,7 @@
             </aside>
             <section class="flex-1 flex flex-col min-w-0">
                 <div class="h-14 border-b border-gray-200 px-4 flex items-center justify-between bg-white">
-                    <div id="inline-chat-title" class="font-semibold text-gray-900 truncate">Чат</div>
+                    <div id="inline-chat-title" class="font-semibold text-gray-900 truncate">Сообщения</div>
                     <button type="button" class="text-gray-500 hover:text-gray-800 text-2xl leading-none" onclick="closeInlineChat()">&times;</button>
                 </div>
                 <div class="flex-1 bg-white">
@@ -1045,9 +1128,9 @@
         function setActiveInlineContact(chatId) {
             inlineChatContacts.forEach((btn) => {
                 if (String(btn.dataset.chatId) === String(chatId)) {
-                    btn.classList.add('bg-white');
+                    btn.classList.add('inline-chat-contact-active');
                 } else {
-                    btn.classList.remove('bg-white');
+                    btn.classList.remove('inline-chat-contact-active');
                 }
             });
         }
@@ -1059,9 +1142,13 @@
             }
             inlineChatModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-            inlineChatTitle.textContent = title || 'Чат';
+            inlineChatTitle.textContent = title || 'Сообщения';
             inlineChatFrame.src = url;
-            if (chatId) setActiveInlineContact(chatId);
+            if (chatId) {
+                setActiveInlineContact(chatId);
+            } else {
+                setActiveInlineContact(null);
+            }
         }
 
         function openInlineChatById(chatId, title) {
@@ -1072,17 +1159,29 @@
             openInlineChat(`/chats/start/${userId}/?embedded=1`, title, null);
         }
 
+        function openInlineChatLauncher() {
+            {% if user_chats %}
+            openInlineChatById(
+                '{{ user_chats.0.id }}',
+                '{{ user_chats.0.teacher.get_full_name|default:user_chats.0.teacher.username|escapejs }}'
+            );
+            {% else %}
+            window.location.href = "{% url 'teachers_list' %}";
+            {% endif %}
+        }
+
         function closeInlineChat() {
             if (!inlineChatModal || !inlineChatFrame) return;
             inlineChatModal.classList.add('hidden');
             inlineChatFrame.src = '';
             document.body.style.overflow = '';
+            setActiveInlineContact(null);
         }
 
         inlineChatContacts.forEach((btn) => {
             btn.addEventListener('click', () => {
                 const chatId = btn.dataset.chatId;
-                const title = btn.dataset.chatName || 'Чат';
+                const title = btn.dataset.chatName || 'Сообщения';
                 openInlineChatById(chatId, title);
             });
         });
@@ -1095,6 +1194,7 @@
 
         window.openInlineChatById = openInlineChatById;
         window.openInlineChatStart = openInlineChatStart;
+        window.openInlineChatLauncher = openInlineChatLauncher;
         window.closeInlineChat = closeInlineChat;
 
         // Плавная прокрутка

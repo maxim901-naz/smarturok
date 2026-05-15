@@ -514,7 +514,8 @@ def student_dashboard_view(request):
         lesson.display_time = local_start.time()
 
     unread_count = StudentNotification.objects.filter(student=request.user, is_read=False).count()
-    user_chats = _get_user_chats(request.user)
+    user_chats = list(_get_user_chats(request.user))
+    chat_unread_total = sum((getattr(c, "unread_count", 0) or 0) for c in user_chats)
     return render(request, 'accounts/student_dashboard.html', {
         'lessons': lessons_week,
         'total_upcoming': total_upcoming_week,
@@ -536,6 +537,7 @@ def student_dashboard_view(request):
         'notifications': StudentNotification.objects.filter(student=request.user).order_by('-created_at')[:5],
         'unread_count': unread_count,
         'user_chats': user_chats,
+        'chat_unread_total': chat_unread_total,
     })
 
 
@@ -595,7 +597,8 @@ def teacher_dashboard_view(request):
     # Рендер
     # =====================================
     unread_count = TeacherNotification.objects.filter(teacher=request.user, is_read=False).count()
-    user_chats = _get_user_chats(request.user)
+    user_chats = list(_get_user_chats(request.user))
+    chat_unread_total = sum((getattr(c, "unread_count", 0) or 0) for c in user_chats)
     teacher_tz_name = getattr(teacher_tz, 'key', None) or str(teacher_tz) or TEACHER_TZ_NAME
     return render(request, 'accounts/teacher_dashboard.html', {
         'events': json.dumps(events),
@@ -607,6 +610,7 @@ def teacher_dashboard_view(request):
         'now': now_msk,
         'teacher_time_zone': teacher_tz_name,
         'user_chats': user_chats,
+        'chat_unread_total': chat_unread_total,
     })
 # Общий просмотр расписания (опционально)
 @login_required
