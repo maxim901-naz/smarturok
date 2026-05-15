@@ -12,6 +12,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from email.utils import make_msgid
+from django.db.models import Count, Max, Q
 from datetime import date
 import json
 import random
@@ -39,6 +40,7 @@ from .models import (
 )
 from .finance import get_teacher_payout_amount_for_lesson
 from lessons.utils import SERIES_WEEKS
+from chat.models import Chat
 
 DEFAULT_APP_TZ_NAME = getattr(settings, 'TIME_ZONE', None) or 'UTC'
 try:
@@ -61,6 +63,21 @@ RESEND_VERIFY_RATE_WINDOW_SECONDS = 15 * 60  # 15 minutes
 REGISTER_CAPTCHA_ANSWER_KEY = 'register_captcha_answer'
 REGISTER_CAPTCHA_LABEL_KEY = 'register_captcha_label'
 logger = logging.getLogger(__name__)
+
+
+def _get_user_chats(user):
+    return (
+        Chat.objects.filter(Q(student=user) | Q(teacher=user))
+        .select_related("student", "teacher")
+        .annotate(
+            last_time=Max("messages__timestamp"),
+            unread_count=Count(
+                "messages",
+                filter=Q(messages__is_read=False) & ~Q(messages__sender=user),
+            ),
+        )
+        .order_by("-last_time", "-id")
+    )
 
 
 def get_user_tz(user):
@@ -497,6 +514,7 @@ def student_dashboard_view(request):
         lesson.display_time = local_start.time()
 
     unread_count = StudentNotification.objects.filter(student=request.user, is_read=False).count()
+    user_chats = _get_user_chats(request.user)
     return render(request, 'accounts/student_dashboard.html', {
         'lessons': lessons_week,
         'total_upcoming': total_upcoming_week,
@@ -517,6 +535,7 @@ def student_dashboard_view(request):
         'submitted_homework_lesson_ids': submitted_homework_lesson_ids,
         'notifications': StudentNotification.objects.filter(student=request.user).order_by('-created_at')[:5],
         'unread_count': unread_count,
+        'user_chats': user_chats,
     })
 
 
@@ -576,6 +595,7 @@ def teacher_dashboard_view(request):
     # Рендер
     # =====================================
     unread_count = TeacherNotification.objects.filter(teacher=request.user, is_read=False).count()
+    user_chats = _get_user_chats(request.user)
     teacher_tz_name = getattr(teacher_tz, 'key', None) or str(teacher_tz) or TEACHER_TZ_NAME
     return render(request, 'accounts/teacher_dashboard.html', {
         'events': json.dumps(events),
@@ -586,6 +606,7 @@ def teacher_dashboard_view(request):
         'unread_count': unread_count,
         'now': now_msk,
         'teacher_time_zone': teacher_tz_name,
+        'user_chats': user_chats,
     })
 # Общий просмотр расписания (опционально)
 @login_required
