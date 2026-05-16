@@ -4,7 +4,7 @@ from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import F, Max, Q
+from django.db.models import Count, F, Max, Q
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -319,10 +319,30 @@ def home(request):
     teachers = CustomUser.objects.filter(role='teacher', is_approved=True).prefetch_related('subjects_taught', 'desired_subject')
     subjects = Subject.objects.all()
     reviews = Review.objects.filter(is_published=True).order_by('-created_at')[:12]
+    material_categories_qs = (
+        MaterialCategory.objects
+        .filter(is_active=True)
+        .annotate(
+            published_count=Count(
+                'materials',
+                filter=Q(materials__status='published'),
+                distinct=True,
+            )
+        )
+        .order_by('sort_order', 'title')
+    )
+    home_material_categories = list(material_categories_qs[:8])
+    home_latest_materials = list(_published_materials_qs().order_by('-published_at', '-created_at')[:4])
+    materials_categories_total = material_categories_qs.count()
+    materials_total_count = _published_materials_qs().count()
     return render(request, 'main/index.html', {
         'teachers': teachers,
         'subjects': subjects,
         'reviews': reviews,
+        'home_material_categories': home_material_categories,
+        'home_latest_materials': home_latest_materials,
+        'materials_categories_total': materials_categories_total,
+        'materials_total_count': materials_total_count,
         'analytics': _analytics_context(),
     })
 

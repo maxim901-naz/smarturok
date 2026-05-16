@@ -310,16 +310,89 @@
             padding: 0 15px;
         }
         
-        /* Стили для материалов */
-        .material-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            perspective: 1000px;
-            border-radius: 16px;
+        /* Витрина материалов на главной */
+        .materials-surface {
+            position: relative;
+            border-radius: 28px;
+            background:
+                radial-gradient(1200px 240px at -8% 0%, rgba(0, 166, 251, 0.16), transparent 60%),
+                radial-gradient(900px 220px at 108% 12%, rgba(255, 107, 53, 0.14), transparent 62%),
+                linear-gradient(160deg, #ffffff 0%, #f8fbff 52%, #ffffff 100%);
+            border: 1px solid rgba(229, 231, 235, 0.9);
+            box-shadow: 0 18px 42px rgba(17, 24, 39, 0.08);
             overflow: hidden;
         }
-        .material-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+
+        .materials-glow {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 999px;
+            filter: blur(48px);
+            opacity: 0.45;
+        }
+
+        .materials-glow-left {
+            width: 240px;
+            height: 240px;
+            left: -80px;
+            top: -70px;
+            background: rgba(0, 166, 251, 0.35);
+        }
+
+        .materials-glow-right {
+            width: 260px;
+            height: 260px;
+            right: -90px;
+            top: 30%;
+            background: rgba(255, 107, 53, 0.35);
+        }
+
+        .materials-kpi {
+            border-radius: 16px;
+            border: 1px solid rgba(203, 213, 225, 0.65);
+            background: rgba(255, 255, 255, 0.86);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+        }
+
+        .home-material-category-card {
+            display: block;
+            border-radius: 18px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+
+        .home-material-category-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0, 166, 251, 0.45);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.1);
+        }
+
+        .home-material-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #0369a1;
+            background: #e0f2fe;
+            border: 1px solid rgba(2, 132, 199, 0.2);
+        }
+
+        .home-material-preview-card {
+            border-radius: 16px;
+            border: 1px solid rgba(229, 231, 235, 0.9);
+            background: #fff;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .home-material-preview-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
         }
         
         /* Акционный баннер */
@@ -658,6 +731,16 @@
                 padding: 0.75rem;
                 font-size: 0.9rem;
             }
+
+            .materials-surface {
+                border-radius: 20px;
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .materials-kpi {
+                backdrop-filter: none;
+            }
             
             .swiper-slide {
                 padding: 0 10px;
@@ -683,6 +766,10 @@
             
             .material-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .materials-surface {
+                border-radius: 16px;
             }
             
             .stat-card .animated-counter {
@@ -1181,95 +1268,122 @@
         </div>
     </section>
 
-    <!-- Дополнительные материалы -->
+    <!-- Учебные материалы -->
     <section id="materials" class="py-16 bg-gray-50">
         <div class="content-container px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12" data-aos="fade-up">
-                <span class="text-primary font-semibold">Ресурсы</span>
-                <h2 class="text-3xl font-bold mt-2 section-header">Учебные материалы</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto mt-4">Полезные материалы для подготовки к экзаменам и олимпиадам</p>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 material-grid">
-                <!-- Учебники -->
-                <a href="{% url 'materials_category' 'uchebniki' %}" class="material-card">
-                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center">
-                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
+            <div class="materials-surface p-6 sm:p-8 lg:p-10">
+                <span class="materials-glow materials-glow-left"></span>
+                <span class="materials-glow materials-glow-right"></span>
+
+                <div class="relative z-10">
+                    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8" data-aos="fade-up">
+                        <div class="max-w-2xl">
+                            <span class="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs sm:text-sm font-semibold text-orange-700">Библиотека SmartUrok</span>
+                            <h2 class="text-3xl sm:text-4xl font-bold mt-4 leading-tight">Материалы, которые помогают учиться быстрее и увереннее</h2>
+                            <p class="text-gray-600 mt-3">Разделы обновляются регулярно: конспекты, тесты, файлы и задания по ключевым школьным направлениям.</p>
                         </div>
-                        <h3 class="text-xl font-bold mb-2">Учебники</h3>
-                        <p class="text-gray-600 text-sm">Электронные учебники и пособия</p>
-                    </div>
-                </a>
-                
-                <!-- ОГЭ -->
-                <a href="{% url 'materials_category' 'oge' %}" class="material-card">
-                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center">
-                        <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                            <div class="materials-kpi px-4 py-3">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Всего материалов</div>
+                                <div class="text-2xl font-bold text-gray-900 mt-1">{{ materials_total_count }}</div>
+                            </div>
+                            <div class="materials-kpi px-4 py-3">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Разделов</div>
+                                <div class="text-2xl font-bold text-gray-900 mt-1">{{ materials_categories_total }}</div>
+                            </div>
+                            <div class="materials-kpi px-4 py-3">
+                                <div class="text-xs uppercase tracking-wide text-gray-500">Формат</div>
+                                <div class="text-sm font-semibold text-gray-900 mt-1">Видео, тесты, файлы</div>
+                            </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2">ОГЭ</h3>
-                        <p class="text-gray-600 text-sm">Материалы для подготовки к ОГЭ</p>
                     </div>
-                </a>
-                
-                <!-- ЕГЭ -->
-                <a href="{% url 'materials_category' 'ege' %}" class="material-card">
-                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center">
-                        <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
+
+                    {% if home_material_categories %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" data-aos="fade-up" data-aos-delay="100">
+                        {% for category in home_material_categories %}
+                        <a href="{% url 'materials_category' category.slug %}" class="home-material-category-card group p-5">
+                            <div class="flex items-center justify-between gap-3 mb-4">
+                                <span class="home-material-chip">{{ category.published_count|default:0 }} материалов</span>
+                                <span class="text-lg text-gray-400 group-hover:text-primary transition">→</span>
+                            </div>
+                            <h3 class="text-lg font-bold text-gray-900">{{ category.title }}</h3>
+                            <p class="text-sm text-gray-600 mt-2">
+                                {% if category.description %}
+                                    {{ category.description|truncatechars:110 }}
+                                {% else %}
+                                    Подборка актуальных материалов по направлению «{{ category.title }}».
+                                {% endif %}
+                            </p>
+                        </a>
+                        {% endfor %}
+
+                        {% if materials_categories_total > home_material_categories|length %}
+                        <a href="{% url 'materials_list' %}" class="home-material-category-card p-5 border-dashed border-2 border-primary border-opacity-40 bg-blue-50">
+                            <div class="text-sm font-semibold text-primary">+{{ materials_categories_total|add:"-8" }} разделов</div>
+                            <h3 class="text-lg font-bold text-gray-900 mt-2">Посмотреть весь каталог</h3>
+                            <p class="text-sm text-gray-600 mt-2">Откройте полную базу материалов и выберите нужную тему за 1-2 клика.</p>
+                            <span class="inline-flex items-center mt-4 text-primary font-semibold">Все материалы <span class="ml-2">→</span></span>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="bg-white rounded-2xl border border-gray-200 px-6 py-8 text-center" data-aos="fade-up" data-aos-delay="100">
+                        <h3 class="text-xl font-semibold">Каталог скоро наполнится</h3>
+                        <p class="text-gray-600 mt-2">Мы уже подготавливаем материалы. Пока можно перейти к общему разделу.</p>
+                        <a href="{% url 'materials_list' %}" class="inline-block mt-5 px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-900 text-white rounded-lg font-semibold">Открыть материалы</a>
+                    </div>
+                    {% endif %}
+
+                    {% if home_latest_materials %}
+                    <div class="mt-10" data-aos="fade-up" data-aos-delay="150">
+                        <div class="flex items-center justify-between gap-4 mb-4">
+                            <h3 class="text-xl font-bold">Новые материалы</h3>
+                            <a href="{% url 'materials_list' %}" class="text-primary font-semibold hover:underline">Все материалы →</a>
                         </div>
-                        <h3 class="text-xl font-bold mb-2">ЕГЭ</h3>
-                        <p class="text-gray-600 text-sm">Материалы для подготовки к ЕГЭ</p>
-                    </div>
-                </a>
-                
-                <!-- МЦКО -->
-                <a href="{% url 'materials_category' 'mcko' %}" class="material-card">
-                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center">
-                        <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                            {% for item in home_latest_materials %}
+                            <article class="home-material-preview-card p-4">
+                                <div class="flex items-center justify-between gap-2 text-xs text-gray-500">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-100">{{ item.category.title }}</span>
+                                    <span>{{ item.get_content_type_display }}</span>
+                                </div>
+                                <h4 class="mt-3 text-base font-semibold leading-snug">
+                                    {% if item.slug %}
+                                        <a href="{% url 'material_detail' item.slug %}" class="hover:text-primary transition">{{ item.title }}</a>
+                                    {% else %}
+                                        {{ item.title }}
+                                    {% endif %}
+                                </h4>
+                                <p class="text-sm text-gray-600 mt-2">
+                                    {% if item.subject %}{{ item.subject.name }}{% endif %}
+                                    {% if item.grade %}{% if item.subject %} · {% endif %}{{ item.grade }} класс{% endif %}
+                                </p>
+                                <div class="mt-3">
+                                    {% if item.slug %}
+                                        <a href="{% url 'material_detail' item.slug %}" class="text-primary font-semibold hover:underline">Открыть материал</a>
+                                    {% elif item.file %}
+                                        <a href="{{ item.file.url }}" target="_blank" rel="noopener" class="text-primary font-semibold hover:underline">Открыть файл</a>
+                                    {% elif item.external_url %}
+                                        <a href="{{ item.external_url }}" target="_blank" rel="noopener" class="text-primary font-semibold hover:underline">Открыть ссылку</a>
+                                    {% endif %}
+                                </div>
+                            </article>
+                            {% endfor %}
                         </div>
-                        <h3 class="text-xl font-bold mb-2">МЦКО</h3>
-                        <p class="text-gray-600 text-sm">Диагностики и тесты МЦКО</p>
                     </div>
-                </a>
-                
-                <!-- ВПР -->
-                <a href="{% url 'materials_category' 'vpr' %}" class="material-card">
-                    <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-6 text-center h-full flex flex-col items-center justify-center">
-                        <div class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-bold mb-2">ВПР</h3>
-                        <p class="text-gray-600 text-sm">Материалы для подготовки к ВПР</p>
+                    {% endif %}
+
+                    <div class="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-center">
+                        <a href="{% url 'materials_list' %}" class="material-btn px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-950 text-white text-center rounded-lg font-semibold">
+                            Перейти в каталог материалов
+                        </a>
+                        <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="materials_section" class="material-btn px-6 py-3 bg-gradient-to-r from-primary to-yellow-500 text-white text-center rounded-lg font-semibold">
+                            Записаться на пробный урок
+                        </a>
                     </div>
-                </a>
-            </div>
-            
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <a href="{% url 'materials_category' 'uchebniki' %}" class="material-btn px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-center font-semibold">
-                    Скачать учебники
-                </a>
-                <a href="{% url 'materials_category' 'oge' %}" class="material-btn px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-center font-semibold">
-                    Тесты ОГЭ
-                </a>
-                <a href="{% url 'materials_category' 'ege' %}" class="material-btn px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg text-center font-semibold">
-                    Тесты ЕГЭ
-                </a>
-                <a href="{% url 'materials_list' %}" class="material-btn px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-gray-700 to-gray-900 text-white rounded-lg text-center font-semibold">
-                    Все материалы
-                </a>
+                </div>
             </div>
         </div>
     </section>
