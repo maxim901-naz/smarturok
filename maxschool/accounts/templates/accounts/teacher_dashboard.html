@@ -35,6 +35,8 @@
             }
         }
     </script>
+    {% include 'main/includes/analytics_head.html' %}
+    <script src="{% static 'js/marketing_events.js' %}"></script>
     
     <style>
         /* Глобальные стили */
@@ -1046,6 +1048,21 @@
         let inlineChatTitle = null;
         let inlineChatContacts = [];
 
+        window.smartMarketingConfig = window.smartMarketingConfig || {
+            pageType: 'teacher_dashboard',
+            yandexCounterId: '{{ analytics.yandex_id|default_if_none:""|escapejs }}',
+            hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+        };
+
+        function trackInlineChatEvent(eventName, payload = {}) {
+            if (typeof window.smartTrackEvent === 'function') {
+                window.smartTrackEvent(eventName, payload);
+                return;
+            }
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: eventName, ...payload });
+        }
+
         function initInlineChatModal() {
             inlineChatModal = document.getElementById('inline-chat-modal');
             inlineChatFrame = document.getElementById('inline-chat-frame');
@@ -1064,6 +1081,17 @@
                 if (e.key === 'Escape' && inlineChatModal && !inlineChatModal.classList.contains('hidden')) {
                     closeInlineChat();
                 }
+            });
+
+            window.addEventListener('message', (event) => {
+                if (event.origin !== window.location.origin) {
+                    return;
+                }
+                const data = event.data || {};
+                if (data.type !== 'smarturok_chat_event' || !data.event) {
+                    return;
+                }
+                trackInlineChatEvent(data.event, data.payload || {});
             });
         }
 
@@ -1094,14 +1122,25 @@
         }
 
         function openInlineChatById(chatId, title) {
+            trackInlineChatEvent('chat_thread_open', {
+                chat_id: String(chatId || ''),
+                source: 'teacher_dashboard_list'
+            });
             openInlineChat(`/chats/${chatId}/?embedded=1`, title, chatId);
         }
 
         function openInlineChatStart(userId, title) {
+            trackInlineChatEvent('chat_thread_open', {
+                peer_user_id: String(userId || ''),
+                source: 'teacher_dashboard_start'
+            });
             openInlineChat(`/chats/start/${userId}/?embedded=1`, title, null);
         }
 
         function openInlineChatLauncher() {
+            trackInlineChatEvent('chat_launcher_open', {
+                source: 'teacher_dashboard_button'
+            });
             {% if user_chats %}
             openInlineChatById(
                 '{{ user_chats.0.id }}',

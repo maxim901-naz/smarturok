@@ -29,6 +29,8 @@
             }
         }
     </script>
+    {% include 'main/includes/analytics_head.html' %}
+    <script src="{% static 'js/marketing_events.js' %}"></script>
 
     <style>
         /* Стили как на главной странице */
@@ -118,7 +120,7 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" data-page-type="trial_success">
 
 <div class="min-h-screen flex items-center justify-center p-4">
     <div class="success-container rounded-2xl shadow-2xl w-full max-w-md overflow-hidden hover-scale">
@@ -203,5 +205,26 @@
     </div>
 </div>
 
+<script>
+    window.smartMarketingConfig = {
+        pageType: 'trial_success',
+        yandexCounterId: '{{ analytics.yandex_id|default_if_none:""|escapejs }}',
+        hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+    };
+
+    (function () {
+        if (typeof window.smartTrackEvent !== 'function') {
+            return;
+        }
+        const storageKey = 'smarturok_trial_success_tracked';
+        if (window.sessionStorage.getItem(storageKey) === '1') {
+            return;
+        }
+        window.sessionStorage.setItem(storageKey, '1');
+        window.smartTrackEvent('trial_form_success', {
+            lead_form: 'trial_lesson'
+        });
+    })();
+</script>
 </body>
 </html>

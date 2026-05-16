@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Чат</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  {% include 'main/includes/analytics_head.html' %}
+  <script src="{% static 'js/marketing_events.js' %}"></script>
   <style>
     html, body {
       height: 100%;
@@ -93,6 +95,12 @@
   </div>
 
   <script>
+    window.smartMarketingConfig = window.smartMarketingConfig || {
+      pageType: "chat_embed",
+      yandexCounterId: "{{ analytics.yandex_id|default_if_none:''|escapejs }}",
+      hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+    };
+
     const chatId = "{{ chat.id }}";
     const currentUserId = {{ request.user.id }};
     const wnd = document.getElementById("chat-window");
@@ -105,6 +113,28 @@
     let socket = null;
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 5;
+    let sendEventsCount = 0;
+
+    function emitChatAnalytics(eventName, payload = {}) {
+      const eventPayload = {
+        chat_id: String(chatId),
+        embedded: true,
+        ...payload,
+      };
+      if (typeof window.smartTrackEvent === "function") {
+        window.smartTrackEvent(eventName, eventPayload);
+      }
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(
+          {
+            type: "smarturok_chat_event",
+            event: eventName,
+            payload: eventPayload,
+          },
+          window.location.origin
+        );
+      }
+    }
 
     function scrollToBottom() {
       wnd.scrollTop = wnd.scrollHeight;
@@ -192,6 +222,11 @@
       const text = input.value.trim();
       if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
       socket.send(JSON.stringify({ message: text }));
+      sendEventsCount += 1;
+      emitChatAnalytics("chat_message_send", {
+        message_length: text.length,
+        send_index: sendEventsCount,
+      });
       input.value = "";
       updateSendState();
     }

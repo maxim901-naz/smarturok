@@ -65,6 +65,33 @@ REGISTER_CAPTCHA_LABEL_KEY = 'register_captcha_label'
 logger = logging.getLogger(__name__)
 
 
+TRIAL_TRACKING_FIELDS = (
+    ('UTM source', 'utm_source', 255),
+    ('UTM medium', 'utm_medium', 255),
+    ('UTM campaign', 'utm_campaign', 255),
+    ('UTM content', 'utm_content', 255),
+    ('UTM term', 'utm_term', 255),
+    ('GCLID', 'gclid', 255),
+    ('FBCLID', 'fbclid', 255),
+    ('YCLID', 'yclid', 255),
+    ('Landing', 'landing_path', 500),
+    ('Referrer', 'referrer', 500),
+)
+
+
+def _clean_tracking_value(value, max_length=255):
+    return (value or '').strip().replace('\r', ' ').replace('\n', ' ')[:max_length]
+
+
+def _build_trial_tracking_notes(request):
+    lines = []
+    for label, field_name, max_length in TRIAL_TRACKING_FIELDS:
+        value = _clean_tracking_value(request.POST.get(field_name), max_length=max_length)
+        if value:
+            lines.append(f'{label}: {value}')
+    return lines
+
+
 def _get_user_chats(user):
     return (
         Chat.objects.filter(Q(student=user) | Q(teacher=user))
@@ -371,15 +398,22 @@ def trial_lesson_view(request):
         form = TrialLessonForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
+            lead_form = _clean_tracking_value(request.POST.get('lead_form'), max_length=64) or 'trial_lesson'
+            tracking_lines = _build_trial_tracking_notes(request)
+            message_text = (data.get('message') or '').strip()
+            if tracking_lines:
+                tracking_block = '\n'.join(tracking_lines)
+                message_text = f'{message_text}\n\n---\nMarketing:\n{tracking_block}'.strip()
+
             TrialRequest.objects.create(
                 name=data['name'],
                 email=data['email'],
                 phone=data['phone'],
                 subject=data['subject'],
                 preferred_time=data['preferred_time'],
-                message=data['message']
+                message=message_text,
+                lead_form=lead_form,
             )
-            # Пока без отправки письма
             return render(request, 'accounts/trial_success.html')
     else:
         form = TrialLessonForm()
@@ -1170,3 +1204,4 @@ def student_cancel_lesson_view(request, lesson_id):
 
     messages.success(request, 'Урок отменён. Преподавателю отправлено уведомление.')
     return redirect('student_dashboard')
+

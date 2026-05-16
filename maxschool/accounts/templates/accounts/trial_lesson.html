@@ -36,6 +36,8 @@
             }
         }
     </script>
+    {% include 'main/includes/analytics_head.html' %}
+    <script src="{% static 'js/marketing_events.js' %}"></script>
 
     <style>
         /* Стили как на главной странице */
@@ -96,7 +98,7 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" data-page-type="trial_form">
 
 <div class="min-h-screen flex items-center justify-center p-4 py-8">
     <div class="w-full max-w-2xl">
@@ -117,8 +119,19 @@
             <div class="h-2 bg-gradient-to-r from-primary to-accent"></div>
             
             <div class="p-8">
-                <form method="post" class="space-y-6">
+                <form method="post" class="space-y-6" id="trial-form" data-lead-form="trial_lesson">
                     {% csrf_token %}
+                    <input type="hidden" name="lead_form" value="trial_lesson">
+                    <input type="hidden" name="utm_source" value="">
+                    <input type="hidden" name="utm_medium" value="">
+                    <input type="hidden" name="utm_campaign" value="">
+                    <input type="hidden" name="utm_content" value="">
+                    <input type="hidden" name="utm_term" value="">
+                    <input type="hidden" name="gclid" value="">
+                    <input type="hidden" name="fbclid" value="">
+                    <input type="hidden" name="yclid" value="">
+                    <input type="hidden" name="landing_path" value="">
+                    <input type="hidden" name="referrer" value="">
 
                     <!-- Имя -->
                     <div>
@@ -250,5 +263,35 @@
     </div>
 </div>
 
+<script>
+    window.smartMarketingConfig = {
+        pageType: 'trial_form',
+        yandexCounterId: '{{ analytics.yandex_id|default_if_none:""|escapejs }}',
+        hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!window.smartMarketing || typeof window.smartMarketing.bindLeadForms !== 'function') {
+            return;
+        }
+
+        window.smartMarketing.bindLeadForms('trial_lesson');
+
+        if (typeof window.smartTrackEvent === 'function') {
+            window.smartTrackEvent('trial_form_view', {});
+        }
+
+        const trialForm = document.getElementById('trial-form');
+        if (trialForm) {
+            trialForm.addEventListener('submit', function () {
+                if (typeof window.smartTrackEvent === 'function') {
+                    window.smartTrackEvent('trial_form_submit', {
+                        lead_form: 'trial_lesson'
+                    });
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

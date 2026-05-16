@@ -1,4 +1,7 @@
+{% load static %}
 {% if user.is_authenticated and user.role == 'student' or user.is_authenticated and user.role == 'teacher' %}
+{% include 'main/includes/analytics_head.html' %}
+<script src="{% static 'js/marketing_events.js' %}"></script>
 <style>
     .global-chat-launcher {
         position: fixed;
@@ -151,11 +154,30 @@
     (function () {
         if (window.__smarturokInlineChatInitialized) return;
         window.__smarturokInlineChatInitialized = true;
+        window.smartMarketingConfig = window.smartMarketingConfig || {};
+        if (!window.smartMarketingConfig.pageType) {
+            window.smartMarketingConfig.pageType = 'inline_chat_widget';
+        }
+        if (!window.smartMarketingConfig.yandexCounterId) {
+            window.smartMarketingConfig.yandexCounterId = '{{ analytics.yandex_id|default_if_none:""|escapejs }}';
+        }
+        if (window.smartMarketingConfig.hasMetaPixel === undefined) {
+            window.smartMarketingConfig.hasMetaPixel = {{ analytics.meta_pixel_id|yesno:"true,false" }};
+        }
 
         const inlineChatModal = document.getElementById('global-inline-chat-modal');
         const inlineChatFrame = document.getElementById('global-inline-chat-frame');
         const inlineChatTitle = document.getElementById('global-inline-chat-title');
         const inlineChatContacts = Array.from(document.querySelectorAll('.global-chat-contact'));
+
+        function trackInlineChatEvent(eventName, payload = {}) {
+            if (typeof window.smartTrackEvent === 'function') {
+                window.smartTrackEvent(eventName, payload);
+                return;
+            }
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ event: eventName, ...payload });
+        }
 
         function setActiveInlineContact(chatId) {
             inlineChatContacts.forEach((btn) => {
@@ -180,14 +202,25 @@
         }
 
         function openInlineChatById(chatId, title) {
+            trackInlineChatEvent('chat_thread_open', {
+                chat_id: String(chatId || ''),
+                source: 'inline_widget_contact',
+            });
             openInlineChat(`/chats/${chatId}/?embedded=1`, title, chatId);
         }
 
         function openInlineChatStart(userId, title) {
+            trackInlineChatEvent('chat_thread_open', {
+                peer_user_id: String(userId || ''),
+                source: 'inline_widget_start',
+            });
             openInlineChat(`/chats/start/${userId}/?embedded=1`, title, null);
         }
 
         function openInlineChatLauncher() {
+            trackInlineChatEvent('chat_launcher_open', {
+                source: 'inline_widget_button',
+            });
             if (inlineChatContacts.length) {
                 const first = inlineChatContacts[0];
                 openInlineChatById(first.dataset.chatId, first.dataset.chatName || 'Сообщения');
@@ -214,6 +247,17 @@
             if (e.key === 'Escape' && inlineChatModal && !inlineChatModal.classList.contains('hidden')) {
                 closeInlineChat();
             }
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin) {
+                return;
+            }
+            const data = event.data || {};
+            if (data.type !== 'smarturok_chat_event' || !data.event) {
+                return;
+            }
+            trackInlineChatEvent(data.event, data.payload || {});
         });
 
         window.openInlineChatById = openInlineChatById;
