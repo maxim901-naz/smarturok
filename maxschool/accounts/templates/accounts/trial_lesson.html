@@ -111,6 +111,7 @@
             </div>
             <h2 class="text-4xl font-bold text-dark mb-4">Запись на пробный урок</h2>
             <p class="text-gray-600 text-lg">Попробуйте обучение бесплатно и оцените наш подход</p>
+            <p id="marketing-interest-hint" class="hidden mt-3 inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-sm font-medium"></p>
         </div>
 
         <!-- Форма -->
@@ -132,6 +133,7 @@
                     <input type="hidden" name="yclid" value="">
                     <input type="hidden" name="landing_path" value="">
                     <input type="hidden" name="referrer" value="">
+                    <input type="hidden" name="marketing_interest" id="marketing-interest" value="">
 
                     <!-- Имя -->
                     <div>
@@ -196,7 +198,16 @@
                     </div>
 
                     <!-- Дата и время -->
-                    <div>
+                    <button
+                        type="button"
+                        id="toggle-extra-fields"
+                        class="w-full text-left px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-dark font-medium hover:bg-gray-100 transition"
+                        aria-expanded="false"
+                    >
+                        Уточнить время и комментарий (необязательно)
+                    </button>
+
+                    <div id="trial-extra-time" class="hidden">
                         <label for="id_preferred_time" class="block text-lg font-semibold text-dark mb-2">
                             Удобное время для занятия
                             <span class="text-sm text-gray-500 font-normal">(укажите несколько вариантов)</span>
@@ -214,7 +225,7 @@
                     </div>
 
                     <!-- Комментарий -->
-                    <div>
+                    <div id="trial-extra-message" class="hidden">
                         <label for="id_message" class="block text-lg font-semibold text-dark mb-2">Дополнительная информация</label>
                         <div class="relative">
                             <textarea name="message" id="id_message" rows="4" 
@@ -271,11 +282,42 @@
     };
 
     document.addEventListener('DOMContentLoaded', function () {
-        if (!window.smartMarketing || typeof window.smartMarketing.bindLeadForms !== 'function') {
-            return;
+        const toggleButton = document.getElementById('toggle-extra-fields');
+        const extraTime = document.getElementById('trial-extra-time');
+        const extraMessage = document.getElementById('trial-extra-message');
+        const interestInput = document.getElementById('marketing-interest');
+        const interestHint = document.getElementById('marketing-interest-hint');
+
+        const params = new URLSearchParams(window.location.search);
+        const interestCode = (params.get('interest') || '').trim().toLowerCase();
+        const interestMap = {
+            school_subjects: 'Школьные предметы',
+            english: 'Английский язык',
+            oge_ege: 'Подготовка ОГЭ/ЕГЭ',
+            intensive: 'Интенсивная подготовка',
+        };
+        const interestLabel = interestMap[interestCode] || '';
+
+        if (interestInput && interestLabel) {
+            interestInput.value = interestLabel;
+        }
+        if (interestHint && interestLabel) {
+            interestHint.textContent = `Вы выбрали направление: ${interestLabel}`;
+            interestHint.classList.remove('hidden');
         }
 
-        window.smartMarketing.bindLeadForms('trial_lesson');
+        if (toggleButton && extraTime && extraMessage) {
+            toggleButton.addEventListener('click', function () {
+                const isHidden = extraTime.classList.contains('hidden');
+                extraTime.classList.toggle('hidden', !isHidden);
+                extraMessage.classList.toggle('hidden', !isHidden);
+                toggleButton.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+            });
+        }
+
+        if (window.smartMarketing && typeof window.smartMarketing.bindLeadForms === 'function') {
+            window.smartMarketing.bindLeadForms('trial_lesson');
+        }
 
         if (typeof window.smartTrackEvent === 'function') {
             window.smartTrackEvent('trial_form_view', {});

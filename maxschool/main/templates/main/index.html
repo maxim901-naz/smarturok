@@ -882,7 +882,7 @@
 {% else %}
     <div class="hidden lg:flex items-center space-x-4">
         <a href="{% url 'login' %}" class="px-4 py-2 text-dark font-medium hover:text-primary transition">Войти</a>
-        <a href="{% url 'register' %}" class="px-6 py-2 btn-primary text-white rounded-lg font-medium">Регистрация</a>
+        <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="header_desktop" class="px-6 py-2 btn-primary text-white rounded-lg font-medium">Пробный урок</a>
     </div>
 {% endif %}
 
@@ -925,7 +925,7 @@
                         <a href="{% url 'login' %}" class="block px-4 py-2 text-center text-dark rounded transition mobile-menu-link">Войти</a>
                     </li>
                     <li>
-                        <a href="{% url 'register' %}" class="block px-4 py-2 text-center btn-primary text-white rounded-lg">Регистрация</a>
+                        <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="header_mobile" class="block px-4 py-2 text-center btn-primary text-white rounded-lg">Пробный урок</a>
                     </li>
                 {% endif %}
             </ul>
@@ -990,6 +990,40 @@
     </section>
 
     <!-- Статистика -->
+    <section class="py-10 bg-white border-b border-gray-100">
+        <div class="content-container px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+                <div>
+                    <p class="text-primary font-semibold text-sm">Быстрый старт</p>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-dark mt-1">Выберите направление обучения</h2>
+                </div>
+                <a href="#courses" class="text-primary font-semibold hover:underline">Смотреть все курсы →</a>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <a href="{% url 'trial' %}?interest=school_subjects" data-cta="path_school_subjects" data-cta-location="hero_paths" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-primary hover:shadow-md transition">
+                    <div class="text-xs font-semibold text-primary uppercase tracking-wide">4-11 класс</div>
+                    <h3 class="text-lg font-bold mt-2 text-dark">Школьные предметы</h3>
+                    <p class="text-sm text-gray-600 mt-2">Математика, русский, физика, информатика и другие предметы.</p>
+                </a>
+                <a href="{% url 'trial' %}?interest=english" data-cta="path_english" data-cta-location="hero_paths" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-primary hover:shadow-md transition">
+                    <div class="text-xs font-semibold text-primary uppercase tracking-wide">Языки</div>
+                    <h3 class="text-lg font-bold mt-2 text-dark">Английский язык</h3>
+                    <p class="text-sm text-gray-600 mt-2">Разговорный английский, школьная программа и экзамены.</p>
+                </a>
+                <a href="{% url 'trial' %}?interest=oge_ege" data-cta="path_oge_ege" data-cta-location="hero_paths" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-primary hover:shadow-md transition">
+                    <div class="text-xs font-semibold text-primary uppercase tracking-wide">Экзамены</div>
+                    <h3 class="text-lg font-bold mt-2 text-dark">Подготовка ОГЭ/ЕГЭ</h3>
+                    <p class="text-sm text-gray-600 mt-2">Индивидуальный план, тренировка формата и разбор ошибок.</p>
+                </a>
+                <a href="{% url 'trial' %}?interest=intensive" data-cta="path_intensive" data-cta-location="hero_paths" class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:border-primary hover:shadow-md transition">
+                    <div class="text-xs font-semibold text-primary uppercase tracking-wide">Интенсив</div>
+                    <h3 class="text-lg font-bold mt-2 text-dark">Усиление за 4-8 недель</h3>
+                    <p class="text-sm text-gray-600 mt-2">Точечная подготовка к контрольным, ВПР и важным темам.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
     <section class="py-12 bg-white overflow-fix">
         <div class="content-container px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center stat-grid">
@@ -1320,7 +1354,7 @@
 
                         {% if materials_categories_total > home_material_categories|length %}
                         <a href="{% url 'materials_list' %}" class="home-material-category-card p-5 border-dashed border-2 border-primary border-opacity-40 bg-blue-50">
-                            <div class="text-sm font-semibold text-primary">+{{ materials_categories_total|add:"-8" }} разделов</div>
+                            <div class="text-sm font-semibold text-primary">+{{ materials_categories_total|add:"-12" }} разделов</div>
                             <h3 class="text-lg font-bold text-gray-900 mt-2">Посмотреть весь каталог</h3>
                             <p class="text-sm text-gray-600 mt-2">Откройте полную базу материалов и выберите нужную тему за 1-2 клика.</p>
                             <span class="inline-flex items-center mt-4 text-primary font-semibold">Все материалы <span class="ml-2">→</span></span>

@@ -399,8 +399,11 @@ def trial_lesson_view(request):
         if form.is_valid():
             data = form.cleaned_data
             lead_form = _clean_tracking_value(request.POST.get('lead_form'), max_length=64) or 'trial_lesson'
+            marketing_interest = _clean_tracking_value(request.POST.get('marketing_interest'), max_length=120)
             tracking_lines = _build_trial_tracking_notes(request)
             message_text = (data.get('message') or '').strip()
+            if marketing_interest:
+                message_text = f'{message_text}\n\nИнтерес с главной: {marketing_interest}'.strip()
             if tracking_lines:
                 tracking_block = '\n'.join(tracking_lines)
                 message_text = f'{message_text}\n\n---\nMarketing:\n{tracking_block}'.strip()
@@ -413,6 +416,7 @@ def trial_lesson_view(request):
                 preferred_time=data['preferred_time'],
                 message=message_text,
                 lead_form=lead_form,
+                promo_interest=marketing_interest,
             )
             return render(request, 'accounts/trial_success.html')
     else:

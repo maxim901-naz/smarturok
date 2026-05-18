@@ -331,8 +331,8 @@ def home(request):
         )
         .order_by('sort_order', 'title')
     )
-    home_material_categories = list(material_categories_qs[:8])
-    home_latest_materials = list(_published_materials_qs().order_by('-published_at', '-created_at')[:4])
+    home_material_categories = list(material_categories_qs[:12])
+    home_latest_materials = list(_published_materials_qs().order_by('-published_at', '-created_at')[:8])
     materials_categories_total = material_categories_qs.count()
     materials_total_count = _published_materials_qs().count()
     return render(request, 'main/index.html', {
