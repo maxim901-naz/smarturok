@@ -410,6 +410,7 @@ def trial_lesson_view(request):
 
             TrialRequest.objects.create(
                 name=data['name'],
+                student_name=data.get('student_name', '').strip(),
                 email=data['email'],
                 phone=data['phone'],
                 subject=data['subject'],

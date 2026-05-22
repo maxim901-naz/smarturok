@@ -103,7 +103,8 @@ class AdminUserChangeForm(UserChangeForm):
 
 
 class TrialLessonForm(forms.Form):
-    name = forms.CharField(label="РРјСЏ", max_length=100)
+    name = forms.CharField(label="Имя родителя", max_length=100)
+    student_name = forms.CharField(label="Имя ученика", max_length=100)
     email = forms.EmailField(label="Email")
     phone = forms.CharField(label="РўРµР»РµС„РѕРЅ", max_length=20)
     subject = forms.ModelChoiceField(queryset=Subject.objects.all(), label='РџСЂРµРґРјРµС‚')

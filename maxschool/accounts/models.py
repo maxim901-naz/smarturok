@@ -434,6 +434,7 @@ class TrialRequest(models.Model):
     )
 
     name = models.CharField(max_length=100)
+    student_name = models.CharField(max_length=100, blank=True, default='')
     email = models.EmailField()
     phone = models.CharField(max_length=20)
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True)

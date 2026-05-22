@@ -112,7 +112,8 @@ def notify_admin_on_new_trial_request(sender, instance, created, **kwargs):
     subject_name = instance.subject.name if getattr(instance, 'subject', None) else 'не указан'
     body = (
         'Новая заявка на пробный урок.\n\n'
-        f'Имя: {instance.name}\n'
+        f'Родитель: {instance.name}\n'
+        f'Ученик: {instance.student_name or "не указан"}\n'
         f'Телефон: {instance.phone}\n'
         f'Email: {instance.email}\n'
         f'Предмет: {subject_name}\n'

@@ -90,6 +90,7 @@ class LessonAdmin(admin.ModelAdmin):
 class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
     list_display = (
         'name',
+        'student_name',
         'phone',
         'email',
         'subject',
@@ -116,7 +117,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'is_converted',
         'created_at',
     )
-    search_fields = ('name', 'email', 'phone', 'promo_interest', 'pricing_subject_name')
+    search_fields = ('name', 'student_name', 'email', 'phone', 'promo_interest', 'pricing_subject_name')
     ordering = ('-created_at',)
     readonly_fields = (
         'created_at',
@@ -129,6 +130,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
     )
     fields = (
         'name',
+        'student_name',
         'phone',
         'email',
         'subject',
