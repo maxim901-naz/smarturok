@@ -848,7 +848,7 @@
             <!-- Десктопное меню -->
             <nav class="hidden lg:flex space-x-6" aria-label="Основная навигация">
                 <a href="#courses" class="text-dark font-medium transition nav-link">Курсы</a>
-                <a href="#materials" class="text-dark font-medium transition nav-link">Материалы</a>
+                <a href="{% url 'materials_list' %}" class="text-dark font-medium transition nav-link">Материалы</a>
                 <a href="{% url 'teachers_list' %}" class="text-dark font-medium transition nav-link">Преподаватели</a>
                                 <a href="#reviews" class="text-dark font-medium transition nav-link">Отзывы</a>
                 <a href="#success" class="text-dark font-medium transition nav-link">Успехи</a>
@@ -896,7 +896,7 @@
         <nav id="mobile-menu" aria-label="Мобильная навигация" class="hidden lg:hidden bg-white shadow-lg absolute top-[85px] left-0 right-0 rounded-lg p-4 max-h-[calc(100vh-85px)] overflow-y-auto">
             <ul class="flex flex-col space-y-3">
                 <li><a href="#courses" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Курсы</a></li>
-                <li><a href="#materials" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Материалы</a></li>
+                <li><a href="{% url 'materials_list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Материалы</a></li>
                 <li><a href="{% url 'teachers_list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Преподаватели</a></li>
                                 <li><a href="#reviews" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Отзывы</a></li>
                 <li><a href="#success" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Успехи</a></li>
@@ -1029,24 +1029,24 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center stat-grid">
                 <div class="stat-card p-4 sm:p-6" data-aos="fade-up" data-aos-delay="100">
                     <div class="flex items-baseline justify-center">
-                        <div class="animated-counter" data-count="750">0</div>
+                        <div class="animated-counter" data-count="750">750</div>
                         <span class="ml-1 text-2xl sm:text-3xl md:text-4xl font-bold text-primary">+</span>
                     </div>
                     <p class="text-gray-600 mt-2 text-sm sm:text-base">Учеников</p>
                 </div>
                 <div class="stat-card p-4 sm:p-6" data-aos="fade-up" data-aos-delay="200">
                     <div class="flex items-baseline justify-center">
-                        <div class="animated-counter" data-count="50">0</div>
+                        <div class="animated-counter" data-count="50">50</div>
                         <span class="ml-1 text-2xl sm:text-3xl md:text-4xl font-bold text-primary">+</span>
                     </div>
                     <p class="text-gray-600 mt-2 text-sm sm:text-base">Преподавателей</p>
                 </div>
                 <div class="stat-card p-4 sm:p-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="animated-counter" data-count="96">0</div>
+                    <div class="animated-counter" data-count="96">96</div>
                     <p class="text-gray-600 mt-2 text-sm sm:text-base">Средний балл ЕГЭ</p>
                 </div>
                 <div class="stat-card p-4 sm:p-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="animated-counter" data-count="98">0</div>
+                    <div class="animated-counter" data-count="98">98</div>
                     <p class="text-gray-600 mt-2 text-sm sm:text-base">Успешных поступлений</p>
                 </div>
             </div>
@@ -1555,77 +1555,41 @@
             <div class="text-center mb-12" data-aos="fade-up">
                 <span class="text-primary font-semibold">Наши результаты</span>
                 <h2 class="text-3xl font-bold mt-2 section-header">Истории успеха</h2>
-                <p class="text-gray-600 max-w-2xl mx-auto mt-4">Реальные достижения наших учеников</p>
+                <p class="text-gray-600 max-w-2xl mx-auto mt-4">Реальные достижения учеников, которые можно редактировать в админке</p>
             </div>
-            
+
+            {% if home_success_stories %}
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 success-grid">
-                <!-- История 1 -->
-                <div class="bg-gray-50 rounded-xl overflow-hidden" data-aos="zoom-in">
+                {% for story in home_success_stories %}
+                <div class="bg-gray-50 rounded-xl overflow-hidden" data-aos="zoom-in" data-aos-delay="{{ forloop.counter0|add:1 }}00">
                     <div class="relative h-48 overflow-hidden">
-                        <img loading="lazy" decoding="async" src="{% static 'images/deti1.jpg' %}" alt="Ученик SmartUrok" class="w-full h-full object-cover">
+                        {% if story.image %}
+                        <img loading="lazy" decoding="async" src="{{ story.image.url }}" alt="{{ story.name }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <img loading="lazy" decoding="async" src="{% static 'images/logo4-round.png' %}" alt="{{ story.name }}" class="w-full h-full object-cover">
+                        {% endif %}
                         <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
                         <div class="absolute bottom-4 left-4 text-white">
-                            <h3 class="font-bold text-xl">Алексей, 16 лет</h3>
-                            <p>ЕГЭ по информатике: 98 баллов</p>
+                            <h3 class="font-bold text-xl">{{ story.name }}</h3>
+                            <p>{{ story.achievement }}</p>
                         </div>
                     </div>
                     <div class="p-4">
-                        <p class="text-gray-600">"Благодаря курсу программирования смог поступить в МГУ на бюджет. Преподаватель объяснял сложные темы простым языком..."</p>
-                        <a href="{% url 'trial' %}" class="inline-block mt-3 text-primary font-medium hover:text-primary-dark transition">Читать всю историю</a>
+                        <p class="text-gray-600">{{ story.story_text|truncatechars:180 }}</p>
+                        {% if story.cta_url %}
+                        <a href="{{ story.cta_url }}" class="inline-block mt-3 text-primary font-medium hover:text-primary-dark transition">{{ story.cta_text|default:"Подробнее" }}</a>
+                        {% endif %}
                     </div>
                 </div>
-                
-                <!-- История 2 -->
-                <div class="bg-gray-50 rounded-xl overflow-hidden" data-aos="zoom-in" data-aos-delay="100">
-                    <div class="relative h-48 overflow-hidden">
-                        <img loading="lazy" decoding="async" src="{% static 'images/math.jpg' %}" alt="Ученица SmartUrok" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
-                        <div class="absolute bottom-4 left-4 text-white">
-                            <h3 class="font-bold text-xl">Мария, 15 лет</h3>
-                            <p>Победитель олимпиады по математике</p>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">"Занималась математикой с нуля. Через год занятий стала победителем городской олимпиады. Спасибо моему преподавателю за терпение..."</p>
-                        <a href="{% url 'trial' %}" class="inline-block mt-3 text-primary font-medium hover:text-primary-dark transition">Читать всю историю</a>
-                    </div>
-                </div>
-                
-                <!-- История 3 -->
-                <div class="bg-gray-50 rounded-xl overflow-hidden" data-aos="zoom-in" data-aos-delay="200">
-                    <div class="relative h-48 overflow-hidden">
-                        <img loading="lazy" decoding="async" src="{% static 'images/ENGLISH1.jpg' %}" alt="Ученик SmartUrok" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
-                        <div class="absolute bottom-4 left-4 text-white">
-                            <h3 class="font-bold text-xl">Дмитрий, 17 лет</h3>
-                            <p>IELTS 8.0</p>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">"С нуля до продвинутого уровня за 9 месяцев. Занятия были настолько интересными, что я с нетерпением ждал каждого урока..."</p>
-                        <a href="{% url 'trial' %}" class="inline-block mt-3 text-primary font-medium hover:text-primary-dark transition">Читать всю историю</a>
-                    </div>
-                </div>
-                
-                <!-- История 4 -->
-                <div class="bg-gray-50 rounded-xl overflow-hidden" data-aos="zoom-in" data-aos-delay="300">
-                    <div class="relative h-48 overflow-hidden">
-                        <img loading="lazy" decoding="async" src="{% static 'images/PROGRAMM1.jpg' %}" alt="Ученица SmartUrok" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70"></div>
-                        <div class="absolute bottom-4 left-4 text-white">
-                            <h3 class="font-bold text-xl">София, 14 лет</h3>
-                            <p>Создала мобильное приложение</p>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <p class="text-gray-600">"На курсе программирования мы прошли весь путь от идеи до публикации приложения. Мое приложение уже скачали более 1000 человек!"</p>
-                        <a href="{% url 'trial' %}" class="inline-block mt-3 text-primary font-medium hover:text-primary-dark transition">Читать всю историю</a>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="bg-white border border-gray-200 rounded-xl p-8 text-center text-gray-600">
+                Блок успехов пока пуст. Добавьте истории в админке в разделе Home Success Stories.
+            </div>
+            {% endif %}
         </div>
     </section>
-
     <!-- CTA Блок -->
     <section class="py-16 bg-gradient-to-r from-primary to-accent text-white relative overflow-hidden">
         <div class="absolute inset-0 opacity-10">
@@ -2656,6 +2620,7 @@
                 
                 const observer = new IntersectionObserver((entries) => {
                     if (entries[0].isIntersecting) {
+                        counter.innerText = '0';
                         updateCount();
                         observer.disconnect();
                     }

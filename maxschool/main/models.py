@@ -17,6 +17,24 @@ class Review(models.Model):
         return f"{self.name} ({self.rating}/5)"
 
 
+class HomeSuccessStory(models.Model):
+    name = models.CharField(max_length=120)
+    achievement = models.CharField(max_length=180)
+    story_text = models.TextField()
+    image = models.ImageField(upload_to='home_success/', blank=True, null=True)
+    cta_text = models.CharField(max_length=80, blank=True, default='Подробнее')
+    cta_url = models.CharField(max_length=300, blank=True, default='')
+    sort_order = models.PositiveIntegerField(default=0, db_index=True)
+    is_published = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['sort_order', '-created_at']
+
+    def __str__(self):
+        return self.name
+
+
 class MaterialCategory(models.Model):
     title = models.CharField(max_length=120)
     slug = models.SlugField(max_length=120, unique=True)

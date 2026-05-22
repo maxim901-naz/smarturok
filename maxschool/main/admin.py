@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 
 from .models import (
+    HomeSuccessStory,
     MaterialCategory,
     MaterialImage,
     MaterialItem,
@@ -19,6 +20,14 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = ('is_published', 'rating')
     search_fields = ('name', 'text')
     list_editable = ('is_published',)
+
+
+@admin.register(HomeSuccessStory)
+class HomeSuccessStoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'achievement', 'sort_order', 'is_published', 'created_at')
+    list_filter = ('is_published',)
+    search_fields = ('name', 'achievement', 'story_text')
+    list_editable = ('sort_order', 'is_published')
 
 
 @admin.register(MaterialCategory)

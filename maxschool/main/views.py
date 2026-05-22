@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.urls import reverse
 
 from accounts.models import BalanceTopUpRequest, CustomUser, TrialRequest, Subject
-from .models import MaterialCategory, MaterialItem, MaterialTestAttempt, Review
+from .models import HomeSuccessStory, MaterialCategory, MaterialItem, MaterialTestAttempt, Review
 from .test_engine import (
     build_public_questions,
     evaluate_answers,
@@ -319,6 +319,7 @@ def home(request):
     teachers = CustomUser.objects.filter(role='teacher', is_approved=True).prefetch_related('subjects_taught', 'desired_subject')
     subjects = Subject.objects.all()
     reviews = Review.objects.filter(is_published=True).order_by('-created_at')[:12]
+    home_success_stories = HomeSuccessStory.objects.filter(is_published=True).order_by('sort_order', '-created_at')[:8]
     material_categories_qs = (
         MaterialCategory.objects
         .filter(is_active=True)
@@ -339,6 +340,7 @@ def home(request):
         'teachers': teachers,
         'subjects': subjects,
         'reviews': reviews,
+        'home_success_stories': home_success_stories,
         'home_material_categories': home_material_categories,
         'home_latest_materials': home_latest_materials,
         'materials_categories_total': materials_categories_total,
