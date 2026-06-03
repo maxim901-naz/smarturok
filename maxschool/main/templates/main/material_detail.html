@@ -19,6 +19,8 @@
     <meta name="twitter:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok{% endif %}">
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
+    {% include 'main/includes/analytics_head.html' %}
+    <script src="{% static 'js/marketing_events.js' %}"></script>
     <title>{{ material.title }} | SmartUrok</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -204,8 +206,8 @@
             {% endif %}
 
             <div class="mt-5 flex flex-wrap gap-3">
-                <a href="{% url 'trial' %}" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">Записаться на пробный урок</a>
-                <button type="button" data-open-lead-modal class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">Нужен преподаватель по теме</button>
+                <a href="{% url 'trial' %}" data-cta="material_trial" data-cta-location="material_hero" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">Записаться на пробный урок</a>
+                <button type="button" data-open-lead-modal data-cta="material_consultation" data-cta-location="material_hero" class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">Нужен преподаватель по теме</button>
             </div>
         </section>
 
@@ -427,8 +429,8 @@
                         Разберем тему вживую, закрепим ошибки и соберем персональный план под вашу цель.
                     </p>
                     <div class="mt-4 space-y-2">
-                        <a href="{% url 'trial' %}" class="block text-center px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">Пробный урок</a>
-                        <button type="button" data-open-lead-modal class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition">Нужна консультация</button>
+                        <a href="{% url 'trial' %}" data-cta="material_trial" data-cta-location="material_sidebar" class="block text-center px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">Пробный урок</a>
+                        <button type="button" data-open-lead-modal data-cta="material_consultation" data-cta-location="material_sidebar" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition">Нужна консультация</button>
                     </div>
                 </div>
 
@@ -451,8 +453,8 @@
                     <p class="text-white/90 mt-2 max-w-2xl">Запишитесь на пробный урок: оценим уровень, покажем план и подберем преподавателя под задачу.</p>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <a href="{% url 'trial' %}" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">Записаться на пробный</a>
-                    <button type="button" data-open-lead-modal class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">Получить консультацию</button>
+                    <a href="{% url 'trial' %}" data-cta="material_trial" data-cta-location="material_bottom" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">Записаться на пробный</a>
+                    <button type="button" data-open-lead-modal data-cta="material_consultation" data-cta-location="material_bottom" class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">Получить консультацию</button>
                 </div>
             </div>
         </section>
@@ -464,11 +466,19 @@
             <h3 class="text-2xl font-extrabold">Оставить заявку на подбор преподавателя</h3>
             <p class="text-sm text-slate-600 mt-2">Свяжемся с вами, определим цель и предложим лучший формат обучения.</p>
 
-            <form method="post" action="{% url 'home_lead' %}" class="mt-5 space-y-3">
+            <form method="post" action="{% url 'home_lead' %}" class="mt-5 space-y-3" data-lead-form="material_detail_modal">
                 {% csrf_token %}
                 <input type="hidden" name="lead_form" value="material_detail_modal">
                 <input type="hidden" name="landing_path" id="materials-landing-path">
                 <input type="hidden" name="referrer" id="materials-referrer">
+                <input type="hidden" name="utm_source" value="">
+                <input type="hidden" name="utm_medium" value="">
+                <input type="hidden" name="utm_campaign" value="">
+                <input type="hidden" name="utm_content" value="">
+                <input type="hidden" name="utm_term" value="">
+                <input type="hidden" name="gclid" value="">
+                <input type="hidden" name="fbclid" value="">
+                <input type="hidden" name="yclid" value="">
                 <input type="hidden" name="message" value="Заявка со страницы материала: нужен подбор преподавателя и план обучения.">
                 {% if material.subject %}
                 <input type="hidden" name="subject" value="{{ material.subject.id }}">
@@ -529,6 +539,89 @@
     </script>
 
     <script>
+        window.smartMarketingConfig = Object.assign({}, window.smartMarketingConfig || {}, {
+            pageType: 'material_detail',
+            yandexCounterId: '{{ analytics.yandex_id|default_if_none:""|escapejs }}',
+            hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+        });
+
+        (function () {
+            const materialPayload = {
+                material_id: '{{ material.id }}',
+                material_slug: '{{ material.slug|default_if_none:""|escapejs }}',
+                material_title: '{{ material.title|escapejs }}',
+                material_type: '{{ material.content_type|escapejs }}',
+                material_category: '{% if material.category %}{{ material.category.slug|escapejs }}{% endif %}',
+                material_subject: '{% if material.subject %}{{ material.subject.name|escapejs }}{% endif %}',
+                material_exam_type: '{{ material.exam_type|escapejs }}',
+                material_task_number: '{% if material.task_number %}{{ material.task_number }}{% endif %}'
+            };
+
+            function trackMaterialEvent(eventName, extraPayload) {
+                if (typeof window.smartTrackEvent !== 'function') {
+                    return;
+                }
+                window.smartTrackEvent(eventName, Object.assign({}, materialPayload, extraPayload || {}));
+            }
+
+            if (window.smartMarketing && typeof window.smartMarketing.bindDefaults === 'function') {
+                window.smartMarketing.bindDefaults({
+                    defaultLeadFormName: 'material_detail_modal',
+                    defaultCtaLocation: 'material_detail'
+                });
+            }
+
+            trackMaterialEvent('material_view');
+
+            let engagedTracked = false;
+            function getScrollDepth() {
+                const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+                const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+                const fullHeight = Math.max(
+                    document.body.scrollHeight,
+                    document.documentElement.scrollHeight,
+                    document.body.offsetHeight,
+                    document.documentElement.offsetHeight
+                );
+                if (!fullHeight || fullHeight <= viewportHeight) {
+                    return 100;
+                }
+                return Math.min(100, Math.round(((scrollTop + viewportHeight) / fullHeight) * 100));
+            }
+
+            function trackEngagement(reason) {
+                if (engagedTracked || document.visibilityState === 'hidden') {
+                    return;
+                }
+                engagedTracked = true;
+                trackMaterialEvent('material_engaged', {
+                    engagement_reason: reason,
+                    scroll_depth: getScrollDepth()
+                });
+                window.removeEventListener('scroll', onScroll);
+            }
+
+            function onScroll() {
+                if (getScrollDepth() >= 50) {
+                    trackEngagement('scroll_50');
+                }
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.setTimeout(function () {
+                trackEngagement('time_15s');
+            }, 15000);
+
+            const testForm = document.getElementById('material-test-form');
+            if (testForm) {
+                testForm.addEventListener('submit', function () {
+                    trackMaterialEvent('material_test_submit');
+                });
+            }
+        })();
+    </script>
+
+    <script>
         (function () {
             const modal = document.getElementById('materials-lead-modal');
             const openers = document.querySelectorAll('[data-open-lead-modal]');
@@ -536,10 +629,10 @@
             const landingInput = document.getElementById('materials-landing-path');
             const referrerInput = document.getElementById('materials-referrer');
 
-            if (landingInput) {
+            if (landingInput && !landingInput.value) {
                 landingInput.value = window.location.pathname + window.location.search;
             }
-            if (referrerInput) {
+            if (referrerInput && !referrerInput.value) {
                 referrerInput.value = document.referrer || '';
             }
 

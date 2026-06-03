@@ -44,6 +44,9 @@
         if (eventName === 'chat_launcher_open') return 'chat_launcher_open';
         if (eventName === 'chat_thread_open') return 'chat_thread_open';
         if (eventName === 'chat_message_send') return 'chat_message_send';
+        if (eventName === 'material_view') return 'material_view';
+        if (eventName === 'material_engaged') return 'material_engaged';
+        if (eventName === 'material_test_submit') return 'material_test_submit';
         if (eventName === 'cta_click') {
             const ctaName = sanitizeGoalSegment(payload && payload.cta_name);
             return ctaName ? 'cta_' + ctaName : 'cta_click';
@@ -156,6 +159,12 @@
                 });
             } else if (eventName === 'chat_message_send') {
                 window.fbq('trackCustom', 'ChatMessageSend', safePayload);
+            } else if (eventName === 'material_view') {
+                window.fbq('trackCustom', 'MaterialView', safePayload);
+            } else if (eventName === 'material_engaged') {
+                window.fbq('trackCustom', 'MaterialEngaged', safePayload);
+            } else if (eventName === 'material_test_submit') {
+                window.fbq('trackCustom', 'MaterialTestSubmit', safePayload);
             } else {
                 window.fbq('trackCustom', sanitizeGoalSegment(eventName) || 'custom_event', safePayload);
             }
