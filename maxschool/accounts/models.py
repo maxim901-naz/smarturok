@@ -429,6 +429,11 @@ class TrialRequest(models.Model):
     WORK_STATUS_CHOICES = (
         ('new', 'Новая'),
         ('in_progress', 'В работе'),
+        ('no_answer', 'Не дозвонились'),
+        ('waiting', 'Ждём ответа'),
+        ('trial_scheduled', 'Пробный назначен'),
+        ('trial_done', 'Пробный проведён'),
+        ('paid', 'Оплатил'),
         ('done', 'Закрыта'),
         ('rejected', 'Отклонена'),
     )
@@ -463,6 +468,8 @@ class TrialRequest(models.Model):
     )
     first_response_at = models.DateTimeField(null=True, blank=True)
     closed_at = models.DateTimeField(null=True, blank=True)
+    next_contact_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    next_contact_note = models.CharField(max_length=255, blank=True, default='')
 
     assigned_teacher = models.ForeignKey(
         CustomUser,
@@ -483,6 +490,34 @@ class TrialRequest(models.Model):
         if not self.created_at:
             return False
         return timezone.now() >= (self.created_at + timedelta(minutes=response_minutes))
+
+
+class TrialRequestNote(models.Model):
+    trial_request = models.ForeignKey(
+        TrialRequest,
+        on_delete=models.CASCADE,
+        related_name='crm_notes',
+        verbose_name='Заявка',
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='trial_request_notes',
+        verbose_name='Автор',
+    )
+    note = models.TextField(verbose_name='Комментарий')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'Комментарий к заявке'
+        verbose_name_plural = 'Комментарии к заявкам'
+
+    def __str__(self):
+        return f'Комментарий к заявке #{self.trial_request_id}'
+
 
 class Vacancy(models.Model):
     title = models.CharField("Название вакансии", max_length=150)

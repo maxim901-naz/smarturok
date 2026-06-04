@@ -3,16 +3,44 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
-from .models import CustomUser, Subject, TrialRequest
+from .models import CustomUser, Subject, TrialRequest, TrialRequestNote
 
 
 CRM_RESPONSE_SLA_MINUTES = 5
+CRM_OPEN_STATUSES = {'new', 'in_progress', 'no_answer', 'waiting', 'trial_scheduled', 'trial_done'}
+CRM_CLOSED_STATUSES = {'paid', 'done', 'rejected'}
 TRIAL_WORK_STATUSES = {value for value, _ in TrialRequest.WORK_STATUS_CHOICES}
+TRIAL_STATUS_LABELS = dict(TrialRequest.WORK_STATUS_CHOICES)
+TRIAL_STATUS_BADGES = {
+    'new': 'bg-sky-100 text-sky-700',
+    'in_progress': 'bg-amber-100 text-amber-700',
+    'no_answer': 'bg-orange-100 text-orange-700',
+    'waiting': 'bg-yellow-100 text-yellow-800',
+    'trial_scheduled': 'bg-violet-100 text-violet-700',
+    'trial_done': 'bg-cyan-100 text-cyan-700',
+    'paid': 'bg-emerald-600 text-white',
+    'done': 'bg-emerald-100 text-emerald-700',
+    'rejected': 'bg-slate-200 text-slate-600',
+}
+CRM_STATUS_TABS = (
+    ('new', 'Новые'),
+    ('overdue', 'SLA'),
+    ('due_contact', 'Нужен контакт'),
+    ('in_progress', 'В работе'),
+    ('no_answer', 'Не дозвонились'),
+    ('waiting', 'Ждём ответа'),
+    ('trial_scheduled', 'Пробный назначен'),
+    ('trial_done', 'Пробный проведён'),
+    ('paid', 'Оплатили'),
+    ('rejected', 'Отказы'),
+    ('all', 'Все'),
+)
 
 
 def _display_user_name(user):
@@ -34,6 +62,30 @@ def _safe_crm_redirect(next_url=''):
     if next_url and next_url.startswith('/crm/'):
         return next_url
     return reverse('crm_dashboard')
+
+
+def _parse_next_contact(value):
+    value = (value or '').strip()
+    if not value:
+        return None
+
+    parsed = parse_datetime(value)
+    if not parsed:
+        return None
+    if timezone.is_naive(parsed):
+        parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+    return parsed
+
+
+def _add_crm_note(trial_request, user, note_text):
+    note_text = (note_text or '').strip()
+    if not note_text:
+        return None
+    return TrialRequestNote.objects.create(
+        trial_request=trial_request,
+        author=user if user.is_authenticated else None,
+        note=note_text,
+    )
 
 
 def _touch_response_fields(trial_request, user, *, close=False):
@@ -80,7 +132,7 @@ def _handle_trial_action(request):
         messages.success(request, 'Заявка закрыта.')
 
     elif action == 'converted':
-        trial_request.work_status = 'done'
+        trial_request.work_status = 'paid'
         trial_request.is_converted = True
         update_fields = _touch_response_fields(trial_request, request.user, close=True)
         update_fields.append('is_converted')
@@ -98,6 +150,52 @@ def _handle_trial_action(request):
         trial_request.closed_at = None
         trial_request.save(update_fields=['work_status', 'closed_at'])
         messages.success(request, 'Заявка возвращена в новые.')
+
+    elif action == 'set_status':
+        new_status = request.POST.get('new_status')
+        if new_status not in TRIAL_WORK_STATUSES:
+            messages.error(request, 'Некорректный статус.')
+        else:
+            trial_request.work_status = new_status
+            if new_status == 'paid':
+                trial_request.is_converted = True
+            update_fields = _touch_response_fields(
+                trial_request,
+                request.user,
+                close=new_status in CRM_CLOSED_STATUSES,
+            )
+            if new_status == 'paid':
+                update_fields.append('is_converted')
+            trial_request.save(update_fields=update_fields)
+            _add_crm_note(trial_request, request.user, request.POST.get('status_note'))
+            messages.success(request, f'Статус изменён: {TRIAL_STATUS_LABELS.get(new_status, new_status)}.')
+
+    elif action == 'update_followup':
+        raw_next_contact = request.POST.get('next_contact_at')
+        next_contact_at = _parse_next_contact(raw_next_contact)
+        if raw_next_contact and not next_contact_at:
+            messages.error(request, 'Не удалось распознать дату следующего контакта.')
+        else:
+            trial_request.next_contact_at = next_contact_at
+            trial_request.next_contact_note = (request.POST.get('next_contact_note') or '').strip()[:255]
+            update_fields = ['next_contact_at', 'next_contact_note']
+            if trial_request.work_status == 'new':
+                trial_request.work_status = 'in_progress'
+                update_fields.extend(_touch_response_fields(trial_request, request.user))
+            trial_request.save(update_fields=sorted(set(update_fields)))
+            _add_crm_note(trial_request, request.user, request.POST.get('followup_note'))
+            messages.success(request, 'Следующий контакт сохранён.')
+
+    elif action == 'add_note':
+        note = _add_crm_note(trial_request, request.user, request.POST.get('note'))
+        if note:
+            if trial_request.work_status == 'new':
+                trial_request.work_status = 'in_progress'
+                update_fields = _touch_response_fields(trial_request, request.user)
+                trial_request.save(update_fields=update_fields)
+            messages.success(request, 'Комментарий добавлен.')
+        else:
+            messages.error(request, 'Комментарий не может быть пустым.')
 
     elif action == 'assign_teacher':
         teacher_id = request.POST.get('teacher_id')
@@ -150,6 +248,13 @@ def crm_dashboard(request):
     requests_qs = (
         TrialRequest.objects
         .select_related('subject', 'assigned_admin', 'assigned_teacher')
+        .prefetch_related(
+            Prefetch(
+                'crm_notes',
+                queryset=TrialRequestNote.objects.select_related('author').order_by('-created_at'),
+                to_attr='crm_recent_notes',
+            )
+        )
         .order_by('-created_at')
     )
 
@@ -161,6 +266,12 @@ def crm_dashboard(request):
         requests_qs = requests_qs.filter(
             work_status='new',
             created_at__lte=overdue_cutoff,
+        )
+    elif current_status == 'due_contact':
+        requests_qs = requests_qs.filter(
+            work_status__in=CRM_OPEN_STATUSES,
+            next_contact_at__isnull=False,
+            next_contact_at__lte=now_value,
         )
     elif current_status != 'all':
         current_status = 'new'
@@ -191,30 +302,44 @@ def crm_dashboard(request):
             and bool(item.created_at)
             and item.created_at <= overdue_cutoff
         )
+        item.crm_status_label = TRIAL_STATUS_LABELS.get(item.work_status, item.work_status)
+        item.crm_status_class = TRIAL_STATUS_BADGES.get(item.work_status, 'bg-slate-100 text-slate-700')
+        item.crm_next_contact_overdue = (
+            item.work_status in CRM_OPEN_STATUSES
+            and bool(item.next_contact_at)
+            and item.next_contact_at <= now_value
+        )
+        item.crm_next_contact_label = ''
+        item.crm_next_contact_value = ''
+        if item.next_contact_at:
+            local_next_contact = timezone.localtime(item.next_contact_at)
+            item.crm_next_contact_label = local_next_contact.strftime('%d.%m.%Y %H:%M')
+            item.crm_next_contact_value = local_next_contact.strftime('%Y-%m-%dT%H:%M')
+        for note in getattr(item, 'crm_recent_notes', []):
+            note.crm_author_name = _display_user_name(note.author)
 
     base_qs = TrialRequest.objects.all()
     today = timezone.localdate()
     week_ago = now_value - timedelta(days=7)
 
     stats = {
-        'new': base_qs.filter(work_status='new').count(),
-        'in_progress': base_qs.filter(work_status='in_progress').count(),
-        'done': base_qs.filter(work_status='done').count(),
-        'rejected': base_qs.filter(work_status='rejected').count(),
+        'all': base_qs.count(),
         'converted': base_qs.filter(is_converted=True).count(),
         'overdue': base_qs.filter(work_status='new', created_at__lte=overdue_cutoff).count(),
+        'due_contact': base_qs.filter(
+            work_status__in=CRM_OPEN_STATUSES,
+            next_contact_at__isnull=False,
+            next_contact_at__lte=now_value,
+        ).count(),
         'today': base_qs.filter(created_at__date=today).count(),
         'week': base_qs.filter(created_at__gte=week_ago).count(),
     }
+    for status_value in TRIAL_WORK_STATUSES:
+        stats[status_value] = base_qs.filter(work_status=status_value).count()
 
     status_tabs = [
-        ('new', 'Новые', stats['new']),
-        ('overdue', 'Просрочены', stats['overdue']),
-        ('in_progress', 'В работе', stats['in_progress']),
-        ('converted', 'Стали учениками', stats['converted']),
-        ('done', 'Закрыты', stats['done']),
-        ('rejected', 'Отказы', stats['rejected']),
-        ('all', 'Все', base_qs.count()),
+        (status_key, status_label, stats.get(status_key, 0))
+        for status_key, status_label in CRM_STATUS_TABS
     ]
 
     lead_forms = (
@@ -233,6 +358,11 @@ def crm_dashboard(request):
         .order_by('-total')[:6]
     )
 
+    teacher_options = [
+        {'id': teacher.id, 'name': _display_user_name(teacher)}
+        for teacher in CustomUser.objects.filter(role='teacher', is_active=True).order_by('last_name', 'first_name', 'username')
+    ]
+
     context = {
         'requests_list': requests_list,
         'stats': stats,
@@ -245,7 +375,8 @@ def crm_dashboard(request):
         'subjects': Subject.objects.order_by('name'),
         'lead_forms': lead_forms,
         'subject_stats': subject_stats,
-        'teachers': CustomUser.objects.filter(role='teacher', is_active=True).order_by('last_name', 'first_name', 'username'),
+        'teachers': teacher_options,
+        'work_status_choices': TrialRequest.WORK_STATUS_CHOICES,
         'sla_minutes': CRM_RESPONSE_SLA_MINUTES,
     }
     return render(request, 'accounts/crm_dashboard.html', context)

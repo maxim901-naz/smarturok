@@ -14,6 +14,7 @@ from .models import (
     Subject,
     Lesson,
     TrialRequest,
+    TrialRequestNote,
     CustomUser,
     BalanceTransaction,
     BalanceTopUpRequest,
@@ -30,6 +31,8 @@ from lessons.models import TeacherAvailability
 class RequestSLAAdminMixin:
     response_sla_minutes = 5
     default_new_filter = True
+    open_work_statuses = {'new', 'in_progress', 'no_answer', 'waiting', 'trial_scheduled', 'trial_done'}
+    closed_work_statuses = {'done', 'rejected', 'paid'}
 
     def changelist_view(self, request, extra_context=None):
         if self.default_new_filter and not request.GET:
@@ -54,12 +57,19 @@ class RequestSLAAdminMixin:
                 elapsed_minutes,
             )
 
-        if getattr(obj, 'work_status', '') == 'in_progress':
-            return format_html("<span style='color:#2563eb;font-weight:600;'>В работе</span>")
-        if getattr(obj, 'work_status', '') == 'done':
-            return format_html("<span style='color:#15803d;font-weight:600;'>Закрыта</span>")
-        if getattr(obj, 'work_status', '') == 'rejected':
-            return format_html("<span style='color:#6b7280;font-weight:600;'>Отклонена</span>")
+        status_badges = {
+            'in_progress': ('#2563eb', 'В работе'),
+            'no_answer': ('#ea580c', 'Не дозвонились'),
+            'waiting': ('#d97706', 'Ждём ответа'),
+            'trial_scheduled': ('#7c3aed', 'Пробный назначен'),
+            'trial_done': ('#0891b2', 'Пробный проведён'),
+            'paid': ('#15803d', 'Оплатил'),
+            'done': ('#15803d', 'Закрыта'),
+            'rejected': ('#6b7280', 'Отклонена'),
+        }
+        badge = status_badges.get(getattr(obj, 'work_status', ''))
+        if badge:
+            return format_html("<span style='color:{};font-weight:600;'>{}</span>", badge[0], badge[1])
         return '—'
 
 # Регистрируем предметы
@@ -86,8 +96,20 @@ class LessonAdmin(admin.ModelAdmin):
 
 
 # Админка для заявок на пробный урок
+class TrialRequestNoteInline(admin.TabularInline):
+    model = TrialRequestNote
+    extra = 0
+    fields = ('note', 'author', 'created_at')
+    readonly_fields = ('author', 'created_at')
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(TrialRequest)
 class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
+    inlines = (TrialRequestNoteInline,)
     list_display = (
         'name',
         'student_name',
@@ -99,6 +121,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'work_status',
         'assigned_admin',
         'first_response_at',
+        'next_contact_at',
         'pricing_lessons_count',
         'pricing_discount_percent',
         'pricing_total_price',
@@ -115,6 +138,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'lead_form',
         'personal_data_consent',
         'is_converted',
+        'next_contact_at',
         'created_at',
     )
     search_fields = ('name', 'student_name', 'email', 'phone', 'promo_interest', 'pricing_subject_name')
@@ -148,6 +172,8 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'pricing_old_price',
         'preferred_time',
         'message',
+        'next_contact_at',
+        'next_contact_note',
         'personal_data_consent',
         'consent_at',
         'consent_ip',
@@ -164,13 +190,13 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         now_value = timezone.now()
-        if obj.work_status in {'in_progress', 'done', 'rejected'}:
+        if obj.work_status != 'new':
             if not obj.assigned_admin_id and request.user.is_staff:
                 obj.assigned_admin = request.user
             self._touch_first_response(obj, now_value)
-        if obj.work_status in {'done', 'rejected'} and not obj.closed_at:
+        if obj.work_status in self.closed_work_statuses and not obj.closed_at:
             obj.closed_at = now_value
-        if obj.work_status in {'new', 'in_progress'}:
+        if obj.work_status in self.open_work_statuses:
             obj.closed_at = None
         super().save_model(request, obj, form, change)
 
@@ -206,6 +232,19 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
             self._touch_first_response(obj, now_value)
             obj.closed_at = now_value
             obj.save(update_fields=['work_status', 'assigned_admin', 'first_response_at', 'closed_at'])
+
+
+@admin.register(TrialRequestNote)
+class TrialRequestNoteAdmin(admin.ModelAdmin):
+    list_display = ('trial_request', 'author', 'created_at', 'short_note')
+    list_filter = ('created_at', 'author')
+    search_fields = ('trial_request__name', 'trial_request__student_name', 'trial_request__phone', 'note')
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+
+    @admin.display(description='Комментарий')
+    def short_note(self, obj):
+        return obj.note[:80]
 
 # Админка для пользователей
 @admin.register(Vacancy)
