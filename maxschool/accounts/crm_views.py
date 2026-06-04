@@ -15,6 +15,13 @@ CRM_RESPONSE_SLA_MINUTES = 5
 TRIAL_WORK_STATUSES = {value for value, _ in TrialRequest.WORK_STATUS_CHOICES}
 
 
+def _display_user_name(user):
+    if not user:
+        return 'Не назначен'
+    full_name = (user.get_full_name() or '').strip()
+    return full_name or user.username or 'Не назначен'
+
+
 def _has_crm_access(user):
     return bool(
         user.is_authenticated
@@ -138,6 +145,7 @@ def crm_dashboard(request):
     search_query = (request.GET.get('q') or '').strip()
     if current_subject and not current_subject.isdigit():
         current_subject = ''
+    current_subject_id = int(current_subject) if current_subject else None
 
     requests_qs = (
         TrialRequest.objects
@@ -175,6 +183,14 @@ def crm_dashboard(request):
         )
 
     requests_list = list(requests_qs[:120])
+    for item in requests_list:
+        item.crm_admin_name = _display_user_name(item.assigned_admin)
+        item.crm_teacher_name = _display_user_name(item.assigned_teacher)
+        item.crm_is_overdue = (
+            item.work_status == 'new'
+            and bool(item.created_at)
+            and item.created_at <= overdue_cutoff
+        )
 
     base_qs = TrialRequest.objects.all()
     today = timezone.localdate()
@@ -223,6 +239,7 @@ def crm_dashboard(request):
         'status_tabs': status_tabs,
         'current_status': current_status,
         'current_subject': current_subject,
+        'current_subject_id': current_subject_id,
         'current_lead_form': current_lead_form,
         'search_query': search_query,
         'subjects': Subject.objects.order_by('name'),
