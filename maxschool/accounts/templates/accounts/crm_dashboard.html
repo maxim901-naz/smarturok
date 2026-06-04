@@ -1,0 +1,292 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>CRM SmartUrok</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#111827',
+                        cloud: '#f6f8fb',
+                        brand: '#0ea5e9',
+                        ocean: '#075985',
+                        mint: '#10b981',
+                        amber: '#f59e0b',
+                        rose: '#f43f5e'
+                    },
+                    boxShadow: {
+                        soft: '0 24px 80px rgba(15, 23, 42, 0.12)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background:
+                radial-gradient(circle at 12% 8%, rgba(14, 165, 233, 0.18), transparent 30%),
+                radial-gradient(circle at 88% 2%, rgba(16, 185, 129, 0.16), transparent 24%),
+                linear-gradient(135deg, #f8fafc 0%, #eef5ff 55%, #f8fafc 100%);
+        }
+        .crm-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(18px);
+        }
+        details[open] summary .chevron {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-ink">
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <header class="mb-6 overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-soft">
+            <div class="relative px-6 py-7 sm:px-8">
+                <div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.45),_transparent_38%),radial-gradient(circle_at_bottom,_rgba(16,185,129,0.30),_transparent_32%)] md:block"></div>
+                <div class="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold uppercase tracking-[0.28em] text-sky-200">SmartUrok CRM</p>
+                        <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Заявки и воронка продаж</h1>
+                        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                            Быстрая панель для обработки пробных уроков. Админка остается техническим центром, CRM показывает только рабочие действия.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{% url 'admin:index' %}" class="rounded-2xl border border-white/20 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10">Админка</a>
+                        <a href="{% url 'home' %}" class="rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-sky-100">На сайт</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div class="mb-5 space-y-2">
+                {% for message in messages %}
+                    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="crm-card rounded-3xl border border-white/70 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Сегодня</p>
+                <p class="mt-2 text-3xl font-black">{{ stats.today }}</p>
+                <p class="text-sm text-slate-500">новых обращений</p>
+            </div>
+            <div class="crm-card rounded-3xl border border-white/70 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">7 дней</p>
+                <p class="mt-2 text-3xl font-black">{{ stats.week }}</p>
+                <p class="text-sm text-slate-500">заявок за неделю</p>
+            </div>
+            <div class="crm-card rounded-3xl border border-white/70 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Новые</p>
+                <p class="mt-2 text-3xl font-black text-sky-700">{{ stats.new }}</p>
+                <p class="text-sm text-slate-500">ждут реакции</p>
+            </div>
+            <div class="crm-card rounded-3xl border border-white/70 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">SLA</p>
+                <p class="mt-2 text-3xl font-black text-rose-600">{{ stats.overdue }}</p>
+                <p class="text-sm text-slate-500">старше {{ sla_minutes }} мин</p>
+            </div>
+            <div class="crm-card rounded-3xl border border-white/70 p-5 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Ученики</p>
+                <p class="mt-2 text-3xl font-black text-emerald-600">{{ stats.converted }}</p>
+                <p class="text-sm text-slate-500">конверсий</p>
+            </div>
+        </section>
+
+        <section class="mb-5 grid gap-5 lg:grid-cols-[1fr_320px]">
+            <div class="crm-card rounded-[1.7rem] border border-white/70 p-4 shadow-sm">
+                <div class="flex flex-wrap gap-2">
+                    {% for status_key, status_label, status_count in status_tabs %}
+                        <a href="?status={{ status_key }}" class="rounded-2xl px-4 py-2 text-sm font-bold transition {% if current_status == status_key %}bg-slate-950 text-white shadow-lg{% else %}bg-white text-slate-600 hover:bg-slate-100{% endif %}">
+                            {{ status_label }}
+                            <span class="ml-1 rounded-full {% if current_status == status_key %}bg-white/20{% else %}bg-slate-100{% endif %} px-2 py-0.5 text-xs">{{ status_count }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+
+                <form method="get" class="mt-4 grid gap-3 md:grid-cols-[1.2fr_1fr_1fr_auto]">
+                    <input type="hidden" name="status" value="{{ current_status }}">
+                    <input type="search" name="q" value="{{ search_query }}" placeholder="Поиск: имя, телефон, email, комментарий" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                    <select name="subject" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                        <option value="">Все предметы</option>
+                        {% for subject in subjects %}
+                            <option value="{{ subject.id }}" {% if current_subject == subject.id|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="lead_form" class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                        <option value="">Все формы</option>
+                        {% for item in lead_forms %}
+                            <option value="{{ item.lead_form }}" {% if current_lead_form == item.lead_form %}selected{% endif %}>{{ item.lead_form }} ({{ item.total }})</option>
+                        {% endfor %}
+                    </select>
+                    <button class="rounded-2xl bg-sky-600 px-5 py-3 text-sm font-black text-white transition hover:bg-sky-700">Показать</button>
+                </form>
+            </div>
+
+            <aside class="crm-card rounded-[1.7rem] border border-white/70 p-5 shadow-sm">
+                <p class="text-sm font-black text-slate-900">Спрос за 7 дней</p>
+                <div class="mt-3 space-y-2">
+                    {% for item in subject_stats %}
+                        <div class="flex items-center justify-between rounded-2xl bg-white px-3 py-2 text-sm">
+                            <span class="font-semibold text-slate-700">{{ item.subject__name|default:"Без предмета" }}</span>
+                            <span class="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-black text-sky-700">{{ item.total }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="rounded-2xl bg-white px-3 py-3 text-sm text-slate-500">Пока нет данных за неделю.</p>
+                    {% endfor %}
+                </div>
+            </aside>
+        </section>
+
+        <section class="space-y-4">
+            {% for req in requests_list %}
+                <article class="crm-card overflow-hidden rounded-[1.7rem] border border-white/70 shadow-sm">
+                    <div class="grid gap-4 p-5 lg:grid-cols-[1.2fr_0.9fr_0.9fr_auto] lg:items-center">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                {% if req.work_status == 'new' %}
+                                    <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-black text-sky-700">Новая</span>
+                                {% elif req.work_status == 'in_progress' %}
+                                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-700">В работе</span>
+                                {% elif req.work_status == 'done' %}
+                                    <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">Закрыта</span>
+                                {% elif req.work_status == 'rejected' %}
+                                    <span class="rounded-full bg-slate-200 px-3 py-1 text-xs font-black text-slate-600">Отказ</span>
+                                {% endif %}
+                                {% if req.is_converted %}
+                                    <span class="rounded-full bg-emerald-600 px-3 py-1 text-xs font-black text-white">Стал учеником</span>
+                                {% endif %}
+                                {% if req.is_sla_overdue %}
+                                    <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-black text-rose-700">SLA просрочен</span>
+                                {% endif %}
+                            </div>
+                            <h2 class="mt-3 text-xl font-black text-slate-950">{{ req.name }}</h2>
+                            {% if req.student_name %}
+                                <p class="mt-1 text-sm text-slate-500">Ученик: <span class="font-bold text-slate-800">{{ req.student_name }}</span></p>
+                            {% endif %}
+                            <p class="mt-1 text-sm text-slate-500">Создано: {{ req.created_at|date:"d.m.Y H:i" }}</p>
+                        </div>
+
+                        <div class="space-y-1 text-sm">
+                            <p><span class="text-slate-400">Телефон:</span> <a href="tel:{{ req.phone }}" class="font-bold text-sky-700">{{ req.phone }}</a></p>
+                            <p><span class="text-slate-400">Email:</span> <a href="mailto:{{ req.email }}" class="font-bold text-slate-800">{{ req.email }}</a></p>
+                            <p><span class="text-slate-400">Предмет:</span> <span class="font-bold">{{ req.subject.name|default:"Не выбран" }}</span></p>
+                        </div>
+
+                        <div class="space-y-1 text-sm">
+                            <p><span class="text-slate-400">Форма:</span> <span class="font-bold">{{ req.lead_form|default:"trial_lesson" }}</span></p>
+                            {% if req.promo_interest %}
+                                <p><span class="text-slate-400">Интерес:</span> <span class="font-bold">{{ req.promo_interest }}</span></p>
+                            {% endif %}
+                            <p><span class="text-slate-400">Менеджер:</span> <span class="font-bold">{{ req.assigned_admin.get_full_name|default:req.assigned_admin.username|default:"Не назначен" }}</span></p>
+                            <p><span class="text-slate-400">Учитель:</span> <span class="font-bold">{{ req.assigned_teacher.get_full_name|default:req.assigned_teacher.username|default:"Не назначен" }}</span></p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 lg:justify-end">
+                            {% if req.work_status == 'new' %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="hidden" name="action" value="take">
+                                    <button class="rounded-2xl bg-sky-600 px-4 py-2 text-sm font-black text-white hover:bg-sky-700">В работу</button>
+                                </form>
+                            {% endif %}
+                            {% if not req.is_converted %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="hidden" name="action" value="converted">
+                                    <button class="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-black text-white hover:bg-emerald-700">Стал учеником</button>
+                                </form>
+                            {% endif %}
+                            {% if req.work_status != 'done' %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="hidden" name="action" value="done">
+                                    <button class="rounded-2xl bg-white px-4 py-2 text-sm font-black text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">Закрыть</button>
+                                </form>
+                            {% endif %}
+                            {% if req.work_status != 'rejected' %}
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button class="rounded-2xl bg-white px-4 py-2 text-sm font-black text-rose-700 ring-1 ring-rose-100 hover:bg-rose-50">Отказ</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <details class="border-t border-slate-100 bg-white/70">
+                        <summary class="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-black text-slate-700">
+                            <span>Детали заявки и назначение учителя</span>
+                            <span class="chevron transition">⌄</span>
+                        </summary>
+                        <div class="grid gap-5 px-5 pb-5 lg:grid-cols-[1fr_360px]">
+                            <div class="rounded-3xl bg-slate-50 p-4">
+                                <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Комментарий и маркетинг</p>
+                                {% if req.message %}
+                                    <pre class="mt-3 whitespace-pre-wrap rounded-2xl bg-white p-4 text-sm leading-6 text-slate-700">{{ req.message }}</pre>
+                                {% else %}
+                                    <p class="mt-3 rounded-2xl bg-white p-4 text-sm text-slate-500">Комментарий не указан.</p>
+                                {% endif %}
+                            </div>
+                            <div class="rounded-3xl bg-slate-50 p-4">
+                                <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Учитель</p>
+                                <form method="post" class="mt-3 space-y-3">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="hidden" name="request_id" value="{{ req.id }}">
+                                    <input type="hidden" name="action" value="assign_teacher">
+                                    <select name="teacher_id" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                                        <option value="">Не назначен</option>
+                                        {% for teacher in teachers %}
+                                            <option value="{{ teacher.id }}" {% if req.assigned_teacher_id == teacher.id %}selected{% endif %}>
+                                                {{ teacher.get_full_name|default:teacher.username }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800">Сохранить учителя</button>
+                                </form>
+                                {% if req.work_status != 'new' %}
+                                    <form method="post" class="mt-3">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                        <input type="hidden" name="request_id" value="{{ req.id }}">
+                                        <input type="hidden" name="action" value="reopen">
+                                        <button class="w-full rounded-2xl bg-white px-4 py-3 text-sm font-black text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50">Вернуть в новые</button>
+                                    </form>
+                                {% endif %}
+                                <div class="mt-4 space-y-1 text-xs text-slate-500">
+                                    <p>Первая реакция: {{ req.first_response_at|date:"d.m.Y H:i"|default:"нет" }}</p>
+                                    <p>Закрыта: {{ req.closed_at|date:"d.m.Y H:i"|default:"нет" }}</p>
+                                    <p>ID заявки: #{{ req.id }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </article>
+            {% empty %}
+                <div class="crm-card rounded-[1.7rem] border border-white/70 p-10 text-center shadow-sm">
+                    <p class="text-2xl font-black text-slate-900">Заявок не найдено</p>
+                    <p class="mt-2 text-sm text-slate-500">Попробуй изменить фильтры или открыть вкладку “Все”.</p>
+                </div>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>

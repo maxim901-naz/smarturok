@@ -45,6 +45,7 @@ urlpatterns = [
     ),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('', include('main.urls')),
+    path('crm/', include('accounts.crm_urls')),
     path('accounts/', include('accounts.urls')),
     path('lessons/', include('lessons.urls')),
     path("chats/", include("chat.urls", namespace="chat")),
