@@ -1,4 +1,5 @@
 from datetime import timedelta
+import re
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -6,6 +7,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.crypto import get_random_string
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
@@ -48,6 +50,35 @@ def _display_user_name(user):
         return 'Не назначен'
     full_name = (user.get_full_name() or '').strip()
     return full_name or user.username or 'Не назначен'
+
+
+def _split_person_name(full_name):
+    parts = (full_name or '').strip().split()
+    if not parts:
+        return '', ''
+    first_name = parts[0][:150]
+    last_name = ' '.join(parts[1:])[:150]
+    return first_name, last_name
+
+
+def _build_student_username(trial_request):
+    email_local = (trial_request.email or '').split('@', 1)[0].strip().lower()
+    base = re.sub(r'[^a-z0-9_.+-]+', '', email_local)
+    if not base:
+        base = f'student{trial_request.pk}'
+    base = base[:120]
+
+    candidate = base
+    suffix = 2
+    while CustomUser.objects.filter(username__iexact=candidate).exists():
+        candidate = f'{base}-{suffix}'[:150]
+        suffix += 1
+    return candidate
+
+
+def _generate_student_password():
+    alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+    return get_random_string(12, allowed_chars=alphabet)
 
 
 def _has_crm_access(user):
@@ -197,6 +228,68 @@ def _handle_trial_action(request):
         else:
             messages.error(request, 'Комментарий не может быть пустым.')
 
+    elif action == 'create_student':
+        if trial_request.created_student_id:
+            messages.info(request, 'Ученик по этой заявке уже создан.')
+        else:
+            email = (trial_request.email or '').strip().lower()
+            if not email:
+                messages.error(request, 'У заявки нет email. Создать ученика нельзя.')
+            else:
+                existing_user = CustomUser.objects.filter(email__iexact=email).first()
+                temporary_password = ''
+
+                if existing_user:
+                    if existing_user.role != 'student':
+                        messages.error(request, 'Этот email уже занят не учеником. Проверьте пользователя в админке.')
+                        return redirect(_safe_crm_redirect(request.POST.get('next', '')))
+                    student = existing_user
+                    messages.info(request, 'Ученик с таким email уже существует. Я привязал его к заявке.')
+                else:
+                    temporary_password = _generate_student_password()
+                    first_name, last_name = _split_person_name(trial_request.student_name or trial_request.name)
+                    student = CustomUser.objects.create_user(
+                        username=_build_student_username(trial_request),
+                        email=email,
+                        password=temporary_password,
+                        first_name=first_name,
+                        last_name=last_name,
+                        role='student',
+                        desired_subject=trial_request.subject,
+                        is_approved=True,
+                        is_email_verified=True,
+                        is_active=True,
+                    )
+
+                if trial_request.assigned_teacher_id:
+                    student.teachers.add(trial_request.assigned_teacher)
+                if trial_request.subject_id and not student.desired_subject_id:
+                    student.desired_subject = trial_request.subject
+                    student.save(update_fields=['desired_subject'])
+
+                trial_request.created_student = student
+                trial_request.is_converted = True
+                update_fields = ['created_student', 'is_converted']
+                if trial_request.work_status == 'new':
+                    trial_request.work_status = 'in_progress'
+                    update_fields.extend(_touch_response_fields(trial_request, request.user))
+                trial_request.save(update_fields=sorted(set(update_fields)))
+
+                note_text = (
+                    f'Создан аккаунт ученика: {student.username} ({student.email}).'
+                    if temporary_password
+                    else f'Привязан существующий аккаунт ученика: {student.username} ({student.email}).'
+                )
+                _add_crm_note(trial_request, request.user, note_text)
+
+                if temporary_password:
+                    messages.success(
+                        request,
+                        f'Ученик создан. Логин: {student.username}. Временный пароль: {temporary_password}',
+                    )
+                else:
+                    messages.success(request, 'Существующий ученик привязан к заявке.')
+
     elif action == 'assign_teacher':
         teacher_id = request.POST.get('teacher_id')
         if not teacher_id:
@@ -247,7 +340,7 @@ def crm_dashboard(request):
 
     requests_qs = (
         TrialRequest.objects
-        .select_related('subject', 'assigned_admin', 'assigned_teacher')
+        .select_related('subject', 'assigned_admin', 'assigned_teacher', 'created_student')
         .prefetch_related(
             Prefetch(
                 'crm_notes',
@@ -297,6 +390,7 @@ def crm_dashboard(request):
     for item in requests_list:
         item.crm_admin_name = _display_user_name(item.assigned_admin)
         item.crm_teacher_name = _display_user_name(item.assigned_teacher)
+        item.crm_student_account_name = _display_user_name(item.created_student)
         item.crm_is_overdue = (
             item.work_status == 'new'
             and bool(item.created_at)

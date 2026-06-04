@@ -478,6 +478,15 @@ class TrialRequest(models.Model):
         blank=True,
         limit_choices_to={'role': 'teacher'}
     )
+    created_student = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_from_trial_requests',
+        limit_choices_to={'role': 'student'},
+        verbose_name='Созданный ученик',
+    )
 
     is_converted = models.BooleanField(default=False)  # назначен ли урок
 

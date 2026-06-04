@@ -127,6 +127,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'pricing_total_price',
         'personal_data_consent',
         'assigned_teacher',
+        'created_student',
         'is_converted',
         'sla_badge',
         'created_at',
@@ -138,6 +139,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'lead_form',
         'personal_data_consent',
         'is_converted',
+        'created_student',
         'next_contact_at',
         'created_at',
     )
@@ -179,6 +181,7 @@ class TrialRequestAdmin(RequestSLAAdminMixin, admin.ModelAdmin):
         'consent_ip',
         'consent_user_agent',
         'assigned_teacher',
+        'created_student',
         'is_converted',
         'created_at',
     )
