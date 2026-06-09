@@ -334,6 +334,23 @@ def home(request):
     )
     home_material_categories = list(material_categories_qs[:12])
     home_latest_materials = list(_published_materials_qs().order_by('-published_at', '-created_at')[:8])
+    home_linkable_materials_qs = _published_materials_qs().exclude(slug__isnull=True).exclude(slug='')
+    home_popular_materials = list(home_linkable_materials_qs.order_by('-views_count', '-published_at', '-created_at')[:6])
+    home_oge_materials = list(
+        home_linkable_materials_qs
+        .filter(exam_type='oge')
+        .order_by(F('task_number').asc(nulls_last=True), '-published_at', '-created_at')[:6]
+    )
+    home_ege_materials = list(
+        home_linkable_materials_qs
+        .filter(exam_type='ege')
+        .order_by(F('task_number').asc(nulls_last=True), '-published_at', '-created_at')[:6]
+    )
+    home_test_materials = list(
+        home_linkable_materials_qs
+        .filter(content_type='test')
+        .order_by('-published_at', '-created_at')[:6]
+    )
     materials_categories_total = material_categories_qs.count()
     materials_total_count = _published_materials_qs().count()
     return render(request, 'main/index.html', {
@@ -343,6 +360,10 @@ def home(request):
         'home_success_stories': home_success_stories,
         'home_material_categories': home_material_categories,
         'home_latest_materials': home_latest_materials,
+        'home_popular_materials': home_popular_materials,
+        'home_oge_materials': home_oge_materials,
+        'home_ege_materials': home_ege_materials,
+        'home_test_materials': home_test_materials,
         'materials_categories_total': materials_categories_total,
         'materials_total_count': materials_total_count,
         'analytics': _analytics_context(),
