@@ -7,27 +7,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="SmartUrok — онлайн-школа для детей и взрослых: математика, английский, информатика, физика и подготовка к ОГЭ/ЕГЭ. Бесплатный пробный урок.">
+    <meta name="description" content="SmartUrok — онлайн-школа для школьников: школьные предметы, английский язык и подготовка к ОГЭ/ЕГЭ. Бесплатный пробный урок, личный кабинет, доска и чат с преподавателем.">
     <meta name="keywords" content="онлайн школа, программирование для детей, математика, физика, английский язык, подготовка к ЕГЭ, подготовка к ОГЭ, репетитор, дистанционное обучение">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://smarturok.ru/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="SmartUrok">
     <meta property="og:locale" content="ru_RU">
-    <meta property="og:title" content="SmartUrok — онлайн-школа для детей и взрослых">
-    <meta property="og:description" content="Математика, английский, информатика, физика и подготовка к ОГЭ/ЕГЭ. Подбор преподавателя и бесплатный пробный урок.">
+    <meta property="og:title" content="SmartUrok — онлайн-школа для школьников">
+    <meta property="og:description" content="Школьные предметы, английский и подготовка к ОГЭ/ЕГЭ. Бесплатный пробный урок, подбор преподавателя и обучение в личном кабинете SmartUrok.">
     <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <meta property="og:url" content="https://smarturok.ru">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="SmartUrok — онлайн-школа для детей и взрослых">
-    <meta name="twitter:description" content="Математика, английский, информатика, физика и подготовка к ОГЭ/ЕГЭ. Подбор преподавателя и бесплатный пробный урок.">
+    <meta name="twitter:title" content="SmartUrok — онлайн-школа для школьников">
+    <meta name="twitter:description" content="Школьные предметы, английский и подготовка к ОГЭ/ЕГЭ. Бесплатный пробный урок, подбор преподавателя и обучение в личном кабинете SmartUrok.">
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
             "@type": "EducationalOrganization",
             "name": "SmartUrok",
-            "description": "Персональные онлайн-занятия для учеников любого возраста. Подготовка к ОГЭ, ЕГЭ, ВПР и МЦКО, понятные объяснения и гарантированный прогресс.",
+            "description": "Онлайн-школа для школьников: индивидуальные занятия по школьным предметам, английскому языку и подготовке к ОГЭ, ЕГЭ, ВПР и МЦКО.",
             "url": "https://smarturok.ru",
             "telephone": "+374-96-801-410",
             "email": "smarturok.ru@gmail.com",
@@ -90,7 +90,7 @@
         }
     </script>
     
-    <title>SmartUrok — онлайн-школа для детей и взрослых | ОГЭ/ЕГЭ</title>
+    <title>SmartUrok — онлайн-школа для школьников | ОГЭ, ЕГЭ, английский</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -938,20 +938,24 @@
         <div class="content-container px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex flex-col items-center lg:flex-row">
                 <div class="lg:w-1/2 mb-10 lg:mb-0 animate__animated animate__fadeInLeft" data-aos="fade-right">
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">Бесплатный пробный урок и подбор преподавателя за 15 минут</h1>
-                    <p class="text-lg sm:text-xl mb-8 opacity-90">Онлайн‑школа SmartUrok для детей 4–17 лет: индивидуальные занятия, понятные объяснения и стабильный прогресс.</p>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 leading-tight">Онлайн-школа SmartUrok: школьные предметы, английский и подготовка к ОГЭ/ЕГЭ</h1>
+                    <p class="text-lg sm:text-xl mb-8 opacity-90">Индивидуальные занятия для школьников 4-11 классов: подбираем преподавателя, проводим диагностику на бесплатном пробном уроке и ведём ученика в личном кабинете SmartUrok.</p>
                     <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                         <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="hero" class="px-6 py-3 sm:px-8 sm:py-3 bg-white text-primary rounded-lg text-lg font-semibold text-center hover:bg-opacity-90 transition hover-scale">
                             Записаться на бесплатный урок
+                        </a>
+                        <a href="{% url 'materials_list' %}" data-cta="materials_open" data-cta-location="hero" class="px-6 py-3 sm:px-8 sm:py-3 border-2 border-white text-white rounded-lg text-lg font-semibold text-center hover:bg-white hover:text-primary transition hover-scale">
+                            Смотреть материалы
                         </a>
                     </div>
                     <div class="mt-2 text-sm text-white/90">
                         Без оплаты, без обязательств
                     </div>
                     <div class="mt-4 text-sm text-white/90">
-                        750+ учеников, 4.9/5
+                        750+ учеников, 50+ преподавателей, рейтинг 4.9/5
                     </div>
                     <div class="mt-4 flex flex-wrap gap-2">
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/15 border border-white/30">Диагностика уровня на пробном уроке</span>
                         <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/15 border border-white/30">Оплата только за проведённый урок</span>
                         <span class="px-3 py-1 text-xs font-semibold rounded-full bg-white/15 border border-white/30">Отмена за 4 часа без штрафа</span>
                     </div>
@@ -1024,6 +1028,46 @@
         </div>
     </section>
 
+    <!-- Как проходит обучение -->
+    <section class="py-14 bg-white">
+        <div class="content-container px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center mb-10" data-aos="fade-up">
+                <span class="text-primary font-semibold">Понятный старт</span>
+                <h2 class="text-3xl font-bold mt-2 section-header">Как проходит обучение в SmartUrok</h2>
+                <p class="text-gray-600 mt-4">Мы не просто назначаем урок: сначала понимаем цель ученика, затем подбираем преподавателя и ведём прогресс в личном кабинете.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover-scale" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg">1</div>
+                    <h3 class="mt-4 text-lg font-bold text-dark">Оставляете заявку</h3>
+                    <p class="mt-2 text-sm text-gray-600">Указываете предмет, класс и удобное время. Мы связываемся и уточняем цель обучения.</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover-scale" data-aos="fade-up" data-aos-delay="200">
+                    <div class="w-11 h-11 rounded-xl bg-secondary text-white flex items-center justify-center font-bold text-lg">2</div>
+                    <h3 class="mt-4 text-lg font-bold text-dark">Проводим пробный урок</h3>
+                    <p class="mt-2 text-sm text-gray-600">На бесплатной встрече преподаватель определяет уровень, пробелы и комфортный темп.</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover-scale" data-aos="fade-up" data-aos-delay="300">
+                    <div class="w-11 h-11 rounded-xl bg-accent text-white flex items-center justify-center font-bold text-lg">3</div>
+                    <h3 class="mt-4 text-lg font-bold text-dark">Собираем план</h3>
+                    <p class="mt-2 text-sm text-gray-600">Фиксируем цель: подтянуть оценки, подготовиться к ОГЭ/ЕГЭ, закрыть тему или усилить английский.</p>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover-scale" data-aos="fade-up" data-aos-delay="400">
+                    <div class="w-11 h-11 rounded-xl bg-dark text-white flex items-center justify-center font-bold text-lg">4</div>
+                    <h3 class="mt-4 text-lg font-bold text-dark">Ведём результат</h3>
+                    <p class="mt-2 text-sm text-gray-600">Уроки, домашние задания, чат и история занятий остаются в кабинете ученика.</p>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center" data-aos="fade-up">
+                <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="learning_process" class="inline-flex items-center justify-center px-7 py-3 btn-primary text-white rounded-lg font-semibold">
+                    Начать с бесплатного урока
+                </a>
+            </div>
+        </div>
+    </section>
+
     <section class="py-12 bg-white overflow-fix">
         <div class="content-container px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center stat-grid">
@@ -1042,8 +1086,11 @@
                     <p class="text-gray-600 mt-2 text-sm sm:text-base">Преподавателей</p>
                 </div>
                 <div class="stat-card p-4 sm:p-6" data-aos="fade-up" data-aos-delay="300">
-                    <div class="animated-counter" data-count="96">96</div>
-                    <p class="text-gray-600 mt-2 text-sm sm:text-base">Средний балл ЕГЭ</p>
+                    <div class="flex items-baseline justify-center gap-1">
+                        <span class="text-xl sm:text-2xl font-bold text-primary">до</span>
+                        <div class="animated-counter" data-count="96">96</div>
+                    </div>
+                    <p class="text-gray-600 mt-2 text-sm sm:text-base">баллов на ЕГЭ у учеников</p>
                 </div>
                 <div class="stat-card p-4 sm:p-6" data-aos="fade-up" data-aos-delay="400">
                     <div class="animated-counter" data-count="98">98</div>
@@ -1113,6 +1160,61 @@
                     </div>
                     <h3 class="text-xl font-semibold mb-2">Интерактивные материалы</h3>
                     <p class="text-gray-600">Современные учебные материалы и платформы для эффективного обучения</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Платформа SmartUrok -->
+    <section class="py-16 bg-white">
+        <div class="content-container px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.05fr] gap-8 items-center">
+                <div data-aos="fade-right">
+                    <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-secondary">Своя учебная среда</span>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark mt-4 leading-tight">Урок, доска, чат и домашние задания в одном кабинете</h2>
+                    <p class="text-gray-600 mt-4 text-lg">SmartUrok помогает учиться системно: ученик видит расписание, материалы, домашние задания и может быстро написать преподавателю. Родителям проще понимать, что происходит с обучением.</p>
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                        <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="platform_block" class="px-6 py-3 btn-primary text-white rounded-lg font-semibold text-center">
+                            Попробовать платформу
+                        </a>
+                        <a href="{% url 'materials_list' %}" data-cta="materials_open" data-cta-location="platform_block" class="px-6 py-3 border border-gray-300 text-dark rounded-lg font-semibold text-center hover:border-primary hover:text-primary transition">
+                            Посмотреть материалы
+                        </a>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl bg-gradient-to-br from-secondary to-accent p-4 sm:p-6 shadow-xl" data-aos="fade-left">
+                    <div class="bg-white rounded-2xl p-4 sm:p-5">
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+                            <div>
+                                <p class="text-xs uppercase tracking-wide text-gray-500">Кабинет ученика</p>
+                                <h3 class="text-xl font-bold text-dark">Сегодня: математика, 18:00</h3>
+                            </div>
+                            <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">онлайн</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                            <div class="rounded-2xl bg-gray-50 p-4">
+                                <div class="text-2xl">▣</div>
+                                <h4 class="font-bold mt-2">Интерактивная доска</h4>
+                                <p class="text-sm text-gray-600 mt-1">Разбор задач, формулы и решения сохраняются после урока.</p>
+                            </div>
+                            <div class="rounded-2xl bg-gray-50 p-4">
+                                <div class="text-2xl">◉</div>
+                                <h4 class="font-bold mt-2">Видеоурок</h4>
+                                <p class="text-sm text-gray-600 mt-1">Занятие проходит прямо в кабинете без лишних ссылок.</p>
+                            </div>
+                            <div class="rounded-2xl bg-gray-50 p-4">
+                                <div class="text-2xl">✓</div>
+                                <h4 class="font-bold mt-2">Домашние задания</h4>
+                                <p class="text-sm text-gray-600 mt-1">Ученик отправляет работу, преподаватель проверяет и комментирует.</p>
+                            </div>
+                            <div class="rounded-2xl bg-gray-50 p-4">
+                                <div class="text-2xl">✎</div>
+                                <h4 class="font-bold mt-2">Чат с преподавателем</h4>
+                                <p class="text-sm text-gray-600 mt-1">Можно уточнить вопрос по теме или домашнему заданию.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
