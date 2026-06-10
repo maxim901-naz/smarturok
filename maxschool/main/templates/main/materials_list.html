@@ -19,6 +19,8 @@
     <meta name="twitter:description" content="Полезные учебные материалы и тренажеры для уверенного прогресса в учебе.">
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
+    {% include 'main/includes/analytics_head.html' %}
+    <script src="{% static 'js/marketing_events.js' %}"></script>
     <title>Учебные материалы | SmartUrok</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -83,7 +85,7 @@
             <nav class="hidden sm:flex items-center gap-5 text-sm text-slate-700">
                 <a href="{% url 'home' %}" class="hover:text-orange-600 transition">Главная</a>
                 <a href="{% url 'teachers_list' %}" class="hover:text-orange-600 transition">Преподаватели</a>
-                <a href="{% url 'trial' %}" class="px-4 py-2 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">Пробный урок</a>
+                <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="materials_header" class="px-4 py-2 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">Пробный урок</a>
             </nav>
         </div>
     </header>
@@ -104,10 +106,10 @@
                         затем закрепление с преподавателем.
                     </p>
                     <div class="mt-6 flex flex-wrap gap-3">
-                        <a href="#materials-catalog" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">
+                        <a href="#materials-catalog" data-cta="materials_catalog_scroll" data-cta-location="materials_hero" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">
                             Выбрать материал
                         </a>
-                        <button type="button" data-open-lead-modal class="px-5 py-3 rounded-xl border border-white/55 text-white font-semibold hover:bg-white/10 transition">
+                        <button type="button" data-open-lead-modal data-cta="consultation_open" data-cta-location="materials_hero" class="px-5 py-3 rounded-xl border border-white/55 text-white font-semibold hover:bg-white/10 transition">
                             Записаться с подбором
                         </button>
                     </div>
@@ -118,7 +120,7 @@
                         <div class="text-sm text-white/80 mt-1">разделов материалов</div>
                     </div>
                     <div class="rounded-2xl bg-white/12 border border-white/20 p-4">
-                        <div class="text-2xl font-extrabold">{{ latest_items|length }}+</div>
+                        <div class="text-2xl font-extrabold">{{ materials_total }}+</div>
                         <div class="text-sm text-white/80 mt-1">актуальных материалов</div>
                     </div>
                     <div class="rounded-2xl bg-white/12 border border-white/20 p-4">
@@ -162,7 +164,7 @@
         <section id="materials-catalog" class="mb-10 fade-up" style="animation-delay:.08s">
             <div class="flex items-end justify-between gap-4 mb-4">
                 <h2 class="text-2xl font-bold">Разделы</h2>
-                <a href="{% url 'trial' %}" class="text-sm font-semibold text-orange-700 hover:text-orange-800">Нужен индивидуальный план →</a>
+                <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="materials_sections" class="text-sm font-semibold text-orange-700 hover:text-orange-800">Нужен индивидуальный план →</a>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for c in categories %}
@@ -188,7 +190,7 @@
                 <h2 class="text-2xl font-bold">
                     {% if search_query %}Найденные материалы{% else %}Свежие материалы{% endif %}
                 </h2>
-                <button type="button" data-open-lead-modal class="text-sm font-semibold text-orange-700 hover:text-orange-800">Не знаете, с чего начать? Поможем →</button>
+                <button type="button" data-open-lead-modal data-cta="consultation_open" data-cta-location="materials_cards_top" class="text-sm font-semibold text-orange-700 hover:text-orange-800">Не знаете, с чего начать? Поможем →</button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {% for item in latest_items %}
@@ -220,7 +222,7 @@
                     <div class="mt-4 flex items-center justify-between gap-3">
                         <span class="text-xs text-slate-500">Просмотры: {{ item.views_count }}</span>
                         {% if item.slug %}
-                            <a href="{% url 'material_detail' item.slug %}" class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
+                            <a href="{% url 'material_detail' item.slug %}" data-cta="material_open" data-cta-location="materials_list_card" class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
                                 {% if item.content_type == 'test' %}Пройти тест{% else %}Открыть материал{% endif %}
                             </a>
                         {% elif item.file %}
@@ -258,10 +260,10 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-3">
-                    <a href="{% url 'trial' %}" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">
+                    <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="materials_bottom" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">
                         Записаться на пробный
                     </a>
-                    <button type="button" data-open-lead-modal class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">
+                    <button type="button" data-open-lead-modal data-cta="consultation_open" data-cta-location="materials_bottom" class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">
                         Получить консультацию
                     </button>
                 </div>
@@ -275,11 +277,19 @@
             <h3 class="text-2xl font-extrabold">Подобрать программу и преподавателя</h3>
             <p class="text-sm text-slate-600 mt-2">Оставьте контакты и мы свяжемся с вами в ближайшее время.</p>
 
-            <form method="post" action="{% url 'home_lead' %}" class="mt-5 space-y-3">
+            <form method="post" action="{% url 'home_lead' %}" class="mt-5 space-y-3" data-lead-form="materials_modal">
                 {% csrf_token %}
                 <input type="hidden" name="lead_form" value="materials_modal">
                 <input type="hidden" name="landing_path" id="materials-landing-path">
                 <input type="hidden" name="referrer" id="materials-referrer">
+                <input type="hidden" name="utm_source" value="">
+                <input type="hidden" name="utm_medium" value="">
+                <input type="hidden" name="utm_campaign" value="">
+                <input type="hidden" name="utm_content" value="">
+                <input type="hidden" name="utm_term" value="">
+                <input type="hidden" name="gclid" value="">
+                <input type="hidden" name="fbclid" value="">
+                <input type="hidden" name="yclid" value="">
                 <input type="hidden" name="message" value="Заявка из раздела материалов: нужен подбор программы обучения.">
 
                 <input type="text" name="name" required class="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:ring-2 focus:ring-orange-400 focus:outline-none" placeholder="Ваше имя">
@@ -302,6 +312,21 @@
     </div>
 
     <script>
+        window.smartMarketingConfig = Object.assign({}, window.smartMarketingConfig || {}, {
+            pageType: 'materials_list',
+            yandexCounterId: '{{ analytics.yandex_id|default_if_none:""|escapejs }}',
+            hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+        });
+
+        if (window.smartMarketing && typeof window.smartMarketing.bindDefaults === 'function') {
+            window.smartMarketing.bindDefaults({
+                defaultLeadFormName: 'materials_modal',
+                defaultCtaLocation: 'materials_list'
+            });
+        }
+    </script>
+
+    <script>
         (function () {
             const modal = document.getElementById('materials-lead-modal');
             const openers = document.querySelectorAll('[data-open-lead-modal]');
@@ -309,10 +334,10 @@
             const landingInput = document.getElementById('materials-landing-path');
             const referrerInput = document.getElementById('materials-referrer');
 
-            if (landingInput) {
+            if (landingInput && !landingInput.value) {
                 landingInput.value = window.location.pathname + window.location.search;
             }
-            if (referrerInput) {
+            if (referrerInput && !referrerInput.value) {
                 referrerInput.value = document.referrer || '';
             }
 

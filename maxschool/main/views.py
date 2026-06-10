@@ -163,6 +163,42 @@ def _pick_related_material(material, target='test'):
     return _order_materials(queryset).first()
 
 
+def _collect_related_materials(material, user, limit=6):
+    queryset = _published_materials_qs().exclude(pk=material.pk)
+
+    if material.category_id:
+        queryset = queryset.filter(category_id=material.category_id)
+
+    related_q = Q()
+    if material.subject_id:
+        related_q |= Q(subject_id=material.subject_id)
+    if material.exam_type and material.exam_type != 'general':
+        related_q |= Q(exam_type=material.exam_type)
+    if material.grade:
+        related_q |= Q(grade=material.grade)
+    if material.task_number is not None:
+        related_q |= Q(task_number=material.task_number)
+
+    if related_q:
+        queryset = queryset.filter(related_q)
+
+    excluded_ids = [
+        item_id
+        for item_id in (material.related_theory_id, material.related_test_id)
+        if item_id
+    ]
+    if excluded_ids:
+        queryset = queryset.exclude(pk__in=excluded_ids)
+
+    items = []
+    for item in _order_materials(queryset)[:limit * 4]:
+        if _material_is_accessible(user, item):
+            items.append(item)
+        if len(items) >= limit:
+            break
+    return items
+
+
 def _user_has_paid_material_access(user):
     if not user.is_authenticated:
         return False
@@ -421,7 +457,8 @@ def materials_list(request):
     items_qs = _published_materials_qs()
     if search_query:
         items_qs = _apply_material_search_filter(items_qs, search_query)
-    search_total = items_qs.count() if search_query else 0
+    materials_total = items_qs.count()
+    search_total = materials_total if search_query else 0
     latest_items = _order_materials(items_qs)[:24]
     subjects = Subject.objects.all()
     return render(request, 'main/materials_list.html', {
@@ -430,6 +467,7 @@ def materials_list(request):
         'subjects': subjects,
         'search_query': search_query,
         'search_total': search_total,
+        'materials_total': materials_total,
     })
 
 
@@ -621,8 +659,12 @@ def material_detail(request, slug):
             if isinstance(payload.get('questions'), list):
                 selected_attempt_results = payload['questions']
 
+    primary_image = material.images.filter(usage__in=('article', 'both')).order_by('sort_order', 'id').first()
+    related_materials = _collect_related_materials(material, request.user)
+
     return render(request, 'main/material_detail.html', {
         'material': material,
+        'primary_image': primary_image,
         'video_embed_url': _material_video_embed_url(material.video_url),
         'test_config': test_config,
         'test_questions': test_questions,
@@ -632,6 +674,7 @@ def material_detail(request, slug):
         'test_source': test_config.get('source', ''),
         'related_theory': related_theory,
         'related_test': related_test,
+        'related_materials': related_materials,
     })
 
 def subject_detail(request, slug):

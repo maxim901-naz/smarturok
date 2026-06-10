@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok: {{ material.title }}.{% endif %}">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="{% if material.access_level == 'public' %}index, follow{% else %}noindex, nofollow{% endif %}">
     <link rel="canonical" href="https://smarturok.ru{% url 'material_detail' material.slug %}">
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="SmartUrok">
@@ -13,15 +13,83 @@
     <meta property="og:title" content="{{ material.title }} | SmartUrok">
     <meta property="og:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok{% endif %}">
     <meta property="og:url" content="https://smarturok.ru{% url 'material_detail' material.slug %}">
+    {% if primary_image and primary_image.image %}
+    <meta property="og:image" content="https://smarturok.ru{{ primary_image.image.url }}">
+    {% else %}
     <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
+    {% endif %}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ material.title }} | SmartUrok">
     <meta name="twitter:description" content="{% if material.meta_description %}{{ material.meta_description }}{% elif material.description %}{{ material.description|striptags|truncatechars:160 }}{% else %}Материал SmartUrok{% endif %}">
+    {% if primary_image and primary_image.image %}
+    <meta name="twitter:image" content="https://smarturok.ru{{ primary_image.image.url }}">
+    {% else %}
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
+    {% endif %}
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     {% include 'main/includes/analytics_head.html' %}
     <script src="{% static 'js/marketing_events.js' %}"></script>
     <title>{{ material.title }} | SmartUrok</title>
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": ["Article", "LearningResource"],
+            "headline": "{{ material.title|escapejs }}",
+            "description": "{% if material.meta_description %}{{ material.meta_description|escapejs }}{% elif material.description %}{{ material.description|striptags|truncatechars:160|escapejs }}{% else %}Учебный материал SmartUrok: {{ material.title|escapejs }}.{% endif %}",
+            "url": "https://smarturok.ru{% url 'material_detail' material.slug %}",
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": "https://smarturok.ru{% url 'material_detail' material.slug %}"
+            },
+            "image": "{% if primary_image and primary_image.image %}https://smarturok.ru{{ primary_image.image.url }}{% else %}https://smarturok.ru{% static 'images/logo4-round.png' %}{% endif %}",
+            "datePublished": "{% if material.published_at %}{{ material.published_at|date:"c" }}{% else %}{{ material.created_at|date:"c" }}{% endif %}",
+            "dateModified": "{{ material.updated_at|date:"c" }}",
+            "author": {
+                "@type": "Organization",
+                "name": "SmartUrok"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "SmartUrok",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://smarturok.ru{% static 'images/logo4-round.png' %}"
+                }
+            },
+            "inLanguage": "ru-RU",
+            "learningResourceType": "{{ material.get_content_type_display|escapejs }}",
+            "isAccessibleForFree": {% if material.access_level == 'public' %}true{% else %}false{% endif %},
+            "about": "{% if material.subject %}{{ material.subject.name|escapejs }}{% else %}{{ material.category.title|escapejs }}{% endif %}",
+            "educationalLevel": "{% if material.grade %}{{ material.grade }} класс{% else %}school{% endif %}"
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Материалы",
+                    "item": "https://smarturok.ru{% url 'materials_list' %}"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "{{ material.category.title|escapejs }}",
+                    "item": "https://smarturok.ru{% url 'materials_category' material.category.slug %}"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "{{ material.title|escapejs }}",
+                    "item": "https://smarturok.ru{% url 'material_detail' material.slug %}"
+                }
+            ]
+        }
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -176,6 +244,14 @@
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-8 sm:py-10">
+        <nav class="mb-5 text-sm text-slate-600" aria-label="Хлебные крошки">
+            <a href="{% url 'materials_list' %}" class="font-semibold text-slate-700 hover:text-orange-600 transition">Материалы</a>
+            <span class="mx-2 text-slate-400">/</span>
+            <a href="{% url 'materials_category' material.category.slug %}" class="font-semibold text-slate-700 hover:text-orange-600 transition">{{ material.category.title }}</a>
+            <span class="mx-2 text-slate-400">/</span>
+            <span class="text-slate-500">{{ material.title|truncatechars:70 }}</span>
+        </nav>
+
         {% if messages %}
         <div class="mb-5 space-y-2">
             {% for message in messages %}
@@ -444,6 +520,39 @@
                 </div>
             </aside>
         </div>
+
+        {% if related_materials %}
+        <section class="mt-8 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-soft">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-slate-900">Ещё по этой теме</h2>
+                    <p class="text-sm text-slate-600 mt-1">Материалы, которые помогут закрепить тему и перейти к практике.</p>
+                </div>
+                <a href="{% url 'materials_category' material.category.slug %}" class="text-sm font-semibold text-orange-700 hover:text-orange-800 transition">Весь раздел →</a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {% for item in related_materials %}
+                <article class="rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:bg-white hover:shadow-soft transition">
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-orange-100 text-orange-700">{{ item.get_content_type_display }}</span>
+                        {% if item.task_number %}<span class="badge bg-slate-200 text-slate-700">Задание №{{ item.task_number }}</span>{% endif %}
+                    </div>
+                    <h3 class="font-bold leading-snug">
+                        <a href="{% url 'material_detail' item.slug %}" class="hover:text-orange-600 transition">{{ item.title }}</a>
+                    </h3>
+                    <p class="text-sm text-slate-600 mt-2">
+                        {% if item.subject %}{{ item.subject.name }}{% endif %}
+                        {% if item.grade %}{% if item.subject %} · {% endif %}{{ item.grade }} класс{% endif %}
+                    </p>
+                    <a href="{% url 'material_detail' item.slug %}" data-cta="related_material_open" data-cta-location="material_related" class="inline-flex mt-4 text-sm font-semibold text-orange-700 hover:text-orange-800 transition">
+                        Открыть материал →
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
 
         <section class="mt-8 rounded-3xl p-6 sm:p-8 text-white shadow-soft"
                  style="background: linear-gradient(135deg, #f97316 0%, #ea580c 48%, #1e293b 100%);">
