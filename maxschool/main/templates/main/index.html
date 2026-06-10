@@ -167,9 +167,6 @@
         }
     </script>
 
-    <!-- Swiper CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    
     <style>
         /* Глобальные стили */
 
@@ -742,10 +739,6 @@
                 backdrop-filter: none;
             }
             
-            .swiper-slide {
-                padding: 0 10px;
-            }
-            
             /* Мобильное меню */
             #mobile-menu {
                 max-height: calc(100vh - 85px);
@@ -983,7 +976,7 @@
                     </div>
                 </div>
                 <div class="lg:w-1/2 flex justify-center animate__animated animate__fadeInRight hero-image-container" data-aos="fade-left">
-                    <img src="{% static 'images/deti2.png' %}" alt="Дети учатся в онлайн-школе SmartUrok" class="max-w-md w-full hero-image">
+                    <img src="{% static 'images/deti2.png' %}" alt="Дети учатся в онлайн-школе SmartUrok" class="max-w-md w-full hero-image" decoding="async" fetchpriority="high">
                 </div>
             </div>
         </div>
@@ -1220,38 +1213,18 @@
         </div>
     </section>
 
-    <!-- Акционный баннер с таймером -->
+    <!-- Промо-баннер -->
     <div class="py-6 bg-gradient-to-r from-secondary to-accent text-white">
         <div class="content-container px-4 sm:px-6 lg:px-8">
             <div class="promo-banner bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 flex flex-col items-center text-center sm:flex-row sm:text-left sm:justify-between">
                 <div class="flex flex-col sm:flex-row items-center mb-4 sm:mb-0">
                     <div class="bg-yellow-400 text-dark font-bold px-3 py-1 rounded-lg mr-4 mb-2 sm:mb-0">
-                        АКЦИЯ
+                        ПРОБНЫЙ УРОК
                     </div>
-                    <p class="text-lg font-medium mb-2 sm:mb-0">Запишитесь до <span id="promo-end-date"></span> и получите скидку 20%!</p>
-                    
-                    <!-- Таймер -->
-                    <div id="timer-container" class="flex flex-wrap justify-center gap-2 mt-2 sm:mt-0 sm:flex-nowrap sm:ml-4">
-                        <div class="flex flex-col items-center">
-                            <span id="days" class="text-xl font-bold bg-white bg-opacity-20 px-3 py-1 rounded">00</span>
-                            <span class="text-xs">дней</span>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <span id="hours" class="text-xl font-bold bg-white bg-opacity-20 px-3 py-1 rounded">00</span>
-                            <span class="text-xs">часов</span>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <span id="minutes" class="text-xl font-bold bg-white bg-opacity-20 px-3 py-1 rounded">00</span>
-                            <span class="text-xs">минут</span>
-                        </div>
-                        <div class="flex flex-col items-center">
-                            <span id="seconds" class="text-xl font-bold bg-white bg-opacity-20 px-3 py-1 rounded">00</span>
-                            <span class="text-xs">секунд</span>
-                        </div>
-                    </div>
+                    <p class="text-lg font-medium mb-2 sm:mb-0">Бесплатная диагностика, подбор преподавателя и понятный план обучения перед стартом.</p>
                 </div>
-                <a href="#courses" data-cta="view_courses" data-cta-location="promo_banner" class="px-6 py-2 bg-white text-primary rounded-lg font-semibold hover:bg-opacity-90 transition whitespace-nowrap">
-                    Выбрать курс
+                <a href="{% url 'trial' %}" data-cta="trial_start" data-cta-location="promo_banner" class="px-6 py-2 bg-white text-primary rounded-lg font-semibold hover:bg-opacity-90 transition whitespace-nowrap">
+                    Записаться
                 </a>
             </div>
         </div>
@@ -2007,7 +1980,7 @@
                             </div>
                             <div class="ml-3">
                                 <h4 class="font-medium">Часы работы</h4>
-                                <p class="text-gray-600">Круглосуточно, 24/7</p>
+                                <p class="text-gray-600">Заявки принимаем 24/7, консультации с 10:00 до 22:00</p>
                             </div>
                         </div>
                     </div>
@@ -2023,9 +1996,6 @@
                             </a>
                             <a href="viber://chat?number=%2B37496801410" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition">
                                 <img src="{% static 'images/viber.png' %}" alt="Viber" class="w-6 h-6">
-                            </a>
-                            <a href="https://www.instagram.com" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-primary hover:text-white transition">
-                                <img src="{% static 'images/instagram.png' %}" alt="Instagram" class="w-6 h-6">
                             </a>
                         </div>
                         <a href="https://t.me/Smarturok" target="_blank" rel="noopener" class="mt-4 inline-flex items-center justify-center px-4 py-2 rounded-lg bg-secondary text-white font-semibold hover:opacity-95 transition">
@@ -2316,7 +2286,6 @@
     {% endfor %}
 
     <!-- Подключение скриптов -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/6.4.2/imask.min.js"></script>
     <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
     <script>
@@ -2327,36 +2296,6 @@
             offset: 100
         });
         
-        // Инициализация Swiper (если слайдер есть на странице)
-        const swiperEl = document.querySelector('.mySwiper');
-        if (swiperEl) {
-            new Swiper(swiperEl, {
-                loop: true,
-                spaceBetween: 20,
-                slidesPerView: 1,
-                autoplay: {
-                    delay: 5000,
-                    disableOnInteraction: false,
-                },
-                pagination: {
-                    el: '.swiper-pagination',
-                    clickable: true,
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
-                breakpoints: {
-                    768: {
-                        slidesPerView: 2,
-                    },
-                    1024: {
-                        slidesPerView: 3,
-                    }
-                }
-            });
-        }
-
         // Маска для телефона
         const phoneInputs = document.querySelectorAll('input[type="tel"]');
         phoneInputs.forEach((input) => {
@@ -2645,10 +2584,7 @@
             });
         }
 
-        // Промо-модалка со скидкой (раз в минуту)
-        const DISCOUNT_POPUP_INTERVAL_MS = 60 * 1000;
-        const DISCOUNT_POPUP_FIRST_DELAY_MS = 60 * 1000;
-        let discountPopupLastOpenTs = 0;
+        // Промо-модалка со скидкой открывается только по клику пользователя.
         let selectedPromoInterest = '';
 
         function updatePromoMessage() {
@@ -2668,12 +2604,8 @@
             if (modal.classList.contains('active')) return;
             if (!force && document.querySelector('.modal.active')) return;
 
-            const now = Date.now();
-            if (!force && now - discountPopupLastOpenTs < DISCOUNT_POPUP_INTERVAL_MS) return;
-
             syncPromoPricingFields();
             openModalElement(modal);
-            discountPopupLastOpenTs = now;
         }
 
         function closeDiscountOfferModal() {
@@ -2695,8 +2627,6 @@
             });
 
             updatePromoMessage();
-            window.setTimeout(() => openDiscountOfferModal(), DISCOUNT_POPUP_FIRST_DELAY_MS);
-            window.setInterval(() => openDiscountOfferModal(), DISCOUNT_POPUP_INTERVAL_MS);
         }
 
         document.querySelectorAll('.modal').forEach((modal) => {
@@ -2828,38 +2758,6 @@
         
         // Запуск счетчиков при загрузке
         startCounterAnimation();
-
-        // Таймер акции
-        function updateTimer() {
-            const now = new Date();
-        
-            // Находим последний день текущего месяца
-            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59); 
-            // month + 1, day = 0 → последний день предыдущего месяца, а т.к. +1, то получаем конец текущего месяца
-        
-            const diff = endDate - now;
-        
-            if (diff <= 0) {
-                document.getElementById('timer-container').textContent = "Акция завершена!";
-                return;
-            }
-        
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-            document.getElementById('days').textContent = days.toString().padStart(2, '0');
-            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
-            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
-            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
-        
-            const options = { day: 'numeric', month: 'long' };
-            document.getElementById('promo-end-date').textContent = endDate.toLocaleDateString('ru-RU', options);
-        }
-        
-        updateTimer();
-        setInterval(updateTimer, 1000);
 
         // Калькулятор стоимости
         function getCalculatorState() {
