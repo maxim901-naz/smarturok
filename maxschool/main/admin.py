@@ -73,8 +73,10 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'views_count',
         'created_at',
         'updated_at',
+        'seo_template_guide',
         'seo_preview',
         'seo_checklist',
+        'content_template_guide',
         'image_workflow_note',
     )
     prepopulated_fields = {'slug': ('title',)}
@@ -101,12 +103,21 @@ class MaterialItemAdmin(admin.ModelAdmin):
                 'meta_description',
                 'description',
                 'faq_items',
+                'seo_template_guide',
                 'seo_preview',
                 'seo_checklist',
             )
         }),
         ('Content', {
-            'fields': ('video_url', 'article_markdown', 'file', 'external_url', 'test_payload', 'image_workflow_note')
+            'fields': (
+                'content_template_guide',
+                'video_url',
+                'article_markdown',
+                'file',
+                'external_url',
+                'test_payload',
+                'image_workflow_note',
+            )
         }),
         ('Learning flow', {
             'fields': ('related_theory', 'related_test')
@@ -135,7 +146,7 @@ class MaterialItemAdmin(admin.ModelAdmin):
         base_title = (obj.seo_title or obj.title or '').strip()
         if not base_title:
             return ''
-        return base_title if 'SmartUrok' in base_title else f'{base_title} | SmartUrok'
+        return base_title if 'smarturok' in base_title.lower() else f'{base_title} | SmartUrok'
 
     def _meta_description_value(self, obj):
         if not obj:
@@ -206,6 +217,170 @@ class MaterialItemAdmin(admin.ModelAdmin):
         return format_html('<ul style="margin: 0; padding-left: 18px;">{}</ul>', rows)
 
     seo_checklist.short_description = 'SEO checklist'
+
+    def _template_context(self, obj):
+        subject = obj.subject.name if obj and obj.subject_id else '[предмет]'
+        grade = f'{obj.grade} класс' if obj and obj.grade else '[класс]'
+        task_number = obj.task_number if obj and obj.task_number else '[номер задания]'
+        title = (obj.title or '').strip() if obj else ''
+        topic = title or '[тема]'
+        return {
+            'topic': topic,
+            'subject': subject,
+            'grade': grade,
+            'task_number': task_number,
+        }
+
+    def _template_card(self, title, body, subtitle=''):
+        return format_html(
+            '<details style="margin: 10px 0; border: 1px solid #e5e7eb; border-radius: 10px; background: #ffffff;">'
+            '<summary style="cursor: pointer; padding: 10px 12px; font-weight: 700; color: #0f172a;">{}'
+            '{}'
+            '</summary>'
+            '<pre style="white-space: pre-wrap; margin: 0; padding: 12px; background: #f8fafc; border-top: 1px solid #e5e7eb; color: #334155; font-size: 12px; line-height: 1.55;">{}</pre>'
+            '</details>',
+            title,
+            format_html('<span style="display: block; margin-top: 3px; color: #64748b; font-weight: 400; font-size: 12px;">{}</span>', subtitle) if subtitle else '',
+            body,
+        )
+
+    def seo_template_guide(self, obj):
+        ctx = self._template_context(obj)
+        blocks = [
+            self._template_card(
+                'Школьная тема',
+                (
+                    f"SEO title:\n{ctx['topic']}: правила, примеры и задания | {ctx['grade']}\n\n"
+                    f"SEO focus query:\n{ctx['topic'].lower()} {ctx['grade']} правила примеры\n\n"
+                    f"Meta description:\nРазберите тему «{ctx['topic']}»: простые правила, пошаговые примеры, типичные ошибки и задания для тренировки. Подходит для {ctx['grade']}."
+                ),
+                'Для запросов вроде “отрицательные числа 6 класс”, “проценты правила примеры”.',
+            ),
+            self._template_card(
+                'ОГЭ',
+                (
+                    f"SEO title:\nЗадание {ctx['task_number']} ОГЭ по {ctx['subject']}: разбор, алгоритм и практика\n\n"
+                    f"SEO focus query:\nзадание {ctx['task_number']} огэ {ctx['subject'].lower()} разбор практика\n\n"
+                    f"Meta description:\nРазбор задания {ctx['task_number']} ОГЭ по предмету «{ctx['subject']}»: алгоритм решения, примеры, типичные ошибки и тренировочные задания с ответами."
+                ),
+                'Для экзаменационных материалов ОГЭ.',
+            ),
+            self._template_card(
+                'ЕГЭ',
+                (
+                    f"SEO title:\nЗадание {ctx['task_number']} ЕГЭ по {ctx['subject']}: теория, разбор и практика\n\n"
+                    f"SEO focus query:\nзадание {ctx['task_number']} егэ {ctx['subject'].lower()} теория разбор\n\n"
+                    f"Meta description:\nПодготовка к заданию {ctx['task_number']} ЕГЭ по предмету «{ctx['subject']}»: краткая теория, пошаговый разбор, ловушки и практика для закрепления."
+                ),
+                'Для экзаменационных материалов ЕГЭ.',
+            ),
+            self._template_card(
+                'Английский',
+                (
+                    f"SEO title:\n{ctx['topic']}: правило, примеры и упражнения по английскому\n\n"
+                    f"SEO focus query:\n{ctx['topic'].lower()} английский правило примеры упражнения\n\n"
+                    f"Meta description:\nПонятное объяснение темы «{ctx['topic']}» по английскому: правило, примеры предложений, частые ошибки и упражнения для самостоятельной практики."
+                ),
+                'Для грамматики, словаря и школьного английского.',
+            ),
+        ]
+        return format_html(
+            '<div style="max-width: 860px;">'
+            '<div style="padding: 12px; border: 1px solid #fed7aa; border-radius: 10px; background: #fff7ed; color: #7c2d12;">'
+            '<strong>Как пользоваться:</strong> выберите подходящий шаблон, скопируйте SEO title, focus query и meta description, затем адаптируйте под конкретную статью.'
+            '</div>{}</div>',
+            format_html_join('', '{}', ((block,) for block in blocks)),
+        )
+
+    seo_template_guide.short_description = 'SEO templates'
+
+    def content_template_guide(self, obj):
+        ctx = self._template_context(obj)
+        school_article = (
+            f"> Коротко: в этой статье разберем тему «{ctx['topic']}», покажем правила, примеры и задания для самостоятельной тренировки.\n\n"
+            "## Что вы узнаете\n"
+            f"- что означает тема «{ctx['topic']}»;\n"
+            "- какие правила нужно запомнить;\n"
+            "- как решать типовые задания;\n"
+            "- какие ошибки чаще всего допускают ученики.\n\n"
+            "## Краткое правило\n"
+            "Напишите правило простыми словами, без перегруза терминами.\n\n"
+            "## Пример 1\n"
+            "Условие задачи.\n\n"
+            "Решение:\n"
+            "1. Первый шаг.\n"
+            "2. Второй шаг.\n"
+            "3. Ответ.\n\n"
+            "## Типичные ошибки\n"
+            "- Ошибка 1 и как ее избежать.\n"
+            "- Ошибка 2 и как ее избежать.\n\n"
+            "## Задания для тренировки\n"
+            "1. Задание.\n"
+            "2. Задание.\n"
+            "3. Задание.\n\n"
+            "## Ответы\n"
+            "1. Ответ.\n"
+            "2. Ответ.\n"
+            "3. Ответ.\n"
+        )
+        exam_article = (
+            f"> Разберем задание {ctx['task_number']} по предмету «{ctx['subject']}»: что проверяют, какой алгоритм использовать и как избежать типичных ошибок.\n\n"
+            "## Что проверяет задание\n"
+            "Опишите навык, который нужен ученику.\n\n"
+            "## Алгоритм решения\n"
+            "1. Что делаем сначала.\n"
+            "2. Как проверяем условие.\n"
+            "3. Как оформляем ответ.\n\n"
+            "## Разбор примера\n"
+            "Условие.\n\n"
+            "Решение по шагам.\n\n"
+            "Ответ.\n\n"
+            "## Частые ошибки\n"
+            "- Ошибка 1.\n"
+            "- Ошибка 2.\n\n"
+            "## Практика\n"
+            "Добавьте 3-5 заданий или свяжите статью с тестом через поле related_test."
+        )
+        english_article = (
+            f"> Разберем тему «{ctx['topic']}» по английскому: правило, примеры, частые ошибки и упражнения.\n\n"
+            "## Когда используется\n"
+            "Объясните ситуацию простыми словами.\n\n"
+            "## Правило\n"
+            "Структура:\n"
+            "`подлежащее + ...`\n\n"
+            "## Примеры\n"
+            "| English | Перевод |\n"
+            "|---|---|\n"
+            "| Example sentence. | Пример перевода. |\n\n"
+            "## Частые ошибки\n"
+            "- Ошибка 1.\n"
+            "- Ошибка 2.\n\n"
+            "## Упражнения\n"
+            "1. Заполните пропуск.\n"
+            "2. Переведите предложение.\n"
+            "3. Исправьте ошибку."
+        )
+        faq_template = (
+            "FAQ items заполняйте в отдельном поле FAQ, по одной строке:\n\n"
+            f"Что важно знать по теме «{ctx['topic']}»? | Нужно понимать основное правило и уметь применять его на примерах.\n"
+            f"Какие ошибки чаще всего бывают в теме «{ctx['topic']}»? | Ученики часто пропускают ключевое условие задачи или применяют правило механически.\n"
+            f"Как быстро закрепить тему «{ctx['topic']}»? | Разберите 2-3 примера, затем решите короткий тест и проверьте ошибки.\n"
+        )
+        blocks = [
+            self._template_card('Статья по школьной теме', school_article, 'Для математики, русского, физики, информатики и других школьных тем.'),
+            self._template_card('Разбор задания ОГЭ/ЕГЭ', exam_article, 'Для материалов с exam_type ОГЭ/ЕГЭ и номером задания.'),
+            self._template_card('Английский язык', english_article, 'Для grammar/vocabulary материалов.'),
+            self._template_card('FAQ для поля faq_items', faq_template, 'Скопируйте строки в поле FAQ items и адаптируйте.'),
+        ]
+        return format_html(
+            '<div style="max-width: 900px;">'
+            '<div style="padding: 12px; border: 1px solid #bfdbfe; border-radius: 10px; background: #eff6ff; color: #1e3a8a;">'
+            '<strong>Шаблоны структуры:</strong> копируйте нужный блок в Article markdown, затем заменяйте примеры и формулировки под конкретную тему.'
+            '</div>{}</div>',
+            format_html_join('', '{}', ((block,) for block in blocks)),
+        )
+
+    content_template_guide.short_description = 'Content templates'
 
 
     def image_workflow_note(self, obj):
