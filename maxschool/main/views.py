@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db.models import Count, F, Max, Q
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
@@ -53,6 +54,38 @@ def _split_delimited_lines(text, parts_count):
             continue
         rows.append(parts)
     return rows
+
+
+def _material_page_title(material):
+    base_title = (getattr(material, 'seo_title', '') or material.title or '').strip()
+    if not base_title:
+        base_title = 'Материал SmartUrok'
+    return base_title if 'smarturok' in base_title.lower() else f'{base_title} | SmartUrok'
+
+
+def _material_page_headline(material):
+    return (getattr(material, 'seo_title', '') or material.title or 'Материал SmartUrok').strip()
+
+
+def _material_meta_description(material):
+    fallback_description = strip_tags(material.description or '').strip()
+    description = (
+        (material.meta_description or '').strip()
+        or fallback_description
+        or f'Учебный материал SmartUrok: {material.title}.'
+    )
+    return description[:160]
+
+
+def _material_faq_items(material, limit=8):
+    rows = _split_delimited_lines(getattr(material, 'faq_items', ''), 2)
+    return [
+        {
+            'question': question[:220],
+            'answer': strip_tags(answer)[:900],
+        }
+        for question, answer in rows[:limit]
+    ]
 
 
 def _published_materials_qs():
@@ -661,9 +694,13 @@ def material_detail(request, slug):
 
     primary_image = material.images.filter(usage__in=('article', 'both')).order_by('sort_order', 'id').first()
     related_materials = _collect_related_materials(material, request.user)
+    material_faq_items = _material_faq_items(material)
 
     return render(request, 'main/material_detail.html', {
         'material': material,
+        'page_title': _material_page_title(material),
+        'page_headline': _material_page_headline(material),
+        'page_description': _material_meta_description(material),
         'primary_image': primary_image,
         'video_embed_url': _material_video_embed_url(material.video_url),
         'test_config': test_config,
@@ -675,6 +712,7 @@ def material_detail(request, slug):
         'related_theory': related_theory,
         'related_test': related_test,
         'related_materials': related_materials,
+        'material_faq_items': material_faq_items,
     })
 
 def subject_detail(request, slug):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join, strip_tags
 
 from .models import (
     HomeSuccessStory,
@@ -66,13 +66,15 @@ class MaterialItemAdmin(admin.ModelAdmin):
         'status',
         'is_published',
     )
-    search_fields = ('title', 'slug', 'description', 'meta_description', 'article_markdown')
+    search_fields = ('title', 'slug', 'description', 'seo_title', 'seo_focus_query', 'meta_description', 'article_markdown', 'faq_items')
     readonly_fields = (
         'is_published',
         'published_at',
         'views_count',
         'created_at',
         'updated_at',
+        'seo_preview',
+        'seo_checklist',
         'image_workflow_note',
     )
     prepopulated_fields = {'slug': ('title',)}
@@ -93,7 +95,15 @@ class MaterialItemAdmin(admin.ModelAdmin):
             )
         }),
         ('SEO', {
-            'fields': ('description', 'meta_description')
+            'fields': (
+                'seo_title',
+                'seo_focus_query',
+                'meta_description',
+                'description',
+                'faq_items',
+                'seo_preview',
+                'seo_checklist',
+            )
         }),
         ('Content', {
             'fields': ('video_url', 'article_markdown', 'file', 'external_url', 'test_payload', 'image_workflow_note')
@@ -118,6 +128,84 @@ class MaterialItemAdmin(admin.ModelAdmin):
     test_attempts_total.short_description = 'Test attempts'
     has_test_bank.short_description = 'Test bank'
     has_test_bank.boolean = True
+
+    def _seo_title_value(self, obj):
+        if not obj:
+            return ''
+        base_title = (obj.seo_title or obj.title or '').strip()
+        if not base_title:
+            return ''
+        return base_title if 'SmartUrok' in base_title else f'{base_title} | SmartUrok'
+
+    def _meta_description_value(self, obj):
+        if not obj:
+            return ''
+        fallback = strip_tags(obj.description or '').strip()
+        return (obj.meta_description or fallback or f'Материал SmartUrok: {obj.title}.').strip()[:160]
+
+    def seo_preview(self, obj):
+        if not obj:
+            return 'Save the material to see SEO preview.'
+
+        title = self._seo_title_value(obj)
+        description = self._meta_description_value(obj)
+        return format_html(
+            '<div style="max-width: 720px; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f8fafc;">'
+            '<div style="font-size: 13px; color: #64748b; margin-bottom: 6px;">Search preview</div>'
+            '<div style="font-size: 18px; color: #1a0dab; line-height: 1.25;">{}</div>'
+            '<div style="font-size: 12px; color: #64748b; margin: 4px 0;">https://smarturok.ru/materials/item/{}/</div>'
+            '<div style="font-size: 13px; color: #334155; line-height: 1.45;">{}</div>'
+            '<div style="font-size: 12px; color: #64748b; margin-top: 8px;">Title: {} chars · Description: {} chars</div>'
+            '</div>',
+            title,
+            obj.slug or '',
+            description,
+            len(title),
+            len(description),
+        )
+
+    seo_preview.short_description = 'SEO preview'
+
+    def seo_checklist(self, obj):
+        if not obj:
+            return 'Save the material to see SEO checklist.'
+
+        title = self._seo_title_value(obj)
+        description = self._meta_description_value(obj)
+        has_content = bool(
+            (obj.article_markdown or '').strip()
+            or obj.file
+            or obj.video_url
+            or obj.external_url
+            or obj.test_payload
+            or MaterialTest.objects.filter(material=obj).exists()
+        )
+        faq_lines = [line for line in (obj.faq_items or '').splitlines() if '|' in line and line.strip()]
+        checks = [
+            ('URL/slug есть и не меняется после публикации', bool(obj.slug), 'Не меняйте slug у уже опубликованных материалов без необходимости.'),
+            ('Материал публичный', obj.status == 'published' and obj.access_level == 'public', 'Для SEO нужны status=Опубликовано и access=Доступно всем.'),
+            ('SEO title заполнен', bool((obj.seo_title or '').strip()), 'Лучше: тема + класс/экзамен + “правила/примеры/тест”.'),
+            ('SEO title нормальной длины', 35 <= len(title) <= 75, 'Ориентир 35-75 символов вместе с SmartUrok.'),
+            ('Meta description заполнен', bool((obj.meta_description or '').strip()), 'Кратко: что разберем, для кого, что получит ученик.'),
+            ('Meta description нормальной длины', 100 <= len(description) <= 160, 'Ориентир 100-160 символов.'),
+            ('Есть предмет и раздел', bool(obj.category_id and obj.subject_id), 'Помогает фильтрам, перелинковке и смыслу страницы.'),
+            ('Есть класс или номер задания', bool(obj.grade or obj.task_number), 'Особенно полезно для запросов “6 класс”, “задание 1 ОГЭ”.'),
+            ('Есть основной контент', has_content, 'Статья/тест/видео/PDF должны быть заполнены.'),
+            ('Есть FAQ', len(faq_lines) >= 3, 'Добавьте 3-6 вопросов: вопрос | ответ.'),
+            ('Есть связанный следующий шаг', bool(obj.related_test_id or obj.related_theory_id), 'Идеально: статья -> тест, тест -> теория.'),
+        ]
+
+        rows = format_html_join(
+            '',
+            '<li style="margin: 4px 0;"><span style="font-weight: 700; color: {};">{}</span> <strong>{}</strong><br><span style="color: #64748b;">{}</span></li>',
+            (
+                ('#15803d' if passed else '#b45309', 'OK' if passed else 'TODO', label, hint)
+                for label, passed, hint in checks
+            )
+        )
+        return format_html('<ul style="margin: 0; padding-left: 18px;">{}</ul>', rows)
+
+    seo_checklist.short_description = 'SEO checklist'
 
 
     def image_workflow_note(self, obj):

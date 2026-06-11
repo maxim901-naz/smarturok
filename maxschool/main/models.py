@@ -79,7 +79,24 @@ class MaterialItem(models.Model):
     title = models.CharField(max_length=160)
     slug = models.SlugField(max_length=180, unique=True, blank=True, null=True, allow_unicode=True)
     description = models.TextField(blank=True)
+    seo_title = models.CharField(
+        max_length=90,
+        blank=True,
+        default='',
+        help_text='Search title. Leave empty to use the material title.',
+    )
+    seo_focus_query = models.CharField(
+        max_length=160,
+        blank=True,
+        default='',
+        help_text='Internal note: main search query for this material.',
+    )
     meta_description = models.CharField(max_length=160, blank=True)
+    faq_items = models.TextField(
+        blank=True,
+        default='',
+        help_text='Optional FAQ. One question per line: Question | Answer.',
+    )
     subject = models.ForeignKey('accounts.Subject', on_delete=models.SET_NULL, null=True, blank=True)
     grade = models.PositiveSmallIntegerField(null=True, blank=True)
     content_type = models.CharField(max_length=16, choices=CONTENT_TYPE_CHOICES, default='pdf', db_index=True)
