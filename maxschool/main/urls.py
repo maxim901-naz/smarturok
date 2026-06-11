@@ -2,6 +2,7 @@ from django.urls import path
 from .views import (
     home,
     teachers_list,
+    learning_direction,
     subject_detail,
     home_lead,
     submit_review,
@@ -15,6 +16,11 @@ from .views import (
 # from django.conf import settings
 urlpatterns = [
     path('', home, name='home'),
+     path('oge/', learning_direction, {'slug': 'oge'}, name='oge_landing'),
+     path('ege/', learning_direction, {'slug': 'ege'}, name='ege_landing'),
+     path('english/', learning_direction, {'slug': 'english'}, name='english_landing'),
+     path('school-subjects/', learning_direction, {'slug': 'school-subjects'}, name='school_subjects_landing'),
+     path('vpr/', learning_direction, {'slug': 'vpr'}, name='vpr_landing'),
      path('teachers/', teachers_list, name='teachers_list'),
      path('lead/', home_lead, name='home_lead'),
      path('reviews/submit/', submit_review, name='submit_review'),
