@@ -1,5 +1,18 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /crm/
+Disallow: /lessons/
+Disallow: /chats/
+Disallow: /accounts/student/
+Disallow: /accounts/teacher/
+Disallow: /accounts/dashboard/
+Disallow: /accounts/schedule/
+Disallow: /accounts/logout/
+Disallow: /accounts/password-reset/
+Disallow: /accounts/reset/
+Disallow: /accounts/verify-email/
+Disallow: /accounts/resend-verification/
 
 Host: smarturok.ru
 Sitemap: https://smarturok.ru/sitemap.xml

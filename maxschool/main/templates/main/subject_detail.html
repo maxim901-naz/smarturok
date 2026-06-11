@@ -6,12 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }}</title>
     <meta name="description" content="{{ page_description }}">
+    <meta name="robots" content="index, follow">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <link rel="canonical" href="https://smarturok.ru{{ request.path }}">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SmartUrok">
+    <meta property="og:locale" content="ru_RU">
     <meta property="og:title" content="{{ page_title }}">
     <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:url" content="https://smarturok.ru{{ request.path }}">
     <meta property="og:image" content="{% if subject.landing_image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.landing_image.url }}{% elif subject.image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo4-round.png' %}{% endif %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page_title }}">
+    <meta name="twitter:description" content="{{ page_description }}">
+    <meta name="twitter:image" content="{% if subject.landing_image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.landing_image.url }}{% elif subject.image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo4-round.png' %}{% endif %}">
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",

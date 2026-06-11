@@ -27,6 +27,7 @@ from main.sitemaps import (
     StaticViewSitemap,
     SubjectSitemap,
 )
+from accounts.views import trial_lesson_view
 
 
 sitemaps = {
@@ -49,6 +50,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('lessons/', include('lessons.urls')),
     path("chats/", include("chat.urls", namespace="chat")),
+    path('trial/', trial_lesson_view, name='trial'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

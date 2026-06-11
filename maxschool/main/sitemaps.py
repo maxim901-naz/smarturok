@@ -37,9 +37,9 @@ class SubjectSitemap(Sitemap):
     def lastmod(self, item):
         return (
             MaterialItem.objects
-            .filter(is_published=True, subject=item)
-            .order_by("-created_at")
-            .values_list("created_at", flat=True)
+            .filter(status="published", access_level="public", subject=item)
+            .order_by("-updated_at", "-published_at", "-created_at")
+            .values_list("updated_at", flat=True)
             .first()
         )
 
@@ -57,9 +57,9 @@ class MaterialCategorySitemap(Sitemap):
     def lastmod(self, item):
         return (
             item.materials
-            .filter(is_published=True)
-            .order_by("-created_at")
-            .values_list("created_at", flat=True)
+            .filter(status="published", access_level="public")
+            .order_by("-updated_at", "-published_at", "-created_at")
+            .values_list("updated_at", flat=True)
             .first()
         )
 
