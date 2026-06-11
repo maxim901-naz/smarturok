@@ -291,7 +291,13 @@
             <h1 class="text-2xl sm:text-4xl font-extrabold leading-tight">{{ material.title }}</h1>
 
             <p class="text-white/90 mt-3 text-sm sm:text-base">
-                {% if material.subject %}{{ material.subject.name }}{% endif %}
+                {% if material.subject %}
+                    {% if material.subject.slug %}
+                    <a href="{% url 'subject_detail' material.subject.slug %}" data-cta="material_subject_open" data-cta-location="material_hero" class="text-white underline decoration-white/45 underline-offset-4 hover:decoration-white transition">{{ material.subject.name }}</a>
+                    {% else %}
+                    {{ material.subject.name }}
+                    {% endif %}
+                {% endif %}
                 {% if material.grade %}{% if material.subject %} · {% endif %}{{ material.grade }} класс{% endif %}
                 {% if material.published_at %} · Обновлено {{ material.published_at|date:"d.m.Y H:i" }}{% endif %}
                 <span data-nosnippet>· Просмотры: {{ material.views_count }}</span>
@@ -575,7 +581,13 @@
                         <a href="{% url 'material_detail' item.slug %}" class="hover:text-orange-600 transition">{{ item.title }}</a>
                     </h3>
                     <p class="text-sm text-slate-600 mt-2">
-                        {% if item.subject %}{{ item.subject.name }}{% endif %}
+                        {% if item.subject %}
+                            {% if item.subject.slug %}
+                            <a href="{% url 'subject_detail' item.subject.slug %}" data-cta="related_subject_open" data-cta-location="material_related" class="font-semibold text-slate-700 hover:text-orange-600 transition">{{ item.subject.name }}</a>
+                            {% else %}
+                            {{ item.subject.name }}
+                            {% endif %}
+                        {% endif %}
                         {% if item.grade %}{% if item.subject %} · {% endif %}{{ item.grade }} класс{% endif %}
                     </p>
                     <a href="{% url 'material_detail' item.slug %}" data-cta="related_material_open" data-cta-location="material_related" class="inline-flex mt-4 text-sm font-semibold text-orange-700 hover:text-orange-800 transition">

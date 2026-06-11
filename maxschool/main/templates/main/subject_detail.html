@@ -12,6 +12,76 @@
     <meta property="og:title" content="{{ page_title }}">
     <meta property="og:description" content="{{ page_description }}">
     <meta property="og:image" content="{% if subject.landing_image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.landing_image.url }}{% elif subject.image %}{{ request.scheme }}://{{ request.get_host }}{{ subject.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo4-round.png' %}{% endif %}">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "{{ page_title|escapejs }}",
+            "description": "{{ page_description|escapejs }}",
+            "url": "https://smarturok.ru{{ request.path }}",
+            "inLanguage": "ru-RU",
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "SmartUrok",
+                "url": "https://smarturok.ru/"
+            },
+            "about": {
+                "@type": "Course",
+                "name": "{{ subject.name|escapejs }} онлайн",
+                "provider": {
+                    "@type": "Organization",
+                    "name": "SmartUrok",
+                    "url": "https://smarturok.ru/"
+                }
+            }
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Главная",
+                    "item": "https://smarturok.ru/"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": "Предметы",
+                    "item": "https://smarturok.ru/#courses"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": "{{ subject.name|escapejs }}",
+                    "item": "https://smarturok.ru{{ request.path }}"
+                }
+            ]
+        }
+    </script>
+    {% if subject_faq_items %}
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {% for faq in subject_faq_items %}
+                {
+                    "@type": "Question",
+                    "name": "{{ faq.question|escapejs }}",
+                    "acceptedAnswer": {
+                        "@type": "Answer",
+                        "text": "{{ faq.answer|escapejs }}"
+                    }
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]
+        }
+    </script>
+    {% endif %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -308,6 +378,10 @@
                 <a href="#subject-results" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Результат</a>
                 <a href="#subject-benefits" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">План обучения</a>
                 <a href="#subject-progress" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Прогресс</a>
+                {% if subject_materials %}
+                <a href="#subject-materials" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Материалы</a>
+                {% endif %}
+                <a href="#subject-faq" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Вопросы</a>
                 {% if teachers %}
                 <a href="#subject-teachers" class="page-anchor rounded-full px-3 py-1.5 text-xs font-medium">Преподаватели</a>
                 {% endif %}
@@ -456,6 +530,75 @@
                             <div class="text-2xl font-bold mt-1">{{ card.highlight }}</div>
                             <p class="text-sm text-gray-600 mt-2">{{ card.description }}</p>
                         </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {% if subject_materials %}
+        <section id="subject-materials" class="pb-14">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="surface-card p-6 sm:p-8">
+                    <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-7">
+                        <div>
+                            <p class="text-sm font-semibold text-accent">Учебная база SmartUrok</p>
+                            <h2 class="text-3xl font-bold mt-2">Материалы по предмету «{{ subject.name }}»</h2>
+                            <p class="text-gray-600 mt-2 max-w-2xl">
+                                Теория, разборы и тесты помогают ученику закрепить тему после урока, а поисковикам показывают экспертность раздела.
+                            </p>
+                        </div>
+                        <a href="{% url 'materials_list' %}?subject={{ subject.id }}" data-cta="subject_materials_all_open" class="px-5 py-3 border border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition">
+                            Все материалы{% if subject_materials_total %} ({{ subject_materials_total }}){% endif %}
+                        </a>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {% for item in subject_materials %}
+                        <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5 hover:bg-white hover:shadow-lg transition">
+                            <div class="flex flex-wrap gap-2 mb-3">
+                                <span class="px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-semibold">{{ item.get_content_type_display }}</span>
+                                {% if item.exam_type != 'general' %}
+                                <span class="px-3 py-1 rounded-full bg-white text-slate-700 text-xs font-semibold border border-slate-200">{{ item.get_exam_type_display }}</span>
+                                {% endif %}
+                                {% if item.grade %}
+                                <span class="px-3 py-1 rounded-full bg-white text-slate-700 text-xs font-semibold border border-slate-200">{{ item.grade }} класс</span>
+                                {% endif %}
+                            </div>
+                            <h3 class="text-lg font-bold leading-snug">
+                                <a href="{% url 'material_detail' item.slug %}" data-cta="subject_material_open" class="hover:text-accent transition">{{ item.title }}</a>
+                            </h3>
+                            {% if item.description %}
+                            <p class="text-sm text-gray-600 mt-2">{{ item.description|striptags|truncatechars:130 }}</p>
+                            {% endif %}
+                            <div class="mt-4 flex items-center justify-between gap-3 text-sm">
+                                <a href="{% url 'material_detail' item.slug %}" data-cta="subject_material_open" class="font-semibold text-accent hover:text-primary transition">Открыть →</a>
+                                {% if item.published_at %}
+                                <span class="text-gray-500">обновлено {{ item.published_at|date:"d.m.Y" }}</span>
+                                {% endif %}
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <section id="subject-faq" class="pb-14">
+            <div class="content-container px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-3 gap-7 items-start">
+                    <div class="lg:col-span-1">
+                        <p class="text-sm font-semibold text-accent">Перед стартом</p>
+                        <h2 class="text-3xl font-bold mt-2">Частые вопросы</h2>
+                        <p class="text-gray-600 mt-3">Коротко отвечаем на то, что обычно важно родителям и ученикам перед первым занятием.</p>
+                    </div>
+                    <div class="lg:col-span-2 space-y-3">
+                        {% for faq in subject_faq_items %}
+                        <details class="surface-card p-5">
+                            <summary class="cursor-pointer font-bold text-slate-900">{{ faq.question }}</summary>
+                            <p class="text-gray-700 mt-3 leading-7">{{ faq.answer }}</p>
+                        </details>
                         {% endfor %}
                     </div>
                 </div>

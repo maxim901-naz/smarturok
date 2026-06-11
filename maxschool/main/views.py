@@ -88,6 +88,40 @@ def _material_faq_items(material, limit=8):
     ]
 
 
+def _subject_faq_items(subject):
+    subject_name = subject.name
+    return [
+        {
+            'question': f'Кому подойдут занятия по предмету «{subject_name}»?',
+            'answer': (
+                'Занятия подходят школьникам, которым нужно закрыть пробелы, '
+                'улучшить оценки, подготовиться к контрольным или экзаменам.'
+            ),
+        },
+        {
+            'question': 'Как проходит пробный урок?',
+            'answer': (
+                'На пробном уроке преподаватель определяет текущий уровень ученика, '
+                'разбирает типовые ошибки и предлагает понятный план дальнейшей подготовки.'
+            ),
+        },
+        {
+            'question': 'Можно ли готовиться к ОГЭ, ЕГЭ или школьным контрольным?',
+            'answer': (
+                'Да, формат подстраивается под цель ученика: школьная программа, '
+                'подготовка к проверочным работам, ОГЭ, ЕГЭ или олимпиадным заданиям.'
+            ),
+        },
+        {
+            'question': 'Как родители будут видеть прогресс?',
+            'answer': (
+                'После занятий можно отслеживать темы, домашние задания, комментарии '
+                'преподавателя и динамику ученика в личном кабинете.'
+            ),
+        },
+    ]
+
+
 def _published_materials_qs():
     return (
         MaterialItem.objects
@@ -789,6 +823,14 @@ def subject_detail(request, slug):
     hero_subtitle = subject.hero_subtitle or 'Индивидуальные занятия, понятные объяснения и стабильный прогресс с первых недель обучения.'
     page_title = subject.seo_title or f'{subject.name} онлайн для школьников | SmartUrok'
     page_description = subject.seo_description or f'Индивидуальные онлайн-занятия по предмету «{subject.name}». Подберем преподавателя и начнем с бесплатного пробного урока.'
+    subject_materials_qs = (
+        _published_materials_qs()
+        .filter(subject=subject, access_level='public')
+        .order_by('-views_count', '-published_at', '-created_at')
+    )
+    subject_materials_total = subject_materials_qs.count()
+    subject_materials = list(subject_materials_qs[:6])
+    subject_faq_items = _subject_faq_items(subject)
 
     return render(request, 'main/subject_detail.html', {
         'subject': subject,
@@ -807,6 +849,9 @@ def subject_detail(request, slug):
         'hero_subtitle': hero_subtitle,
         'page_title': page_title,
         'page_description': page_description,
+        'subject_materials': subject_materials,
+        'subject_materials_total': subject_materials_total,
+        'subject_faq_items': subject_faq_items,
         'analytics': _analytics_context(),
     })
 
