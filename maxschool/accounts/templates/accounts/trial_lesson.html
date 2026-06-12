@@ -10,19 +10,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Запишитесь на бесплатный пробный урок SmartUrok: определим уровень ученика, подберем преподавателя и покажем персональный план обучения.">
+    <meta name="description" content="Запишитесь на бесплатный пробный урок SmartUrok по школьным предметам, английскому, ОГЭ, ЕГЭ и ВПР. Определим уровень ученика, подберем преподавателя и покажем персональный план обучения.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://smarturok.ru/trial/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="SmartUrok">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:title" content="Бесплатный пробный урок SmartUrok">
-    <meta property="og:description" content="Диагностика уровня, подбор преподавателя и понятный план обучения для школьника.">
+    <meta property="og:description" content="Диагностика уровня, подбор преподавателя и понятный план обучения для школьника по предметам, английскому, ОГЭ, ЕГЭ и ВПР.">
     <meta property="og:url" content="https://smarturok.ru/trial/">
     <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Бесплатный пробный урок SmartUrok">
-    <meta name="twitter:description" content="Оставьте заявку и получите персональный план обучения после пробного урока.">
+    <meta name="twitter:description" content="Оставьте заявку и получите персональный план обучения после пробного урока по нужному предмету.">
     <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
     <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
     <title>Запись на пробный урок — SmartUrok</title>
@@ -52,6 +52,38 @@
     </script>
     {% include 'main/includes/analytics_head.html' %}
     <script src="{% static 'js/marketing_events.js' %}"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Пробный урок действительно бесплатный?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Да. На пробном уроке преподаватель знакомится с учеником, определяет текущий уровень и показывает, как будет строиться обучение."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Какие предметы можно выбрать?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "В SmartUrok можно подобрать занятия по школьным предметам, английскому языку, подготовке к ОГЭ, ЕГЭ, ВПР и контрольным работам."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Что будет после заявки?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Мы связываемся с родителем, уточняем цель и удобное время, затем подбираем преподавателя и проводим пробный урок."
+                }
+            }
+        ]
+    }
+    </script>
 
     <style>
         /* Стили как на главной странице */
@@ -102,12 +134,15 @@
         }
         
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background:
+                radial-gradient(circle at 12% 12%, rgba(255, 190, 11, 0.28), transparent 30%),
+                radial-gradient(circle at 86% 8%, rgba(0, 166, 251, 0.22), transparent 32%),
+                linear-gradient(135deg, #f8fafc 0%, #eef6ff 46%, #fff4ec 100%);
             min-height: 100vh;
         }
         
         .form-container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(10px);
         }
     </style>
@@ -115,7 +150,7 @@
 <body class="font-sans antialiased" data-page-type="trial_form">
 
 <div class="min-h-screen flex items-center justify-center p-4 py-8">
-    <div class="w-full max-w-2xl">
+    <div class="w-full max-w-5xl">
         
         <!-- Хедер с логотипом -->
         <div class="text-center mb-8">
@@ -126,6 +161,25 @@
             <h2 class="text-4xl font-bold text-dark mb-4">Запись на пробный урок</h2>
             <p class="text-gray-700 text-lg max-w-2xl mx-auto">Не просто "ознакомительный звонок", а полноценный урок с преподавателем: определим текущий уровень, покажем план подготовки и дадим первые практические результаты уже на первом занятии.</p>
             <p id="marketing-interest-hint" class="hidden mt-3 inline-flex px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-sm font-medium"></p>
+        </div>
+
+        <div class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="bg-white/90 rounded-2xl border border-white shadow-sm p-4">
+                <div class="text-sm font-bold text-dark">Бесплатно</div>
+                <p class="text-xs text-gray-600 mt-1">Без оплаты и скрытых условий.</p>
+            </div>
+            <div class="bg-white/90 rounded-2xl border border-white shadow-sm p-4">
+                <div class="text-sm font-bold text-dark">Без обязательств</div>
+                <p class="text-xs text-gray-600 mt-1">После урока вы спокойно решаете, продолжать ли обучение.</p>
+            </div>
+            <div class="bg-white/90 rounded-2xl border border-white shadow-sm p-4">
+                <div class="text-sm font-bold text-dark">Быстрая связь</div>
+                <p class="text-xs text-gray-600 mt-1">Обычно отвечаем в течение 15 минут в рабочее время.</p>
+            </div>
+            <div class="bg-white/90 rounded-2xl border border-white shadow-sm p-4">
+                <div class="text-sm font-bold text-dark">Понятный план</div>
+                <p class="text-xs text-gray-600 mt-1">Родитель видит, что именно нужно подтянуть и зачем.</p>
+            </div>
         </div>
 
         <div class="mb-6 grid gap-4 md:grid-cols-2">
@@ -166,6 +220,29 @@
             <div class="h-2 bg-gradient-to-r from-primary to-accent"></div>
             
             <div class="p-8">
+                <div class="mb-7 rounded-2xl border border-orange-100 bg-orange-50/80 p-5">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-dark">После заявки не будет навязчивых продаж</h3>
+                            <p class="mt-2 text-sm text-gray-700">Сначала уточним цель: подтянуть оценки, подготовиться к экзамену, закрыть пробелы или уверенно говорить на английском. Потом подберем преподавателя и удобное время.</p>
+                        </div>
+                        <div class="grid gap-2 sm:grid-cols-3 lg:w-1/2">
+                            <div class="rounded-xl bg-white p-3 text-center shadow-sm">
+                                <div class="text-lg font-bold text-primary">1</div>
+                                <div class="text-xs text-gray-600">Заявка</div>
+                            </div>
+                            <div class="rounded-xl bg-white p-3 text-center shadow-sm">
+                                <div class="text-lg font-bold text-primary">2</div>
+                                <div class="text-xs text-gray-600">Подбор</div>
+                            </div>
+                            <div class="rounded-xl bg-white p-3 text-center shadow-sm">
+                                <div class="text-lg font-bold text-primary">3</div>
+                                <div class="text-xs text-gray-600">Пробный урок</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <form method="post" class="space-y-6" id="trial-form" data-lead-form="trial_lesson">
                     {% csrf_token %}
                     <input type="hidden" name="lead_form" value="trial_lesson">
@@ -315,6 +392,39 @@
                     </div>
                 </form>
 
+                <div class="mt-8 grid gap-4 md:grid-cols-3">
+                    <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                        <h3 class="text-base font-bold text-dark">Для родителя</h3>
+                        <p class="mt-2 text-sm text-gray-600">Понятно, какие пробелы есть у ребенка, сколько занятий нужно и какой результат реалистичен.</p>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                        <h3 class="text-base font-bold text-dark">Для ученика</h3>
+                        <p class="mt-2 text-sm text-gray-600">Урок проходит спокойно: без давления, с объяснением темы и первыми практическими заданиями.</p>
+                    </div>
+                    <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                        <h3 class="text-base font-bold text-dark">Для преподавателя</h3>
+                        <p class="mt-2 text-sm text-gray-600">Преподаватель видит уровень и сразу строит маршрут: от базы к уверенной сдаче или оценкам.</p>
+                    </div>
+                </div>
+
+                <section class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                    <h3 class="text-xl font-bold text-dark mb-4">Частые вопросы</h3>
+                    <div class="space-y-3">
+                        <details class="rounded-xl bg-white p-4 shadow-sm">
+                            <summary class="cursor-pointer font-semibold text-dark">Пробный урок точно бесплатный?</summary>
+                            <p class="mt-2 text-sm text-gray-600">Да. Это нормальный первый урок-знакомство: определяем уровень, цель и показываем, как будет строиться обучение.</p>
+                        </details>
+                        <details class="rounded-xl bg-white p-4 shadow-sm">
+                            <summary class="cursor-pointer font-semibold text-dark">Можно выбрать подготовку к ОГЭ, ЕГЭ или ВПР?</summary>
+                            <p class="mt-2 text-sm text-gray-600">Да. В заявке выберите предмет, а в комментарии можно указать экзамен, класс, цель и текущий уровень.</p>
+                        </details>
+                        <details class="rounded-xl bg-white p-4 shadow-sm">
+                            <summary class="cursor-pointer font-semibold text-dark">Если ребенку не подойдет преподаватель?</summary>
+                            <p class="mt-2 text-sm text-gray-600">Мы подберем другой вариант. Важно, чтобы ученику было понятно, комфортно и был виден прогресс.</p>
+                        </details>
+                    </div>
+                </section>
+
                 <!-- Дополнительная информация -->
                 <div class="mt-8 text-center space-y-3">
                     <div class="border-t border-gray-200 pt-4">
@@ -353,6 +463,9 @@
         const interestMap = {
             school_subjects: 'Школьные предметы',
             english: 'Английский язык',
+            oge: 'Подготовка к ОГЭ',
+            ege: 'Подготовка к ЕГЭ',
+            vpr: 'ВПР и контрольные',
             oge_ege: 'Подготовка ОГЭ/ЕГЭ',
             intensive: 'Интенсивная подготовка',
         };
