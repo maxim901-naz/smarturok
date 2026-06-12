@@ -467,16 +467,70 @@ def _landing_materials(slug, limit=8):
     return list(queryset.order_by('-views_count', '-published_at', '-created_at')[:limit])
 
 
-def _landing_subjects(landing, limit=10):
-    queryset = Subject.objects.exclude(slug__isnull=True).exclude(slug='')
+def _subject_keyword_q(keywords):
     subject_query = Q()
-    for keyword in landing.get('subject_keywords', []):
+    for keyword in keywords:
         subject_query |= Q(name__icontains=keyword)
+    return subject_query
 
-    if subject_query:
-        queryset = queryset.filter(subject_query)
 
-    return list(queryset.order_by('name')[:limit])
+def _landing_subjects(slug, landing, limit=10):
+    queryset = Subject.objects.exclude(slug__isnull=True).exclude(slug='')
+    primary_query = Q()
+    if slug == 'oge':
+        primary_query = Q(name__icontains='огэ') | Q(hero_title__icontains='огэ') | Q(seo_title__icontains='огэ')
+    elif slug == 'ege':
+        primary_query = Q(name__icontains='егэ') | Q(hero_title__icontains='егэ') | Q(seo_title__icontains='егэ')
+    elif slug == 'english':
+        primary_query = Q(name__icontains='англ') | Q(hero_title__icontains='англ') | Q(seo_title__icontains='англ')
+    elif slug == 'vpr':
+        primary_query = Q(name__icontains='впр') | Q(name__icontains='мцко') | Q(hero_title__icontains='впр') | Q(seo_title__icontains='впр')
+
+    primary_subjects = list(queryset.filter(primary_query).order_by('name')[:limit]) if primary_query else []
+    if len(primary_subjects) >= limit:
+        return primary_subjects
+
+    fallback_query = _subject_keyword_q(landing.get('subject_keywords', []))
+    fallback_queryset = queryset.exclude(pk__in=[subject.pk for subject in primary_subjects])
+    if fallback_query:
+        fallback_queryset = fallback_queryset.filter(fallback_query)
+
+    return primary_subjects + list(fallback_queryset.order_by('name')[:limit - len(primary_subjects)])
+
+
+def _subject_direction_links(subject):
+    haystack = ' '.join([
+        subject.name or '',
+        subject.hero_title or '',
+        subject.seo_title or '',
+        subject.seo_description or '',
+        subject.landing_description or '',
+    ]).lower()
+
+    links = []
+    for slug, marker in (
+        ('oge', 'огэ'),
+        ('ege', 'егэ'),
+        ('english', 'англ'),
+        ('vpr', 'впр'),
+    ):
+        if marker in haystack:
+            landing = LEARNING_LANDINGS[slug]
+            links.append({
+                'slug': slug,
+                'title': landing['eyebrow'],
+                'url': reverse(landing['url_name']),
+            })
+
+    if not links:
+        landing = LEARNING_LANDINGS['school-subjects']
+        links.append({
+            'slug': 'school-subjects',
+            'title': landing['eyebrow'],
+            'url': reverse(landing['url_name']),
+        })
+
+    return links[:3]
 
 
 def _landing_links(exclude_slug=None):
@@ -507,7 +561,7 @@ def learning_direction(request, slug):
     return render(request, 'main/learning_direction.html', {
         'landing': landing,
         'materials': _landing_materials(slug),
-        'subjects': _landing_subjects(landing),
+        'subjects': _landing_subjects(slug, landing),
         'related_landings': _landing_links(exclude_slug=slug),
         'analytics': _analytics_context(),
     })
@@ -1158,6 +1212,7 @@ def subject_detail(request, slug):
         'subject_materials': subject_materials,
         'subject_materials_total': subject_materials_total,
         'subject_faq_items': subject_faq_items,
+        'subject_direction_links': _subject_direction_links(subject),
         'analytics': _analytics_context(),
     })
 

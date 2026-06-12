@@ -409,6 +409,16 @@
                         </div>
                         <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">{{ hero_title }}</h1>
                         <p class="mt-5 text-white/90 text-lg max-w-xl">{{ hero_subtitle }}</p>
+                        {% if subject_direction_links %}
+                        <div class="mt-5 flex flex-wrap items-center gap-2 text-sm">
+                            <span class="text-white/75">Направление:</span>
+                            {% for direction in subject_direction_links %}
+                            <a href="{{ direction.url }}" data-cta="subject_direction_open" class="px-3 py-1 rounded-full bg-white/15 border border-white/30 text-white font-semibold hover:bg-white hover:text-primary transition">
+                                {{ direction.title }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         <div class="mt-7 flex flex-wrap gap-3">
                             {% if subject.price_per_lesson %}
                             <span class="px-4 py-2 rounded-lg bg-white text-primary font-semibold">от {{ subject.price_per_lesson }} ₽/урок</span>

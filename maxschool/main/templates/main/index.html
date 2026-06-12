@@ -840,6 +840,36 @@
             
             <!-- Десктопное меню -->
             <nav class="hidden lg:flex space-x-6" aria-label="Основная навигация">
+                <div class="relative group">
+                    <a href="#directions" class="text-dark font-medium transition nav-link inline-flex items-center gap-1">
+                        Направления
+                        <span class="text-xs">▾</span>
+                    </a>
+                    <div class="absolute left-0 top-full pt-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible focus-within:opacity-100 focus-within:visible transition z-50">
+                        <div class="w-72 rounded-2xl bg-white border border-gray-200 shadow-xl p-3">
+                            <a href="{% url 'school_subjects_landing' %}" class="block rounded-xl px-4 py-3 hover:bg-orange-50 transition">
+                                <span class="block text-sm font-bold text-dark">Школьные предметы</span>
+                                <span class="block text-xs text-gray-500 mt-1">4-11 класс, оценки и домашние задания</span>
+                            </a>
+                            <a href="{% url 'english_landing' %}" class="block rounded-xl px-4 py-3 hover:bg-orange-50 transition">
+                                <span class="block text-sm font-bold text-dark">Английский язык</span>
+                                <span class="block text-xs text-gray-500 mt-1">Школа, речь и экзамены</span>
+                            </a>
+                            <a href="{% url 'oge_landing' %}" class="block rounded-xl px-4 py-3 hover:bg-orange-50 transition">
+                                <span class="block text-sm font-bold text-dark">Подготовка к ОГЭ</span>
+                                <span class="block text-xs text-gray-500 mt-1">9 класс, план и практика</span>
+                            </a>
+                            <a href="{% url 'ege_landing' %}" class="block rounded-xl px-4 py-3 hover:bg-orange-50 transition">
+                                <span class="block text-sm font-bold text-dark">Подготовка к ЕГЭ</span>
+                                <span class="block text-xs text-gray-500 mt-1">10-11 класс, баллы и стратегия</span>
+                            </a>
+                            <a href="{% url 'vpr_landing' %}" class="block rounded-xl px-4 py-3 hover:bg-orange-50 transition">
+                                <span class="block text-sm font-bold text-dark">ВПР и контрольные</span>
+                                <span class="block text-xs text-gray-500 mt-1">Повторение тем без паники</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <a href="#courses" class="text-dark font-medium transition nav-link">Курсы</a>
                 <a href="{% url 'materials_list' %}" class="text-dark font-medium transition nav-link">Материалы</a>
                 <a href="{% url 'teachers_list' %}" class="text-dark font-medium transition nav-link">Преподаватели</a>
@@ -889,9 +919,11 @@
         <nav id="mobile-menu" aria-label="Мобильная навигация" class="hidden lg:hidden bg-white shadow-lg absolute top-[85px] left-0 right-0 rounded-lg p-4 max-h-[calc(100vh-85px)] overflow-y-auto">
             <ul class="flex flex-col space-y-3">
                 <li><a href="#courses" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Курсы</a></li>
+                <li><a href="{% url 'school_subjects_landing' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Школьные предметы</a></li>
                 <li><a href="{% url 'oge_landing' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">ОГЭ</a></li>
                 <li><a href="{% url 'ege_landing' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">ЕГЭ</a></li>
                 <li><a href="{% url 'english_landing' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Английский</a></li>
+                <li><a href="{% url 'vpr_landing' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">ВПР</a></li>
                 <li><a href="{% url 'materials_list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Материалы</a></li>
                 <li><a href="{% url 'teachers_list' %}" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Преподаватели</a></li>
                                 <li><a href="#reviews" class="block px-4 py-2 text-dark rounded transition mobile-menu-link">Отзывы</a></li>
