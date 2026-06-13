@@ -185,9 +185,12 @@
                         <a href="{% url 'confirm_booking' booking.id %}" class="confirm-btn text-white py-3 px-6 rounded-lg font-semibold text-center">
                             <i class="fas fa-check-circle mr-2"></i> Подтвердить урок
                         </a>
-                        <a href="#" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
-                            <i class="fas fa-times-circle mr-2"></i> Отклонить
-                        </a>
+                        <form method="post" action="{% url 'reject_booking' booking.id %}">
+                            {% csrf_token %}
+                            <button type="submit" onclick="return confirm('Отклонить заявку на урок?')" class="w-full py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                                <i class="fas fa-times-circle mr-2"></i> Отклонить
+                            </button>
+                        </form>
                         <a href="#" onclick="openInlineChatStart('{{ booking.student.id }}', '{{ booking.student.get_full_name|default:booking.student.username|escapejs }}'); return false;" class="py-2 px-6 rounded-lg font-semibold text-center border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
                             <i class="fas fa-comment mr-2"></i> Написать ученику
                         </a>

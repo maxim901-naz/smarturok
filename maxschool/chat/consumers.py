@@ -35,9 +35,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
-        message = data['message']
+    async def receive(self, text_data=None, bytes_data=None):
+        max_payload_length = int(getattr(settings, "CHAT_WS_MAX_PAYLOAD_LENGTH", 4096))
+        max_message_length = int(getattr(settings, "CHAT_WS_MAX_MESSAGE_LENGTH", 1000))
+
+        if not text_data or len(text_data) > max_payload_length:
+            return
+
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            return
+        if not isinstance(data, dict):
+            return
+
+        raw_message = data.get("message")
+        if not isinstance(raw_message, str):
+            return
+
+        message = raw_message.strip()
+        if not message or len(message) > max_message_length:
+            return
 
         # Сохраняем сообщение в БД
         saved_message = await self.save_message(

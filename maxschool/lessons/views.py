@@ -135,6 +135,35 @@ def confirm_booking_view(request, booking_id):
 
     return redirect('teacher_bookings')
 
+
+@login_required
+def reject_booking_view(request, booking_id):
+    if request.user.role != 'teacher':
+        return redirect('dashboard')
+
+    if request.method != 'POST':
+        return HttpResponse('Метод не поддерживается', status=405)
+
+    booking = get_object_or_404(
+        LessonBooking,
+        id=booking_id,
+        teacher=request.user,
+        is_confirmed=False,
+    )
+    student = booking.student
+    subject = booking.subject
+    lesson_date = booking.date
+    lesson_time = booking.time
+    booking.delete()
+
+    from accounts.models import StudentNotification
+    StudentNotification.objects.create(
+        student=student,
+        message=f"Преподаватель отклонил заявку на урок {subject} {lesson_date} {lesson_time.strftime('%H:%M')}",
+    )
+    messages.success(request, 'Заявка отклонена. Ученику отправлено уведомление.')
+    return redirect('teacher_bookings')
+
 @login_required
 def reschedule_lesson_view(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)

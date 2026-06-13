@@ -1,10 +1,11 @@
 ﻿from django.urls import path
-from .views import add_availability_view, book_lesson_view, booking_requests_view, confirm_booking_view
+from .views import add_availability_view, book_lesson_view, booking_requests_view, confirm_booking_view, reject_booking_view
 from . import views
 
 urlpatterns = [
     path('teacher/bookings/', booking_requests_view, name='teacher_bookings'),
     path('teacher/bookings/confirm/<int:booking_id>/', confirm_booking_view, name='confirm_booking'),
+    path('teacher/bookings/reject/<int:booking_id>/', reject_booking_view, name='reject_booking'),
     path('book/<int:teacher_id>/', book_lesson_view, name='book_lesson'),
     path('availability/add/', add_availability_view, name='add_availability'),
     path('availability/', views.teacher_availability_view, name='teacher_availability'),

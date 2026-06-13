@@ -590,10 +590,54 @@ def teacher_dashboard_view(request):
     from lessons.models import TeacherAvailability
 
     # Получаем ВСЕ уроки учителя, включая регулярные
-    all_lessons = Lesson.objects.filter(teacher=request.user).order_by('date', 'time')
-    slots = TeacherAvailability.objects.filter(teacher=request.user)
+    all_lessons = list(
+        Lesson.objects
+        .filter(teacher=request.user)
+        .select_related('student', 'subject')
+        .order_by('date', 'time')
+    )
+    slots = list(TeacherAvailability.objects.filter(teacher=request.user))
     teacher_tz = get_user_tz(request.user)
     now_msk = timezone.now().astimezone(teacher_tz)
+    today = now_msk.date()
+
+    week_start = today - timedelta(days=today.weekday())
+    week_end = week_start + timedelta(days=6)
+    weekday_labels = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
+    weekly_minutes = [0] * 7
+    weekly_lesson_counts = [0] * 7
+
+    for lesson in all_lessons:
+        if week_start <= lesson.date <= week_end:
+            weekday_index = lesson.date.weekday()
+            weekly_minutes[weekday_index] += int(lesson.duration_minutes or 0)
+            weekly_lesson_counts[weekday_index] += 1
+
+    busy_minutes = sum(weekly_minutes)
+    weekly_capacity_minutes = busy_minutes
+    for slot in slots:
+        if getattr(slot, 'is_booked', False):
+            continue
+        slot_minutes = int(getattr(slot, 'duration_minutes', None) or 30)
+        if getattr(slot, 'is_recurring', False):
+            if slot.weekday is not None:
+                weekly_capacity_minutes += slot_minutes
+        elif slot.date and week_start <= slot.date <= week_end:
+            weekly_capacity_minutes += slot_minutes
+
+    workload_percent = (
+        min(100, round((busy_minutes / weekly_capacity_minutes) * 100))
+        if weekly_capacity_minutes
+        else 0
+    )
+    weekly_workload = [
+        {
+            'label': label,
+            'hours': minutes / 60,
+            'lessons': weekly_lesson_counts[index],
+        }
+        for index, (label, minutes) in enumerate(zip(weekday_labels, weekly_minutes))
+    ]
 
     upcoming_lessons = []
     lessons_needing_status = []
@@ -650,6 +694,11 @@ def teacher_dashboard_view(request):
         'teacher_time_zone': teacher_tz_name,
         'user_chats': user_chats,
         'chat_unread_total': chat_unread_total,
+        'current_hours': busy_minutes / 60,
+        'weekly_capacity_hours': weekly_capacity_minutes / 60,
+        'weekly_lessons_count': sum(weekly_lesson_counts),
+        'workload_percent': workload_percent,
+        'weekly_workload': weekly_workload,
     })
 # Общий просмотр расписания (опционально)
 @login_required

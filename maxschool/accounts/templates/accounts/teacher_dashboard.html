@@ -839,13 +839,13 @@
                         </div>
                     </a>
                     
-                    <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <a href="{% url 'my_students' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                         <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
-                            <i class="fas fa-edit text-primary"></i>
+                            <i class="fas fa-user-graduate text-primary"></i>
                         </div>
                         <div>
-                            <h4 class="font-medium">Редактировать профиль</h4>
-                            <p class="text-sm text-gray-600">Обновите вашу информацию</p>
+                            <h4 class="font-medium">Мои ученики</h4>
+                            <p class="text-sm text-gray-600">Профили, история и связь</p>
                         </div>
                     </a>
                     
@@ -901,9 +901,6 @@
                     <p class="text-gray-500 text-center py-4">Пока нет отзывов</p>
                     {% endfor %}
                     
-                    <a href="#" class="block mt-4 text-center text-primary font-medium hover:text-primary-dark transition">
-                        Посмотреть все отзывы →
-                    </a>
                 </div>
             </div>
             
@@ -911,46 +908,38 @@
             <div class="bg-white p-6 rounded-xl shadow-lg" data-aos="fade-up" data-aos-delay="200">
                 <h3 class="text-xl font-bold mb-4 flex items-center">
                     <i class="fas fa-chart-bar text-primary mr-2"></i>
-                    Ваша загруженность
+                    Нагрузка на неделю
                 </h3>
                 
                 <div class="bg-gray-50 rounded-lg p-4">
                     <div class="flex justify-between mb-4">
                         <div>
                             <p class="text-gray-600">Текущая неделя</p>
-                            <p class="text-2xl font-bold">{{ current_hours|default:"18" }} часов</p>
+                            <p class="text-2xl font-bold">{{ current_hours|floatformat:"-1" }} ч</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-gray-600">Максимум</p>
-                            <p class="text-2xl font-bold">{{ max_hours|default:"25" }} часов</p>
+                            <p class="text-gray-600">Уроков</p>
+                            <p class="text-2xl font-bold">{{ weekly_lessons_count }}</p>
                         </div>
                     </div>
                     
                     <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
-                        <div class="bg-primary h-4 rounded-full" style="width: {{ workload_percent|default:"72" }}%"></div>
+                        <div class="bg-primary h-4 rounded-full" style="width: {{ workload_percent }}%"></div>
                     </div>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Занято {{ current_hours|floatformat:"-1" }} ч из {{ weekly_capacity_hours|floatformat:"-1" }} ч доступности.
+                    </p>
                     
                     <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span>Понедельник</span>
-                            <span class="font-medium">{{ mon_hours|default:"3" }} ч</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Вторник</span>
-                            <span class="font-medium">{{ tue_hours|default:"4" }} ч</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Среда</span>
-                            <span class="font-medium">{{ wed_hours|default:"2" }} ч</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Четверг</span>
-                            <span class="font-medium">{{ thu_hours|default:"5" }} ч</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Пятница</span>
-                            <span class="font-medium">{{ fri_hours|default:"4" }} ч</span>
-                        </div>
+                        {% for day in weekly_workload %}
+                            <div class="flex justify-between">
+                                <span>{{ day.label }}</span>
+                                <span class="font-medium">
+                                    {{ day.hours|floatformat:"-1" }} ч
+                                    {% if day.lessons %}<span class="text-gray-500"> · {{ day.lessons }} ур.</span>{% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
                     </div>
                     
                     <div class="mt-6 text-center">
@@ -1024,8 +1013,8 @@
                 <div class="flex flex-col items-center md:items-end">
                     <p class="text-gray-400 text-sm mb-2">© 2025 SmartUrok. Все права защищены.</p>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
-                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                        <a href="{% url 'privacy_policy' %}" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                        <a href="{% url 'public_offer' %}" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
                     </div>
                 </div>
             </div>

@@ -333,10 +333,10 @@
                         <a href="#" onclick="openInlineChatStart('{{ student.id }}', '{{ student.get_full_name|default:student.username|escapejs }}'); return false;" class="teacher-nav-btn hover-scale">
                             <i class="fas fa-comment mr-2"></i> Написать сообщение
                         </a>
-                        <a href="#" class="teacher-nav-btn hover-scale">
-                            <i class="fas fa-chart-line mr-2"></i> Статистика прогресса
+                        <a href="{% url 'teacher_lesson_history' %}" class="teacher-nav-btn hover-scale">
+                            <i class="fas fa-chart-line mr-2"></i> История уроков
                         </a>
-                        <a href="#" class="teacher-nav-btn hover-scale">
+                        <a href="{% url 'teacher_homework_submissions' %}" class="teacher-nav-btn hover-scale">
                             <i class="fas fa-tasks mr-2"></i> Домашние задания
                         </a>
                     </div>
@@ -515,17 +515,17 @@
                             </div>
                         </a>
                         
-                        <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <a href="{% url 'teacher_lesson_history' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                             <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
                                 <i class="fas fa-tasks text-primary"></i>
                             </div>
                             <div>
-                                <h4 class="font-medium">Задать домашнее задание</h4>
-                                <p class="text-sm text-gray-600">Создать новое задание</p>
+                                <h4 class="font-medium">Домашние задания</h4>
+                                <p class="text-sm text-gray-600">Открыть историю и добавить ДЗ к уроку</p>
                             </div>
                         </a>
                         
-                        <a href="#" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <a href="{% url 'teacher_availability' %}" class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                             <div class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center mr-3">
                                 <i class="fas fa-calendar-plus text-primary"></i>
                             </div>
@@ -552,8 +552,8 @@
                 <div class="flex flex-col items-center md:items-end">
                     <p class="text-gray-400 text-sm mb-2">© 2025 SmartUrok. Все права защищены.</p>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
-                        <a href="#" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
+                        <a href="{% url 'privacy_policy' %}" class="text-gray-400 hover:text-white transition text-sm">Политика конфиденциальности</a>
+                        <a href="{% url 'public_offer' %}" class="text-gray-400 hover:text-white transition text-sm">Договор-оферта</a>
                     </div>
                 </div>
             </div>
