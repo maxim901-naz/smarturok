@@ -1,6 +1,7 @@
-﻿from django.db import models
+from django.db import models
 from django.db.models import Q
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from accounts.models import Subject, CustomUser, Lesson
 
 class LessonBooking(models.Model):
@@ -27,6 +28,137 @@ class HomeworkSubmission(models.Model):
 
     def __str__(self):
         return f"Ответ {self.student.username} на {self.lesson.subject.name}"
+
+
+class LessonDeck(models.Model):
+    """Готовый комплект карточек для правой панели урока."""
+
+    subject = models.ForeignKey(
+        Subject,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='lesson_decks',
+        verbose_name='Предмет',
+    )
+    grade = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='Класс')
+    title = models.CharField(max_length=180, verbose_name='Название урока')
+    topic = models.CharField(max_length=180, blank=True, default='', verbose_name='Тема')
+    description = models.TextField(blank=True, default='', verbose_name='Краткое описание')
+    sort_order = models.PositiveIntegerField(default=0, verbose_name='Порядок')
+    is_active = models.BooleanField(default=True, verbose_name='Активный комплект')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['subject__name', 'grade', 'sort_order', 'title']
+        indexes = [
+            models.Index(fields=['is_active', 'subject', 'grade'], name='less_deck_active_subj_grade'),
+            models.Index(fields=['sort_order', 'title'], name='less_deck_sort_title'),
+        ]
+        verbose_name = 'Комплект карточек урока'
+        verbose_name_plural = 'Комплекты карточек уроков'
+
+    def __str__(self):
+        parts = []
+        if self.subject_id:
+            parts.append(str(self.subject))
+        if self.grade:
+            parts.append(f'{self.grade} класс')
+        parts.append(self.title)
+        return ' · '.join(parts)
+
+
+class LessonCard(models.Model):
+    CARD_TYPE_CHOICES = (
+        ('title', 'Заставка'),
+        ('theory', 'Теория'),
+        ('example', 'Пример'),
+        ('task', 'Задание'),
+        ('hint', 'Подсказка'),
+        ('answer', 'Ответ'),
+        ('question', 'Вопрос'),
+        ('homework', 'Домашнее задание'),
+        ('image', 'Картинка'),
+        ('video', 'Видео'),
+    )
+
+    deck = models.ForeignKey(
+        LessonDeck,
+        on_delete=models.CASCADE,
+        related_name='cards',
+        verbose_name='Комплект',
+    )
+    order = models.PositiveIntegerField(default=1, verbose_name='Номер карточки')
+    card_type = models.CharField(max_length=16, choices=CARD_TYPE_CHOICES, default='task', verbose_name='Тип')
+    title = models.CharField(max_length=180, blank=True, default='', verbose_name='Заголовок')
+    body = models.TextField(blank=True, default='', verbose_name='Текст карточки')
+    image = models.ImageField(upload_to='lesson_cards/images/%Y/%m/', blank=True, null=True, verbose_name='Изображение')
+    attachment = models.FileField(upload_to='lesson_cards/files/%Y/%m/', blank=True, null=True, verbose_name='Файл')
+    video_url = models.URLField(blank=True, default='', verbose_name='Ссылка на видео')
+    teacher_notes = models.TextField(blank=True, default='', verbose_name='Заметки для учителя')
+    is_active = models.BooleanField(default=True, verbose_name='Показывать в уроке')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['deck', 'order', 'id']
+        indexes = [
+            models.Index(fields=['deck', 'order'], name='less_card_deck_order'),
+            models.Index(fields=['card_type', 'is_active'], name='less_card_type_active'),
+        ]
+        verbose_name = 'Карточка урока'
+        verbose_name_plural = 'Карточки урока'
+
+    def __str__(self):
+        return f'{self.deck} · {self.order}. {self.title or self.get_card_type_display()}'
+
+
+class LessonDeckSession(models.Model):
+    """Какой комплект и какая карточка сейчас открыты в конкретном уроке."""
+
+    lesson = models.OneToOneField(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name='deck_session',
+        verbose_name='Урок',
+    )
+    deck = models.ForeignKey(
+        LessonDeck,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='lesson_sessions',
+        verbose_name='Выбранный комплект',
+    )
+    current_card = models.ForeignKey(
+        LessonCard,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='active_lesson_sessions',
+        verbose_name='Текущая карточка',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='updated_lesson_card_sessions',
+        verbose_name='Кто изменил',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Карточки в уроке'
+        verbose_name_plural = 'Карточки в уроках'
+
+    def clean(self):
+        if self.current_card_id and self.deck_id and self.current_card.deck_id != self.deck_id:
+            raise ValidationError('Текущая карточка должна относиться к выбранному комплекту.')
+
+    def __str__(self):
+        return f'{self.lesson} · {self.deck or "без комплекта"}'
 
 
 # lessons/models.py

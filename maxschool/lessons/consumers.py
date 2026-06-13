@@ -16,6 +16,7 @@ ALLOWED_EVENT_TYPES = {
     "update_image",
     "clear",
     "replace_board_state",
+    "lesson_card_change",
     "create_board",
     "delete_board",
     "tool_change",
@@ -87,7 +88,7 @@ class WhiteboardConsumer(AsyncWebsocketConsumer):
                 return
 
         # Only lesson teacher can manage boards.
-        if event_type in {"create_board", "delete_board"} and not self.can_manage_boards:
+        if event_type in {"create_board", "delete_board", "lesson_card_change"} and not self.can_manage_boards:
             return
 
         await self.channel_layer.group_send(

@@ -12,6 +12,7 @@ urlpatterns = [
     path('availability/delete/<int:slot_id>/', views.delete_availability_view, name='delete_availability'),
     path('lesson/<int:lesson_id>/session/', views.lesson_session, name='lesson_session'),
     path('lesson/<int:lesson_id>/board-state/', views.lesson_board_state, name='lesson_board_state'),
+    path('lesson/<int:lesson_id>/deck-state/', views.lesson_deck_state, name='lesson_deck_state'),
     path('lesson/<int:lesson_id>/reschedule/', views.reschedule_lesson_view, name='reschedule_lesson'),
 
     path('select-teacher/', views.select_teacher, name='schedule_lesson'),

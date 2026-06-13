@@ -1,6 +1,6 @@
 ﻿from django.shortcuts import render, redirect, get_object_or_404
 from .forms import LessonBookingForm
-from .models import LessonBooking
+from .models import LessonBooking, LessonCard, LessonDeck, LessonDeckSession
 from accounts.models import Lesson
 from django.contrib.auth.decorators import login_required
 
@@ -27,6 +27,96 @@ from datetime import datetime, date, timedelta
 from .utils import SERIES_WEEKS, BOOKING_MIN_HOURS, build_calendar_events, get_teacher_tz
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_file_url(file_field):
+    if not file_field:
+        return ''
+    try:
+        return file_field.url
+    except Exception:
+        return ''
+
+
+def _serialize_lesson_card(card):
+    return {
+        'id': card.id,
+        'order': card.order,
+        'card_type': card.card_type,
+        'card_type_label': card.get_card_type_display(),
+        'title': card.title,
+        'body': card.body,
+        'image_url': _safe_file_url(card.image),
+        'attachment_url': _safe_file_url(card.attachment),
+        'attachment_name': card.attachment.name.rsplit('/', 1)[-1] if card.attachment else '',
+        'video_url': card.video_url,
+    }
+
+
+def _serialize_lesson_deck(deck, current_card=None):
+    if not deck:
+        return {
+            'deck': None,
+            'current_card_id': None,
+            'current_index': 0,
+        }
+
+    cards = list(deck.cards.filter(is_active=True).order_by('order', 'id'))
+    current_card_id = current_card.id if current_card and current_card in cards else None
+    if current_card_id is None and cards:
+        current_card_id = cards[0].id
+
+    current_index = 0
+    for index, card in enumerate(cards):
+        if card.id == current_card_id:
+            current_index = index
+            break
+
+    return {
+        'deck': {
+            'id': deck.id,
+            'title': deck.title,
+            'topic': deck.topic,
+            'description': deck.description,
+            'subject': deck.subject.name if deck.subject_id else '',
+            'grade': deck.grade,
+            'cards': [_serialize_lesson_card(card) for card in cards],
+        },
+        'current_card_id': current_card_id,
+        'current_index': current_index,
+    }
+
+
+def _available_lesson_decks_qs(lesson):
+    base_qs = (
+        LessonDeck.objects
+        .filter(is_active=True)
+        .select_related('subject')
+        .prefetch_related('cards')
+        .order_by('subject__name', 'grade', 'sort_order', 'title')
+    )
+    if not lesson.subject_id:
+        return base_qs
+
+    subject_qs = base_qs.filter(Q(subject=lesson.subject) | Q(subject__isnull=True))
+    return subject_qs if subject_qs.exists() else base_qs
+
+
+def _lesson_deck_payload(lesson):
+    session = (
+        LessonDeckSession.objects
+        .select_related('deck', 'deck__subject', 'current_card')
+        .filter(lesson=lesson)
+        .first()
+    )
+    if not session or not session.deck_id:
+        return _serialize_lesson_deck(None)
+
+    return _serialize_lesson_deck(session.deck, session.current_card)
+
+
+def _teacher_can_control_lesson_cards(user, lesson):
+    return bool(user == lesson.teacher or getattr(user, 'is_superuser', False))
 
 @login_required
 def book_lesson_view(request, teacher_id):
@@ -502,8 +592,84 @@ def lesson_session(request, lesson_id):
         "jitsi_external_url": jitsi_external_url,
         "jitsi_jwt": jitsi_jwt,
         "user_name": request.user.get_full_name() or request.user.username,
-        "is_teacher": is_teacher  # Передаем флаг в шаблон
+        "is_teacher": is_teacher,  # Передаем флаг в шаблон
+        "lesson_decks": _available_lesson_decks_qs(lesson),
+        "lesson_deck_payload": _lesson_deck_payload(lesson),
     })
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def lesson_deck_state(request, lesson_id):
+    lesson = get_object_or_404(Lesson.objects.select_related('teacher', 'student', 'subject'), id=lesson_id)
+    if request.user not in (lesson.teacher, lesson.student) and not request.user.is_superuser:
+        return JsonResponse({'error': 'Нет доступа'}, status=403)
+
+    if request.method == 'GET':
+        payload = _lesson_deck_payload(lesson)
+        payload['can_edit'] = _teacher_can_control_lesson_cards(request.user, lesson)
+        return JsonResponse(payload, status=200)
+
+    if not _teacher_can_control_lesson_cards(request.user, lesson):
+        return JsonResponse({'error': 'Только преподаватель может менять карточки'}, status=403)
+
+    try:
+        data = json.loads(request.body.decode('utf-8') or '{}')
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return JsonResponse({'error': 'Некорректный формат запроса'}, status=400)
+
+    if not isinstance(data, dict):
+        return JsonResponse({'error': 'Некорректный формат запроса'}, status=400)
+
+    action = (data.get('action') or '').strip()
+    session, _ = LessonDeckSession.objects.get_or_create(lesson=lesson)
+
+    if action == 'clear_deck':
+        session.deck = None
+        session.current_card = None
+        session.updated_by = request.user
+        session.save(update_fields=['deck', 'current_card', 'updated_by', 'updated_at'])
+        payload = _serialize_lesson_deck(None)
+        payload['can_edit'] = True
+        return JsonResponse(payload, status=200)
+
+    if action == 'select_deck':
+        deck_id = data.get('deck_id')
+        if not str(deck_id or '').isdigit():
+            return JsonResponse({'error': 'Выберите комплект урока'}, status=400)
+
+        deck = get_object_or_404(_available_lesson_decks_qs(lesson), id=int(deck_id))
+        first_card = deck.cards.filter(is_active=True).order_by('order', 'id').first()
+        session.deck = deck
+        session.current_card = first_card
+        session.updated_by = request.user
+        session.save(update_fields=['deck', 'current_card', 'updated_by', 'updated_at'])
+        payload = _serialize_lesson_deck(deck, first_card)
+        payload['can_edit'] = True
+        return JsonResponse(payload, status=200)
+
+    if action == 'set_card':
+        if not session.deck_id:
+            return JsonResponse({'error': 'Сначала выберите комплект урока'}, status=400)
+
+        card_id = data.get('card_id')
+        if not str(card_id or '').isdigit():
+            return JsonResponse({'error': 'Выберите карточку'}, status=400)
+
+        card = get_object_or_404(
+            LessonCard,
+            id=int(card_id),
+            deck=session.deck,
+            is_active=True,
+        )
+        session.current_card = card
+        session.updated_by = request.user
+        session.save(update_fields=['current_card', 'updated_by', 'updated_at'])
+        payload = _serialize_lesson_deck(session.deck, card)
+        payload['can_edit'] = True
+        return JsonResponse(payload, status=200)
+
+    return JsonResponse({'error': 'Неизвестное действие'}, status=400)
 
 
 def _try_fix_cp1251_mojibake(value):

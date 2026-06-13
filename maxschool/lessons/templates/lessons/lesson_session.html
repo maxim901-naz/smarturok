@@ -356,6 +356,169 @@
             background: #f9fafb;
         }
 
+        .deck-picker {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .deck-picker select {
+            min-width: 0;
+            flex: 1;
+            border: 1px solid #dbe3ef;
+            border-radius: 10px;
+            padding: 9px 10px;
+            color: var(--text);
+            background: white;
+            font-weight: 600;
+        }
+
+        .deck-picker button,
+        .lesson-card-nav button {
+            border: none;
+            border-radius: 10px;
+            padding: 9px 12px;
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .deck-picker button:hover,
+        .lesson-card-nav button:hover {
+            background: var(--primary-dark);
+        }
+
+        .deck-picker button:disabled,
+        .lesson-card-nav button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .lesson-sync-note {
+            color: var(--text-light);
+            font-size: 0.86rem;
+            margin-bottom: 12px;
+        }
+
+        .lesson-card-empty {
+            min-height: 280px;
+            border: 1px dashed #dbe3ef;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+            color: var(--text-light);
+            background: linear-gradient(145deg, #ffffff, #f7fafc);
+        }
+
+        .lesson-card-viewer {
+            min-height: 420px;
+            border-radius: 22px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+
+        .lesson-card-hero {
+            padding: 18px 20px;
+            color: white;
+            background: linear-gradient(135deg, #16324f, #f5821e);
+        }
+
+        .lesson-card-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.16);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .lesson-card-title {
+            margin-top: 14px;
+            font-size: clamp(1.4rem, 2vw, 2rem);
+            line-height: 1.1;
+            font-weight: 850;
+        }
+
+        .lesson-card-subtitle {
+            margin-top: 8px;
+            color: rgba(255,255,255,0.82);
+            font-size: 0.94rem;
+        }
+
+        .lesson-card-body {
+            padding: 20px;
+            font-size: 1.05rem;
+            line-height: 1.65;
+            color: #172033;
+        }
+
+        .lesson-card-body img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #f8fafc;
+            margin-bottom: 16px;
+        }
+
+        .lesson-card-text {
+            white-space: pre-wrap;
+        }
+
+        .lesson-card-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .lesson-card-links a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 12px;
+            background: #fff7ed;
+            color: #c2410c;
+            text-decoration: none;
+            font-weight: 800;
+        }
+
+        .lesson-card-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .lesson-card-counter {
+            color: var(--text-light);
+            font-weight: 800;
+        }
+
+        .lesson-card-error {
+            display: none;
+            margin-bottom: 10px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            background: #fef2f2;
+            color: #991b1b;
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
         #toolbar {
             position: absolute;
             left: 50%;
@@ -856,7 +1019,7 @@
             </div>
         </header>
         
-        <div class="main-content materials-collapsed">
+        <div class="main-content">
             <div id="sidebar" class="hidden">
                 <div class="sidebar-section">
                     <h2 class="sidebar-title">📋 <span class="sidebar-title-text">Доски</span></h2>
@@ -882,8 +1045,8 @@
                         <button id="toggleSidebar" type="button" class="topbar-btn" title="Свернуть левую панель">
                             ☰ Панели
                         </button>
-                        <button id="toggleLessonPanel" type="button" class="topbar-btn" title="Скрыть материалы">
-                            📎 Материалы
+                        <button id="toggleLessonPanel" type="button" class="topbar-btn" title="Показать или скрыть карточки урока">
+                            📎 Карточки
                         </button>
                         <button id="newBoardTop" type="button" class="topbar-btn" title="Новая доска">
                             ➕ Новая доска
@@ -1018,15 +1181,59 @@
                 </div>
             </div>
 
-            <aside id="lesson-panel" class="hidden">
+            <aside id="lesson-panel">
                 <div class="lesson-panel-header">
-                    <span>Урок</span>
-                    <button class="header-btn" style="background:#ffffff;color:#2c3e50;">Материалы</button>
+                    <span id="lessonDeckHeader">Карточки урока</span>
+                    <button id="lessonPanelClose" class="header-btn" style="background:#ffffff;color:#2c3e50;" type="button">Скрыть</button>
                 </div>
                 <div class="lesson-panel-content">
                     <div class="lesson-section">
-                        <h3>Материалы</h3>
-                        <div class="materials"></div>
+                        {% if is_teacher %}
+                        <div class="deck-picker">
+                            <select id="lessonDeckSelect" aria-label="Выберите комплект карточек">
+                                <option value="">Выберите готовый урок</option>
+                                {% for deck in lesson_decks %}
+                                    <option value="{{ deck.id }}">
+                                        {% if deck.subject %}{{ deck.subject.name }} · {% endif %}
+                                        {% if deck.grade %}{{ deck.grade }} класс · {% endif %}
+                                        {{ deck.title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button id="lessonDeckApply" type="button">Открыть</button>
+                        </div>
+                        {% else %}
+                        <p class="lesson-sync-note">Карточками управляет преподаватель. Когда он выберет урок или переключит карточку, она появится здесь автоматически.</p>
+                        {% endif %}
+
+                        <div id="lessonCardError" class="lesson-card-error"></div>
+
+                        <div id="lessonCardEmpty" class="lesson-card-empty">
+                            <div>
+                                <div style="font-size:2rem;margin-bottom:10px;">▦</div>
+                                <strong>Комплект карточек не выбран</strong>
+                                <p style="margin-top:8px;">Учитель выбирает готовый урок, а карточки появляются справа от доски.</p>
+                            </div>
+                        </div>
+
+                        <div id="lessonCardViewer" class="lesson-card-viewer" style="display:none;">
+                            <div class="lesson-card-hero">
+                                <div id="lessonCardType" class="lesson-card-kicker">Карточка</div>
+                                <div id="lessonCardTitle" class="lesson-card-title"></div>
+                                <div id="lessonCardMeta" class="lesson-card-subtitle"></div>
+                            </div>
+                            <div class="lesson-card-body">
+                                <img id="lessonCardImage" src="" alt="" style="display:none;">
+                                <div id="lessonCardText" class="lesson-card-text"></div>
+                                <div id="lessonCardLinks" class="lesson-card-links"></div>
+                            </div>
+                        </div>
+
+                        <div class="lesson-card-nav">
+                            <button id="lessonCardPrev" type="button" {% if not is_teacher %}disabled{% endif %}>← Назад</button>
+                            <span id="lessonCardCounter" class="lesson-card-counter">0 из 0</span>
+                            <button id="lessonCardNext" type="button" {% if not is_teacher %}disabled{% endif %}>Вперёд →</button>
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -1050,6 +1257,7 @@
         </div>
     </div>
 
+    {{ lesson_deck_payload|json_script:"initial-lesson-deck-state" }}
     <script src='{{ jitsi_script_url }}'></script>
     <script>
         // Инициализация WebSocket
@@ -1064,6 +1272,17 @@
         let shouldResyncBoardStateOnOpen = false;
         const canManageBoards = {% if is_teacher %}true{% else %}false{% endif %};
         const boardStateUrl = "{% url 'lesson_board_state' lesson.id %}";
+        const lessonDeckStateUrl = "{% url 'lesson_deck_state' lesson.id %}";
+        const canControlLessonCards = {% if is_teacher %}true{% else %}false{% endif %};
+        const initialLessonDeckNode = document.getElementById('initial-lesson-deck-state');
+        let lessonDeckState = { deck: null, current_card_id: null, current_index: 0 };
+        if (initialLessonDeckNode && initialLessonDeckNode.textContent) {
+            try {
+                lessonDeckState = JSON.parse(initialLessonDeckNode.textContent);
+            } catch (err) {
+                lessonDeckState = { deck: null, current_card_id: null, current_index: 0 };
+            }
+        }
         const MAX_PENDING_SOCKET_EVENTS = 400;
         const MAX_IMAGE_FILE_BYTES = 5 * 1024 * 1024;
         const MAX_IMAGE_DATA_URL_LENGTH = 1500000;
@@ -1230,6 +1449,191 @@
             }
         }
 
+        function normalizeLessonDeckState(payload) {
+            const safe = payload && typeof payload === 'object' ? payload : {};
+            const deck = safe.deck && typeof safe.deck === 'object' ? safe.deck : null;
+            return {
+                deck,
+                current_card_id: safe.current_card_id || null,
+                current_index: Number.isFinite(Number(safe.current_index)) ? Number(safe.current_index) : 0
+            };
+        }
+
+        function getLessonCards() {
+            return lessonDeckState.deck && Array.isArray(lessonDeckState.deck.cards)
+                ? lessonDeckState.deck.cards
+                : [];
+        }
+
+        function getCurrentLessonCardIndex() {
+            const cards = getLessonCards();
+            if (!cards.length) return 0;
+            const byId = cards.findIndex(card => String(card.id) === String(lessonDeckState.current_card_id));
+            if (byId >= 0) return byId;
+            const safeIndex = Number.isFinite(Number(lessonDeckState.current_index)) ? Number(lessonDeckState.current_index) : 0;
+            return Math.max(0, Math.min(cards.length - 1, safeIndex));
+        }
+
+        function getCurrentLessonCard() {
+            const cards = getLessonCards();
+            return cards[getCurrentLessonCardIndex()] || null;
+        }
+
+        function showLessonCardError(message) {
+            if (!lessonCardError) return;
+            lessonCardError.textContent = message || '';
+            lessonCardError.style.display = message ? 'block' : 'none';
+        }
+
+        function renderLessonDeckPanel() {
+            lessonDeckState = normalizeLessonDeckState(lessonDeckState);
+            const deck = lessonDeckState.deck;
+            const cards = getLessonCards();
+            const currentIndex = getCurrentLessonCardIndex();
+            const card = cards[currentIndex] || null;
+
+            if (lessonDeckSelect) {
+                lessonDeckSelect.value = deck && deck.id ? String(deck.id) : '';
+            }
+
+            if (lessonDeckHeader) {
+                lessonDeckHeader.textContent = deck ? deck.title : 'Карточки урока';
+            }
+
+            if (lessonCardCounter) {
+                lessonCardCounter.textContent = cards.length ? `${currentIndex + 1} из ${cards.length}` : '0 из 0';
+            }
+
+            if (lessonCardPrev) {
+                lessonCardPrev.disabled = !canControlLessonCards || !cards.length || currentIndex <= 0;
+            }
+            if (lessonCardNext) {
+                lessonCardNext.disabled = !canControlLessonCards || !cards.length || currentIndex >= cards.length - 1;
+            }
+
+            if (!deck || !card) {
+                if (lessonCardEmpty) {
+                    lessonCardEmpty.style.display = 'flex';
+                    const title = deck ? 'В комплекте нет активных карточек' : 'Комплект карточек не выбран';
+                    const text = deck
+                        ? 'Добавьте карточки в админке или включите их для показа.'
+                        : 'Учитель выбирает готовый урок, а карточки появляются справа от доски.';
+                    lessonCardEmpty.innerHTML = `<div><div style="font-size:2rem;margin-bottom:10px;">▦</div><strong>${title}</strong><p style="margin-top:8px;">${text}</p></div>`;
+                }
+                if (lessonCardViewer) lessonCardViewer.style.display = 'none';
+                return;
+            }
+
+            if (lessonCardEmpty) lessonCardEmpty.style.display = 'none';
+            if (lessonCardViewer) lessonCardViewer.style.display = 'block';
+            if (lessonCardType) lessonCardType.textContent = card.card_type_label || 'Карточка';
+            if (lessonCardTitle) lessonCardTitle.textContent = card.title || deck.title || 'Карточка урока';
+            if (lessonCardMeta) {
+                const meta = [];
+                if (deck.subject) meta.push(deck.subject);
+                if (deck.grade) meta.push(`${deck.grade} класс`);
+                if (deck.topic) meta.push(deck.topic);
+                lessonCardMeta.textContent = meta.join(' · ');
+            }
+            if (lessonCardText) {
+                lessonCardText.textContent = card.body || '';
+            }
+            if (lessonCardImage) {
+                if (card.image_url) {
+                    lessonCardImage.src = card.image_url;
+                    lessonCardImage.alt = card.title || deck.title || 'Карточка урока';
+                    lessonCardImage.style.display = 'block';
+                } else {
+                    lessonCardImage.removeAttribute('src');
+                    lessonCardImage.style.display = 'none';
+                }
+            }
+            if (lessonCardLinks) {
+                lessonCardLinks.innerHTML = '';
+                if (card.attachment_url) {
+                    const link = document.createElement('a');
+                    link.href = card.attachment_url;
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = `Файл: ${card.attachment_name || 'открыть'}`;
+                    lessonCardLinks.appendChild(link);
+                }
+                if (card.video_url) {
+                    const link = document.createElement('a');
+                    link.href = card.video_url;
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = 'Открыть видео';
+                    lessonCardLinks.appendChild(link);
+                }
+            }
+        }
+
+        function publishLessonDeckChange() {
+            sendEvent('lesson_card_change', {
+                deckState: lessonDeckState
+            });
+        }
+
+        function loadLessonDeckState() {
+            return fetch(lessonDeckStateUrl, { credentials: 'same-origin' })
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data) {
+                        lessonDeckState = normalizeLessonDeckState(data);
+                        renderLessonDeckPanel();
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function postLessonDeckAction(payload) {
+            showLessonCardError('');
+            return fetch(lessonDeckStateUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(async (response) => {
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.error || 'Не удалось обновить карточки урока');
+                }
+                lessonDeckState = normalizeLessonDeckState(data);
+                renderLessonDeckPanel();
+                publishLessonDeckChange();
+                return data;
+            })
+            .catch((error) => {
+                showLessonCardError(error.message || 'Не удалось обновить карточки урока');
+            });
+        }
+
+        function selectLessonDeckFromPicker() {
+            if (!canControlLessonCards || !lessonDeckSelect) return;
+            const deckId = lessonDeckSelect.value;
+            if (!deckId) {
+                postLessonDeckAction({ action: 'clear_deck' });
+                return;
+            }
+            postLessonDeckAction({ action: 'select_deck', deck_id: deckId });
+        }
+
+        function setLessonCardByOffset(offset) {
+            if (!canControlLessonCards) return;
+            const cards = getLessonCards();
+            if (!cards.length) return;
+            const nextIndex = getCurrentLessonCardIndex() + offset;
+            const safeIndex = Math.max(0, Math.min(cards.length - 1, nextIndex));
+            const card = cards[safeIndex];
+            if (!card) return;
+            postLessonDeckAction({ action: 'set_card', card_id: card.id });
+        }
+
         // Инициализация элементов
         const canvas = document.getElementById('whiteboard');
         const ctx = canvas.getContext('2d');
@@ -1275,6 +1679,22 @@
         const finishModal = document.getElementById('finishModal');
         const confirmFinishBtn = document.getElementById('confirmFinish');
         const cancelFinishBtn = document.getElementById('cancelFinish');
+        const lessonDeckHeader = document.getElementById('lessonDeckHeader');
+        const lessonDeckSelect = document.getElementById('lessonDeckSelect');
+        const lessonDeckApply = document.getElementById('lessonDeckApply');
+        const lessonPanelCloseBtn = document.getElementById('lessonPanelClose');
+        const lessonCardError = document.getElementById('lessonCardError');
+        const lessonCardEmpty = document.getElementById('lessonCardEmpty');
+        const lessonCardViewer = document.getElementById('lessonCardViewer');
+        const lessonCardType = document.getElementById('lessonCardType');
+        const lessonCardTitle = document.getElementById('lessonCardTitle');
+        const lessonCardMeta = document.getElementById('lessonCardMeta');
+        const lessonCardImage = document.getElementById('lessonCardImage');
+        const lessonCardText = document.getElementById('lessonCardText');
+        const lessonCardLinks = document.getElementById('lessonCardLinks');
+        const lessonCardPrev = document.getElementById('lessonCardPrev');
+        const lessonCardNext = document.getElementById('lessonCardNext');
+        const lessonCardCounter = document.getElementById('lessonCardCounter');
         
         // Состояние приложения
         const state = {
@@ -1355,6 +1775,7 @@
                         scheduleSaveBoardState(true);
                     }
                 }
+                loadLessonDeckState();
             };
 
             socket.onmessage = function(e) {
@@ -1431,6 +1852,16 @@
         }
 
         function drawFromData(data) {
+            if (data.type === 'lesson_card_change') {
+                if (data.deckState) {
+                    lessonDeckState = normalizeLessonDeckState(data.deckState);
+                    renderLessonDeckPanel();
+                } else {
+                    loadLessonDeckState();
+                }
+                return;
+            }
+
             const targetBoard = getBoardById(data.boardId);
             if (!targetBoard) return;
             const isCurrentBoard = String(targetBoard.id) === String(state.currentBoardId);
@@ -2761,7 +3192,37 @@
                     });
                 });
             }
-            
+
+            if (lessonPanelCloseBtn && toggleLessonPanelBtn) {
+                lessonPanelCloseBtn.addEventListener('click', () => {
+                    toggleLessonPanelBtn.click();
+                });
+            }
+
+            if (lessonDeckApply) {
+                lessonDeckApply.addEventListener('click', selectLessonDeckFromPicker);
+            }
+
+            if (lessonDeckSelect) {
+                lessonDeckSelect.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        selectLessonDeckFromPicker();
+                    }
+                });
+            }
+
+            if (lessonCardPrev) {
+                lessonCardPrev.addEventListener('click', () => setLessonCardByOffset(-1));
+            }
+
+            if (lessonCardNext) {
+                lessonCardNext.addEventListener('click', () => setLessonCardByOffset(1));
+            }
+
+            renderLessonDeckPanel();
+            loadLessonDeckState();
+
             if (newBoardTopBtn) {
                 newBoardTopBtn.addEventListener('click', () => {
                     if (canManageBoards) createNewBoard();
