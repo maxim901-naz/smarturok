@@ -310,6 +310,11 @@
             <div class="mt-5 flex flex-wrap gap-3">
                 <a href="{% url 'trial' %}" data-cta="material_trial" data-cta-location="material_hero" class="px-5 py-3 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition">Записаться на пробный урок</a>
                 <button type="button" data-open-lead-modal data-cta="material_consultation" data-cta-location="material_hero" class="px-5 py-3 rounded-xl border border-white/65 text-white font-semibold hover:bg-white/10 transition">Нужен преподаватель по теме</button>
+                {% if material_hub_link %}
+                <a href="{{ material_hub_link.url }}" data-cta="material_hub_open" data-cta-location="material_hero" class="px-5 py-3 rounded-xl border border-orange-200/70 bg-orange-400/15 text-white font-semibold hover:bg-orange-400/25 transition">
+                    Все материалы: {{ material_hub_link.label }}
+                </a>
+                {% endif %}
             </div>
         </section>
 
@@ -548,6 +553,16 @@
                         <button type="button" data-open-lead-modal data-cta="material_consultation" data-cta-location="material_sidebar" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition">Нужна консультация</button>
                     </div>
                 </div>
+
+                {% if material_hub_link %}
+                <div class="rounded-2xl border border-orange-200 bg-orange-50 p-5 shadow-soft">
+                    <h3 class="text-base font-bold text-slate-900">Учебный маршрут</h3>
+                    <p class="text-sm text-slate-600 mt-2">Откройте подборку по теме: статьи, разборы и тесты собраны в одном месте.</p>
+                    <a href="{{ material_hub_link.url }}" data-cta="material_hub_open" data-cta-location="material_sidebar" class="mt-4 block text-center px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition">
+                        {{ material_hub_link.label }} · {{ material_hub_link.count }} материалов
+                    </a>
+                </div>
+                {% endif %}
 
                 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-soft">
                     <h3 class="text-base font-bold">Как учиться эффективнее</h3>

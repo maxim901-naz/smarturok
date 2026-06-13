@@ -563,12 +563,21 @@
                             <p class="text-sm font-semibold text-accent">Учебная база SmartUrok</p>
                             <h2 class="text-3xl font-bold mt-2">Материалы по предмету «{{ subject.name }}»</h2>
                             <p class="text-gray-600 mt-2 max-w-2xl">
-                                Теория, разборы и тесты помогают ученику закрепить тему после урока, а поисковикам показывают экспертность раздела.
+                                Теория, разборы и тесты помогают ученику закрепить тему после урока и показывают, что по предмету есть полноценная учебная база.
                             </p>
                         </div>
-                        <a href="{% url 'materials_list' %}?subject={{ subject.id }}" data-cta="subject_materials_all_open" class="px-5 py-3 border border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition">
-                            Все материалы{% if subject_materials_total %} ({{ subject_materials_total }}){% endif %}
-                        </a>
+                        <div class="flex flex-wrap gap-2">
+                            {% if subject_material_hubs %}
+                                {% for hub_item in subject_material_hubs %}
+                                <a href="{{ hub_item.url }}" data-cta="subject_material_hub_open" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
+                                    {{ hub_item.label }} · {{ hub_item.count }}
+                                </a>
+                                {% endfor %}
+                            {% endif %}
+                            <a href="{% url 'materials_list' %}?subject={{ subject.id }}" data-cta="subject_materials_all_open" class="px-5 py-3 border border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition">
+                                Все материалы{% if subject_materials_total %} ({{ subject_materials_total }}){% endif %}
+                            </a>
+                        </div>
                     </div>
 
                     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">

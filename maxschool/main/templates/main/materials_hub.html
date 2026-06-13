@@ -1,0 +1,437 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ hub.title }} | SmartUrok</title>
+    <meta name="description" content="{{ hub.meta_description }}">
+    <meta name="robots" content="{% if hub.materials_total >= 2 %}index, follow{% else %}noindex, follow{% endif %}">
+    <link rel="canonical" href="{{ hub.canonical_url }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SmartUrok">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:title" content="{{ hub.title }}">
+    <meta property="og:description" content="{{ hub.meta_description }}">
+    <meta property="og:url" content="{{ hub.canonical_url }}">
+    <meta property="og:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ hub.title }}">
+    <meta name="twitter:description" content="{{ hub.meta_description }}">
+    <meta name="twitter:image" content="https://smarturok.ru{% static 'images/logo4-round.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/logo4-round.png' %}">
+    {% include 'main/includes/analytics_head.html' %}
+    <script src="{% static 'js/marketing_events.js' %}"></script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "{{ hub.title|escapejs }}",
+        "description": "{{ hub.meta_description|escapejs }}",
+        "url": "{{ hub.canonical_url }}",
+        "about": {
+            "@type": "Course",
+            "name": "{{ subject.name|escapejs }}",
+            "provider": {
+                "@type": "Organization",
+                "name": "SmartUrok",
+                "url": "https://smarturok.ru/"
+            }
+        }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Материалы",
+                "item": "https://smarturok.ru{% url 'materials_list' %}"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "{{ hub.label|escapejs }}",
+                "item": "https://smarturok.ru{{ hub.direction_url }}"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": "{{ subject.name|escapejs }}",
+                "item": "{{ hub.canonical_url }}"
+            }
+        ]
+    }
+    </script>
+    {% if latest_items %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "{{ hub.title|escapejs }}",
+        "itemListElement": [
+            {% for item in latest_items|slice:":12" %}
+            {
+                "@type": "ListItem",
+                "position": {{ forloop.counter }},
+                "name": "{{ item.title|escapejs }}",
+                "url": "https://smarturok.ru{% url 'material_detail' item.slug %}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ]
+    }
+    </script>
+    {% endif %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #f97316;
+            --brand-dark: #c2410c;
+            --ink: #0f172a;
+            --muted: #475569;
+            --line: #e2e8f0;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(900px 520px at 0% -10%, rgba(249, 115, 22, 0.18), transparent 60%),
+                radial-gradient(900px 520px at 100% 0%, rgba(14, 165, 233, 0.15), transparent 60%),
+                #f8fafc;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.62);
+        }
+        .shadow-soft {
+            box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+        }
+        .lift {
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+        .lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 46px rgba(15, 23, 42, 0.12);
+            border-color: rgba(249, 115, 22, 0.35);
+        }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: .32rem .75rem;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+        .hero-grid {
+            background:
+                linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 42px 42px;
+        }
+    </style>
+</head>
+<body data-page-type="materials_hub">
+    <header class="sticky top-0 z-30 border-b border-white/70 glass">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <a href="{% url 'home' %}" class="font-black text-lg tracking-tight">SmartUrok</a>
+            <nav class="hidden md:flex items-center gap-5 text-sm text-slate-700">
+                <a href="{% url 'home' %}" class="hover:text-orange-600 transition">Главная</a>
+                <a href="{{ hub.direction_url }}" class="hover:text-orange-600 transition">{{ hub.direction_title }}</a>
+                <a href="{% url 'materials_list' %}" class="hover:text-orange-600 transition">Материалы</a>
+                <a href="{{ hub.trial_url }}" data-cta="hub_trial_open" data-cta-location="hub_header" class="px-4 py-2 rounded-xl bg-orange-500 text-white font-bold hover:bg-orange-600 transition">Пробный урок</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="relative overflow-hidden text-white">
+            <div class="absolute inset-0 hero-grid" style="background-color:#0f172a;"></div>
+            <div class="absolute inset-0" style="background: radial-gradient(circle at 80% 10%, rgba(249,115,22,.5), transparent 35%), linear-gradient(135deg, rgba(15,23,42,.96), rgba(30,41,59,.92));"></div>
+            <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+                <div class="max-w-4xl">
+                    <div class="flex flex-wrap items-center gap-2 mb-5">
+                        <a href="{% url 'materials_list' %}" class="chip bg-white/12 text-white border border-white/15 hover:bg-white/18 transition">Материалы</a>
+                        <a href="{{ hub.direction_url }}" class="chip bg-orange-400/18 text-orange-100 border border-orange-300/20 hover:bg-orange-400/28 transition">{{ hub.label }}</a>
+                        <a href="{% url 'subject_detail' subject.slug %}" class="chip bg-sky-400/18 text-sky-100 border border-sky-300/20 hover:bg-sky-400/28 transition">{{ subject.name }}</a>
+                    </div>
+                    <p class="text-sm font-black uppercase tracking-[0.18em] text-orange-200">{{ hub.eyebrow }}</p>
+                    <h1 class="mt-4 text-3xl sm:text-5xl font-black leading-tight">{{ hub.title }}</h1>
+                    <p class="mt-5 text-lg leading-8 text-white/82 max-w-3xl">{{ hub.hero_text }}</p>
+                    <div class="mt-7 flex flex-wrap gap-3">
+                        <a href="#hub-materials" data-cta="hub_materials_scroll" data-cta-location="hub_hero" class="px-6 py-3 rounded-xl bg-white text-slate-950 font-black hover:bg-orange-50 transition">Смотреть материалы</a>
+                        <a href="{{ hub.trial_url }}" data-cta="hub_trial_open" data-cta-location="hub_hero" class="px-6 py-3 rounded-xl border border-white/55 text-white font-bold hover:bg-white/10 transition">{{ hub.primary_cta }}</a>
+                    </div>
+                </div>
+
+                <div class="mt-9 grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="rounded-2xl bg-white/10 border border-white/12 p-4">
+                        <div class="text-3xl font-black">{{ hub.materials_total }}</div>
+                        <div class="text-sm text-white/70 mt-1">материалов</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 border border-white/12 p-4">
+                        <div class="text-3xl font-black">{{ theory_count }}</div>
+                        <div class="text-sm text-white/70 mt-1">теория и разборы</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 border border-white/12 p-4">
+                        <div class="text-3xl font-black">{{ test_count }}</div>
+                        <div class="text-sm text-white/70 mt-1">тесты</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/10 border border-white/12 p-4">
+                        <div class="text-3xl font-black">{{ task_count }}</div>
+                        <div class="text-sm text-white/70 mt-1">задания по номерам</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-soft">
+                    <p class="text-sm font-black text-orange-600">Как пользоваться страницей</p>
+                    <h2 class="text-2xl sm:text-3xl font-black mt-2">Сначала теория, потом практика и проверка</h2>
+                    <div class="mt-5 grid sm:grid-cols-3 gap-3">
+                        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                            <div class="font-black">1. Разберите тему</div>
+                            <p class="text-sm text-slate-600 mt-2">Откройте статью или видео, чтобы понять правило и алгоритм.</p>
+                        </div>
+                        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                            <div class="font-black">2. Решите задания</div>
+                            <p class="text-sm text-slate-600 mt-2">Переходите к практике, особенно если есть номер задания.</p>
+                        </div>
+                        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                            <div class="font-black">3. Проверьте пробелы</div>
+                            <p class="text-sm text-slate-600 mt-2">Если тема не идет, берите пробный урок и закрывайте ошибки с преподавателем.</p>
+                        </div>
+                    </div>
+                </div>
+                <aside class="rounded-3xl bg-slate-950 text-white p-6 sm:p-8 shadow-soft">
+                    <p class="text-sm font-black text-orange-300">Индивидуальный маршрут</p>
+                    <h2 class="text-2xl font-black mt-2">Не знаете, с чего начать?</h2>
+                    <p class="text-sm text-white/72 mt-3">На пробном уроке определим уровень ученика и покажем, какие темы закрывать первыми.</p>
+                    <a href="{{ hub.trial_url }}" data-cta="hub_trial_open" data-cta-location="hub_diagnostic" class="mt-5 inline-flex px-5 py-3 rounded-xl bg-orange-500 text-white font-black hover:bg-orange-600 transition">{{ hub.primary_cta }}</a>
+                </aside>
+            </div>
+        </section>
+
+        {% if task_items %}
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-soft">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+                    <div>
+                        <p class="text-sm font-black text-orange-600">Задания</p>
+                        <h2 class="text-2xl sm:text-3xl font-black mt-2">Материалы по номерам заданий</h2>
+                    </div>
+                    <span class="text-sm text-slate-500">Удобно для экзаменов и проверочных работ</span>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    {% for item in task_items %}
+                    <a href="{% url 'material_detail' item.slug %}" data-cta="hub_task_material_open" data-cta-location="hub_tasks" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 hover:border-orange-300 hover:bg-orange-50 transition">
+                        <span class="text-xs font-black text-orange-600">Задание №{{ item.task_number }}</span>
+                        <span class="block font-bold text-slate-900 mt-1">{{ item.title|truncatechars:72 }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <section id="hub-materials" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid lg:grid-cols-[1fr_340px] gap-6 items-start">
+                <div class="space-y-6">
+                    {% if theory_items %}
+                    <div class="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-soft">
+                        <div class="flex items-end justify-between gap-4 mb-5">
+                            <div>
+                                <p class="text-sm font-black text-sky-600">Теория</p>
+                                <h2 class="text-2xl font-black mt-1">Разборы и объяснения</h2>
+                            </div>
+                            <span class="text-sm text-slate-500">{{ theory_count }} материалов</span>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            {% for item in theory_items %}
+                            <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5 lift">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span class="chip bg-sky-100 text-sky-800">{{ item.get_content_type_display }}</span>
+                                    {% if item.grade %}<span class="chip bg-white text-slate-700 border border-slate-200">{{ item.grade }} класс</span>{% endif %}
+                                </div>
+                                <h3 class="font-black leading-snug">
+                                    <a href="{% url 'material_detail' item.slug %}" data-cta="hub_theory_open" data-cta-location="hub_theory" class="hover:text-orange-600 transition">{{ item.title }}</a>
+                                </h3>
+                                {% if item.description %}
+                                <p class="text-sm text-slate-600 mt-2">{{ item.description|striptags|truncatechars:120 }}</p>
+                                {% endif %}
+                                <a href="{% url 'material_detail' item.slug %}" data-cta="hub_theory_open" data-cta-location="hub_theory" class="inline-flex mt-4 text-sm font-black text-orange-700 hover:text-orange-800 transition">Открыть →</a>
+                            </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if test_items %}
+                    <div class="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-soft">
+                        <div class="flex items-end justify-between gap-4 mb-5">
+                            <div>
+                                <p class="text-sm font-black text-emerald-600">Практика</p>
+                                <h2 class="text-2xl font-black mt-1">Тесты и тренировка</h2>
+                            </div>
+                            <span class="text-sm text-slate-500">{{ test_count }} тестов</span>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            {% for item in test_items %}
+                            <article class="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 lift">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span class="chip bg-emerald-100 text-emerald-800">Тест</span>
+                                    {% if item.task_number %}<span class="chip bg-white text-slate-700 border border-slate-200">Задание №{{ item.task_number }}</span>{% endif %}
+                                </div>
+                                <h3 class="font-black leading-snug">
+                                    <a href="{% url 'material_detail' item.slug %}" data-cta="hub_test_open" data-cta-location="hub_tests" class="hover:text-emerald-700 transition">{{ item.title }}</a>
+                                </h3>
+                                {% if item.description %}
+                                <p class="text-sm text-slate-600 mt-2">{{ item.description|striptags|truncatechars:120 }}</p>
+                                {% endif %}
+                                <a href="{% url 'material_detail' item.slug %}" data-cta="hub_test_open" data-cta-location="hub_tests" class="inline-flex mt-4 text-sm font-black text-emerald-700 hover:text-emerald-800 transition">Пройти тест →</a>
+                            </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 shadow-soft">
+                        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5">
+                            <div>
+                                <p class="text-sm font-black text-orange-600">Все материалы</p>
+                                <h2 class="text-2xl sm:text-3xl font-black mt-2">{{ hub.label }}: {{ subject.name }}</h2>
+                            </div>
+                            {% if grade_options %}
+                            <div class="flex flex-wrap gap-2">
+                                {% for grade in grade_options %}
+                                <span class="chip bg-slate-100 text-slate-700">{{ grade }} класс</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            {% for item in latest_items %}
+                            <article class="rounded-2xl border border-slate-200 bg-slate-50 p-5 lift">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span class="chip bg-orange-100 text-orange-700">{{ item.get_content_type_display }}</span>
+                                    {% if item.task_number %}<span class="chip bg-white text-slate-700 border border-slate-200">№{{ item.task_number }}</span>{% endif %}
+                                    {% if item.grade %}<span class="chip bg-white text-slate-700 border border-slate-200">{{ item.grade }} класс</span>{% endif %}
+                                </div>
+                                <h3 class="font-black leading-snug">
+                                    <a href="{% url 'material_detail' item.slug %}" data-cta="hub_material_open" data-cta-location="hub_all" class="hover:text-orange-600 transition">{{ item.title }}</a>
+                                </h3>
+                                {% if item.description %}
+                                <p class="text-sm text-slate-600 mt-2">{{ item.description|striptags|truncatechars:120 }}</p>
+                                {% endif %}
+                                <div class="mt-4 flex items-center justify-between gap-3 text-sm">
+                                    <a href="{% url 'material_detail' item.slug %}" data-cta="hub_material_open" data-cta-location="hub_all" class="font-black text-orange-700 hover:text-orange-800 transition">Открыть →</a>
+                                    <span class="text-slate-500" data-nosnippet>{{ item.views_count }} просмотров</span>
+                                </div>
+                            </article>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="space-y-5 lg:sticky lg:top-24">
+                    {% if popular_items %}
+                    <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-soft">
+                        <h2 class="text-xl font-black">Популярное</h2>
+                        <div class="mt-4 space-y-3">
+                            {% for item in popular_items %}
+                            <a href="{% url 'material_detail' item.slug %}" data-cta="hub_popular_open" data-cta-location="hub_sidebar" class="block rounded-2xl bg-slate-50 border border-slate-200 p-4 hover:bg-orange-50 hover:border-orange-200 transition">
+                                <span class="text-xs font-black text-orange-600">{{ item.get_content_type_display }}</span>
+                                <span class="block font-bold text-slate-900 mt-1">{{ item.title|truncatechars:72 }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if other_hubs %}
+                    <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-soft">
+                        <h2 class="text-xl font-black">Ещё по предмету</h2>
+                        <div class="mt-4 space-y-3">
+                            {% for item in other_hubs %}
+                                {% if item.slug != hub.slug %}
+                                <a href="{{ item.url }}" data-cta="hub_related_hub_open" data-cta-location="hub_sidebar" class="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 hover:bg-sky-50 hover:border-sky-200 transition">
+                                    <span class="font-bold text-slate-900">{{ item.label }}</span>
+                                    <span class="text-xs font-black text-slate-500">{{ item.count }}</span>
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if other_subjects %}
+                    <div class="rounded-3xl bg-white border border-slate-200 p-6 shadow-soft">
+                        <h2 class="text-xl font-black">Другие предметы</h2>
+                        <div class="mt-4 space-y-3">
+                            {% for item in other_subjects %}
+                            <a href="{{ item.url }}" data-cta="hub_other_subject_open" data-cta-location="hub_sidebar" class="block rounded-2xl bg-slate-50 border border-slate-200 p-4 hover:bg-orange-50 hover:border-orange-200 transition">
+                                <span class="text-xs font-black text-orange-600">{{ item.label }}</span>
+                                <span class="block font-bold text-slate-900 mt-1">{{ item.title|truncatechars:72 }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </aside>
+            </div>
+        </section>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-16">
+            <div class="rounded-[2rem] p-6 sm:p-8 lg:p-10 text-white shadow-soft"
+                 style="background: linear-gradient(135deg, #f97316 0%, #ea580c 44%, #0f172a 100%);">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                    <div>
+                        <h2 class="text-3xl font-black">Хотите не просто читать, а получить результат?</h2>
+                        <p class="text-white/88 mt-2 max-w-2xl">Пробный урок поможет понять уровень, слабые темы и реальный план занятий по предмету «{{ subject.name }}».</p>
+                    </div>
+                    <a href="{{ hub.trial_url }}" data-cta="hub_trial_open" data-cta-location="hub_bottom" class="px-6 py-3 rounded-xl bg-white text-slate-950 font-black text-center hover:bg-orange-50 transition">{{ hub.primary_cta }}</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-950 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="font-black">SmartUrok</div>
+            <div class="flex flex-wrap gap-4 text-sm text-white/65">
+                <a href="{% url 'privacy_policy' %}" class="hover:text-white transition">Политика конфиденциальности</a>
+                <a href="{% url 'public_offer' %}" class="hover:text-white transition">Договор-оферта</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.smartMarketingConfig = {
+            pageType: 'materials_hub',
+            yandexCounterId: '{{ analytics.yandex_id|default_if_none:""|escapejs }}',
+            hasMetaPixel: {{ analytics.meta_pixel_id|yesno:"true,false" }}
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.smartMarketing && typeof window.smartMarketing.bindDefaults === 'function') {
+                window.smartMarketing.bindDefaults({
+                    defaultCtaLocation: 'materials_hub'
+                });
+            }
+            if (typeof window.smartTrackEvent === 'function') {
+                window.smartTrackEvent('material_hub_view', {
+                    hub_slug: '{{ hub.slug|escapejs }}',
+                    subject_slug: '{{ subject.slug|escapejs }}',
+                    materials_total: '{{ hub.materials_total }}'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

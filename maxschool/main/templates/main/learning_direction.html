@@ -302,6 +302,28 @@
                 <a href="{% url 'materials_list' %}" class="text-sm font-bold text-orange-700 hover:text-orange-800 transition">Открыть весь каталог →</a>
             </div>
 
+            {% if material_hubs %}
+            <div class="mb-6 rounded-3xl bg-slate-950 text-white p-5 sm:p-6 shadow-soft">
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-4">
+                    <div>
+                        <p class="text-sm font-bold text-orange-300">Подборки</p>
+                        <h3 class="text-2xl font-extrabold mt-1">Материалы по предметам</h3>
+                        <p class="text-white/70 mt-1 max-w-2xl">Эти страницы собирают статьи, тесты и разборы в один маршрут: ученику проще выбрать тему и перейти к практике.</p>
+                    </div>
+                    <a href="{% url 'materials_list' %}" class="text-sm font-bold text-orange-200 hover:text-white transition">Весь каталог →</a>
+                </div>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {% for hub_item in material_hubs %}
+                    <a href="{{ hub_item.url }}" data-cta="landing_material_hub_open" data-cta-location="landing_material_hubs" class="rounded-2xl bg-white/10 border border-white/12 p-4 hover:bg-white/15 transition">
+                        <div class="text-xs font-bold text-orange-200">{{ hub_item.label }}</div>
+                        <div class="font-extrabold mt-1">{{ hub_item.title }}</div>
+                        <div class="text-sm text-white/62 mt-2">{{ hub_item.count }} материалов</div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             {% if materials %}
             <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
                 {% for item in materials %}

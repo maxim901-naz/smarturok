@@ -23,6 +23,7 @@ from django.views.generic import TemplateView
 
 from main.sitemaps import (
     MaterialCategorySitemap,
+    MaterialHubSitemap,
     MaterialItemSitemap,
     StaticViewSitemap,
     SubjectSitemap,
@@ -34,6 +35,7 @@ sitemaps = {
     'static': StaticViewSitemap,
     'subjects': SubjectSitemap,
     'materials': MaterialCategorySitemap,
+    'material_hubs': MaterialHubSitemap,
     'material_items': MaterialItemSitemap,
 }
 

@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.http import Http404
 
 from accounts.models import BalanceTopUpRequest, CustomUser, TrialRequest, Subject
+from .material_hubs import MATERIAL_HUBS, material_hub_queryset, material_hub_url
 from .models import HomeSuccessStory, MaterialCategory, MaterialItem, MaterialTestAttempt, Review
 from .test_engine import (
     build_public_questions,
@@ -141,7 +142,6 @@ EXAM_SEARCH_ALIASES = {
     'впр': 'school',
     'мцко': 'school',
 }
-
 LEARNING_LANDINGS = {
     'oge': {
         'url_name': 'oge_landing',
@@ -452,6 +452,88 @@ def _landing_material_filter(slug):
     return Q()
 
 
+def _build_material_hub_context(hub_slug, subject, materials_total):
+    hub = dict(MATERIAL_HUBS[hub_slug])
+    hub['slug'] = hub_slug
+    hub['subject'] = subject
+    hub['title'] = hub['title_template'].format(subject=subject.name)
+    hub['meta_description'] = hub['meta_template'].format(subject=subject.name)[:160]
+    hub['hero_text'] = hub['hero_text_template'].format(subject=subject.name)
+    hub['url'] = material_hub_url(hub_slug, subject)
+    hub['canonical_url'] = f"https://smarturok.ru{hub['url']}"
+    hub['trial_url'] = f"{reverse('trial')}?interest={hub['trial_interest']}"
+    hub['direction_url'] = reverse(LEARNING_LANDINGS[hub['direction_slug']]['url_name'])
+    hub['direction_title'] = LEARNING_LANDINGS[hub['direction_slug']]['eyebrow']
+    hub['materials_total'] = materials_total
+    return hub
+
+
+def _material_hub_link(hub_slug, subject, count=None):
+    if hub_slug not in MATERIAL_HUBS or not subject or not subject.slug:
+        return None
+
+    materials_count = material_hub_queryset(hub_slug, subject).count() if count is None else count
+    if materials_count <= 0:
+        return None
+
+    hub = MATERIAL_HUBS[hub_slug]
+    return {
+        'slug': hub_slug,
+        'label': hub['label'],
+        'title': hub['title_template'].format(subject=subject.name),
+        'url': material_hub_url(hub_slug, subject),
+        'count': materials_count,
+    }
+
+
+def _subject_material_hub_links(subject, limit=4):
+    links = []
+    for hub_slug in ('oge', 'ege', 'vpr', 'school'):
+        link = _material_hub_link(hub_slug, subject)
+        if link:
+            links.append(link)
+    return links[:limit]
+
+
+def _landing_material_hub_links(landing_slug, subjects, limit=8):
+    hub_slugs_by_landing = {
+        'oge': ('oge',),
+        'ege': ('ege',),
+        'vpr': ('vpr',),
+        'school-subjects': ('school',),
+        'english': ('school', 'oge', 'ege'),
+    }
+    hub_slugs = hub_slugs_by_landing.get(landing_slug, ('school',))
+
+    links = []
+    seen = set()
+    for hub_slug in hub_slugs:
+        for subject in subjects:
+            key = (hub_slug, subject.pk)
+            if key in seen:
+                continue
+            seen.add(key)
+            link = _material_hub_link(hub_slug, subject)
+            if link:
+                links.append(link)
+            if len(links) >= limit:
+                return links
+    return links
+
+
+def _material_hub_for_material(material):
+    if not material.subject_id or not getattr(material.subject, 'slug', ''):
+        return None
+
+    if material.exam_type == 'oge':
+        return _material_hub_link('oge', material.subject)
+    if material.exam_type == 'ege':
+        return _material_hub_link('ege', material.subject)
+    if material_hub_queryset('vpr', material.subject).filter(pk=material.pk).exists():
+        return _material_hub_link('vpr', material.subject)
+    return _material_hub_link('school', material.subject)
+
+
 def _landing_materials(slug, limit=8):
     queryset = (
         _published_materials_qs()
@@ -557,11 +639,13 @@ def learning_direction(request, slug):
     landing['url'] = reverse(landing['url_name'])
     landing['canonical_url'] = f"https://smarturok.ru{landing['url']}"
     landing['trial_url'] = f"{reverse('trial')}?interest={landing['trial_interest']}"
+    subjects = _landing_subjects(slug, landing)
 
     return render(request, 'main/learning_direction.html', {
         'landing': landing,
         'materials': _landing_materials(slug),
-        'subjects': _landing_subjects(slug, landing),
+        'subjects': subjects,
+        'material_hubs': _landing_material_hub_links(slug, subjects),
         'related_landings': _landing_links(exclude_slug=slug),
         'analytics': _analytics_context(),
     })
@@ -938,6 +1022,63 @@ def materials_category(request, slug):
     })
 
 
+def materials_hub(request, hub_slug, subject_slug):
+    if hub_slug not in MATERIAL_HUBS:
+        raise Http404('Material hub not found')
+
+    subject = get_object_or_404(Subject, slug=subject_slug)
+    base_items = material_hub_queryset(hub_slug, subject)
+    materials_total = base_items.count()
+    if materials_total <= 0:
+        raise Http404('No materials for this hub yet')
+
+    theory_items = list(_order_materials(base_items.filter(content_type__in=THEORY_CONTENT_TYPES))[:8])
+    test_items = list(_order_materials(base_items.filter(content_type='test'))[:8])
+    task_items = list(
+        base_items
+        .exclude(task_number__isnull=True)
+        .order_by(F('task_number').asc(nulls_last=True), '-published_at', '-created_at')[:12]
+    )
+    popular_items = list(base_items.order_by('-views_count', '-published_at', '-created_at')[:6])
+    latest_items = list(_order_materials(base_items)[:36])
+    grade_options = list(
+        base_items
+        .exclude(grade__isnull=True)
+        .values_list('grade', flat=True)
+        .distinct()
+        .order_by('grade')
+    )
+    other_subject_candidates = (
+        Subject.objects
+        .exclude(pk=subject.pk)
+        .exclude(slug__isnull=True)
+        .exclude(slug='')
+        .order_by('name')[:12]
+    )
+    other_subjects = _landing_material_hub_links(
+        MATERIAL_HUBS[hub_slug]['direction_slug'],
+        other_subject_candidates,
+        limit=8,
+    )
+
+    return render(request, 'main/materials_hub.html', {
+        'hub': _build_material_hub_context(hub_slug, subject, materials_total),
+        'subject': subject,
+        'theory_items': theory_items,
+        'test_items': test_items,
+        'task_items': task_items,
+        'popular_items': popular_items,
+        'latest_items': latest_items,
+        'grade_options': grade_options,
+        'theory_count': base_items.filter(content_type__in=THEORY_CONTENT_TYPES).count(),
+        'test_count': base_items.filter(content_type='test').count(),
+        'task_count': base_items.exclude(task_number__isnull=True).count(),
+        'other_hubs': _subject_material_hub_links(subject),
+        'other_subjects': other_subjects,
+        'analytics': _analytics_context(),
+    })
+
+
 def material_detail(request, slug):
     material = get_object_or_404(_published_materials_qs(), slug=slug)
 
@@ -1107,6 +1248,7 @@ def material_detail(request, slug):
         'related_test': related_test,
         'related_materials': related_materials,
         'material_faq_items': material_faq_items,
+        'material_hub_link': _material_hub_for_material(material),
     })
 
 def subject_detail(request, slug):
@@ -1211,6 +1353,7 @@ def subject_detail(request, slug):
         'page_description': page_description,
         'subject_materials': subject_materials,
         'subject_materials_total': subject_materials_total,
+        'subject_material_hubs': _subject_material_hub_links(subject),
         'subject_faq_items': subject_faq_items,
         'subject_direction_links': _subject_direction_links(subject),
         'analytics': _analytics_context(),

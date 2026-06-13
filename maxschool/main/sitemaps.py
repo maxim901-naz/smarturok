@@ -2,6 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
 from accounts.models import Subject
+from .material_hubs import MATERIAL_HUBS, MATERIAL_HUB_SITEMAP_MIN_ITEMS, material_hub_queryset
 from .models import MaterialCategory, MaterialItem
 
 
@@ -67,6 +68,44 @@ class MaterialCategorySitemap(Sitemap):
             .values_list("updated_at", flat=True)
             .first()
         )
+
+
+class MaterialHubSitemap(Sitemap):
+    changefreq = "weekly"
+
+    def items(self):
+        items = []
+        subjects = Subject.objects.exclude(slug__isnull=True).exclude(slug="").order_by("id")
+        for hub_slug in MATERIAL_HUBS:
+            for subject in subjects:
+                queryset = material_hub_queryset(hub_slug, subject)
+                if queryset.count() < MATERIAL_HUB_SITEMAP_MIN_ITEMS:
+                    continue
+                items.append({
+                    "hub_slug": hub_slug,
+                    "subject_slug": subject.slug,
+                    "lastmod": (
+                        queryset
+                        .order_by("-updated_at", "-published_at", "-created_at")
+                        .values_list("updated_at", flat=True)
+                        .first()
+                    ),
+                })
+        return items
+
+    def location(self, item):
+        return reverse("materials_hub", kwargs={
+            "hub_slug": item["hub_slug"],
+            "subject_slug": item["subject_slug"],
+        })
+
+    def lastmod(self, item):
+        return item["lastmod"]
+
+    def priority(self, item):
+        if item["hub_slug"] in {"oge", "ege"}:
+            return 0.85
+        return 0.75
 
 
 class MaterialItemSitemap(Sitemap):
